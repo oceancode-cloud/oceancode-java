@@ -7,7 +7,7 @@ package com.oceancode.cloud.api.session;
 /**
  * @author qinjiawang
  */
-public interface SessionService {
+public interface SessionService  {
     /**
      * check user whether login
      *
@@ -18,19 +18,16 @@ public interface SessionService {
     /**
      * get login user data info
      *
-     * @param dataTypeClass user data type class
-     * @param <T>           data type
      * @return user info
      */
-    <T> UserInfo<T> getUserInfo(Class<T> dataTypeClass);
+    <T>T getUserInfo();
 
     /**
      * set user session info
      *
      * @param userInfo user info
-     * @param <T>      user data type
      */
-    <T> void setUserInfo(UserInfo<T> userInfo);
+    <T>void setUserInfo(UserInfo<T> userInfo);
 
     /**
      * logout

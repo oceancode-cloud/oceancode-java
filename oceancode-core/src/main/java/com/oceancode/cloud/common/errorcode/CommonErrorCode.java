@@ -100,6 +100,7 @@ public enum CommonErrorCode implements ErrorCode {
      * Authorization Bearer invalid
      */
     AUTHORIZATION_INVALID(CommonConst.CLIENT_ERROR_CODE_PREFIX + "authorization.invalid", "Authorization invalid"),
+    AUTHORIZATION_MISSING(CommonConst.CLIENT_ERROR_CODE_PREFIX + "authorization.missing", "Authorization missing"),
 
     /**
      * Access Denied

@@ -4,8 +4,6 @@
 
 package com.oceancode.cloud.common.util;
 
-import com.oceancode.cloud.models.entity.ResultData;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -50,11 +48,6 @@ public final class ValueUtil {
 
     public static boolean isEmpty(Map<?,?> map) {
         return map == null || map.isEmpty();
-    }
-
-
-    public static boolean isEmpty(ResultData<?> result) {
-        return result == null || result.getResults() == null;
     }
 
     public static boolean isNotEmpty(String value) {
