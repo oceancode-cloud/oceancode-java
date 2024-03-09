@@ -1,9 +1,8 @@
 package com.oceancode.cloud.api.security;
 
-public interface PasswordCryptoService extends CryptoService<String, String> {
+public interface PasswordCryptoService {
 
-    @Override
-    default String decode(String input) {
-        return null;
-    }
+    String encode(String input);
+
+    boolean matches(String raw, String encoded);
 }

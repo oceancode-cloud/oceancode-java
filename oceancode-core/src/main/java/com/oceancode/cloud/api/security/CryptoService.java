@@ -1,10 +1,8 @@
 package com.oceancode.cloud.api.security;
 
-public interface CryptoService<T, R> {
+public interface CryptoService<T,R> {
 
-    R encode(T input);
+    R encrypt(T input,String key);
 
-    T decode(R input);
-
-    boolean matches(T raw, R encoded);
+    R decrypt(T input,String key);
 }

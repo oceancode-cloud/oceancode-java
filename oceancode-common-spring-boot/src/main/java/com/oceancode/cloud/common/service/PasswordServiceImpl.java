@@ -14,9 +14,4 @@ public final class PasswordServiceImpl implements PasswordCryptoService {
     public boolean matches(String raw, String encoded) {
         return PasswordUtil.matches(raw, encoded);
     }
-
-    @Override
-    public String decode(String input) {
-        return null;
-    }
 }
