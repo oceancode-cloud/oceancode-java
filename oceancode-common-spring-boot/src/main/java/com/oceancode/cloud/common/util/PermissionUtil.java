@@ -44,6 +44,11 @@ public final class PermissionUtil {
         }
         int matchCount = 0;
         for (String authority : authorities) {
+            if (PermissionConst.AUTHORITY_LOGIN.equals(authority) ||
+                    PermissionConst.AUTHORITY_UN_LOGIN.equals(authority)) {
+                matchCount++;
+                continue;
+            }
             if (userAuthorities.contains(authority)) {
                 matchCount++;
                 if (!isAnd) {

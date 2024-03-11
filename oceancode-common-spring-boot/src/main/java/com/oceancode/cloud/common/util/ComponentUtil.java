@@ -8,7 +8,7 @@ import com.oceancode.cloud.api.TypeEnum;
 import com.oceancode.cloud.api.strategy.StrategyAdaptor;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
-import com.oceancode.cloud.function.BaseFunction;
+import com.oceancode.cloud.function.RemoteFunction;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
@@ -73,7 +73,7 @@ public final class ComponentUtil implements ApplicationContextAware {
         return applicationContext;
     }
 
-    public static <T extends BaseFunction> T getFunction(Class<T> serviceClass) {
+    public static <T extends RemoteFunction> T getFunction(Class<T> serviceClass) {
         return getBean(serviceClass);
     }
 }
