@@ -52,7 +52,7 @@ public class ResultData<T> implements Result<T> {
     }
 
     public ResultData<T> code(ErrorCode errorCode) {
-        setCode(errorCode.getCode());
+        setCode(errorCode.getShortCode());
         setMessage(errorCode.getMessage());
         return this;
     }
@@ -69,7 +69,7 @@ public class ResultData<T> implements Result<T> {
 
     @JsonIgnore
     public boolean isSuccess() {
-        return CommonErrorCode.SUCCESS.getCode().equals(getCode());
+        return CommonErrorCode.SUCCESS.getShortCode().equals(getCode());
     }
 
     public T getResults() {

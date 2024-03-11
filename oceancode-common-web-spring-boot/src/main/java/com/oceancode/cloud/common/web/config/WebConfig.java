@@ -4,6 +4,7 @@
 
 package com.oceancode.cloud.common.web.config;
 
+import com.oceancode.cloud.api.permission.ApiPermissionService;
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.util.ComponentUtil;
@@ -24,6 +25,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -40,7 +42,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Bean
     @ConditionalOnMissingBean(SessionService.class)
-    public SessionService sessionService(){
+    public SessionService sessionService() {
         return new WebSessionServiceImpl();
     }
 
@@ -57,8 +59,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new AuthenticationInterceptor(commonConfig, ComponentUtil.getBean(SessionService.class)));
+        registry.addInterceptor(new AuthenticationInterceptor(commonConfig))
+                .addPathPatterns("/**").order(1);
     }
+
 
     @Bean
     @ConditionalOnExpression(value = "'${server.ssl.key-store}'.trim()!='' and '${server.http2.enabled}'=='true'")

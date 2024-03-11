@@ -105,8 +105,8 @@ public enum CommonErrorCode implements ErrorCode {
     /**
      * Access Denied
      */
-    ACCESS_DENIED(CommonConst.CLIENT_ERROR_CODE_PREFIX + "access.denied", "Access Denied");
-
+    ACCESS_DENIED(CommonConst.CLIENT_ERROR_CODE_PREFIX + "access.denied", "Access Denied"),
+    PERMISSION_DENIED(CommonConst.CLIENT_ERROR_CODE_PREFIX + "permission.denied", "Permission Denied");
     /**
      * errorCode
      */

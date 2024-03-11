@@ -6,89 +6,60 @@ package com.oceancode.cloud.common.web.config;
 
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.common.config.CommonConfig;
-import com.oceancode.cloud.common.errorcode.CommonErrorCode;
-import com.oceancode.cloud.common.exception.BusinessRuntimeException;
+import com.oceancode.cloud.common.constant.CommonConst;
 import com.oceancode.cloud.common.util.SessionUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.common.web.util.ApiUtil;
+import org.slf4j.MDC;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
-import java.util.List;
+import java.util.UUID;
 
 public class AuthenticationInterceptor implements HandlerInterceptor {
     private CommonConfig commonConfig;
-    private SessionService sessionService;
-    private static final List<String> UNAUTHENTICATED_URLS =
-            Arrays.asList(
-                    "/ping", "/favicon.ico","/error"
-            );
 
-    public AuthenticationInterceptor(CommonConfig commonConfig, SessionService sessionService) {
+    public AuthenticationInterceptor(CommonConfig commonConfig) {
         this.commonConfig = commonConfig;
-        this.sessionService = sessionService;
     }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String requestUrl = request.getRequestURI();
-        if (requestUrl.equals("/")) {
-            response.sendRedirect(commonConfig.getHomeUrl());
-            return false;
+        if (requestUrl.startsWith(CommonConst.API_PREFIX)) {
+            MDC.put(CommonConst.TRACE_ID, UUID.randomUUID().toString());
+            return doApiHandler(request);
         }
-        String prefix = requestUrl;
-        if (requestUrl.startsWith("/")) {
-            if (prefix.startsWith("/")) {
-                prefix = prefix.substring(1);
-            }
-            if (prefix.contains("/")) {
-                prefix = "/" + prefix.substring(0, prefix.indexOf("/") + 1);
-            }
-        }
-
-        List<String> prefixUrls = commonConfig.getStripPrefixes();
-        if (prefixUrls.contains(prefix) && !requestUrl.startsWith("/api/")) {
-            int pos = prefixUrls.indexOf(prefix);
-            if (pos >= 0) {
-                String apiPrefix = prefixUrls.get(pos);
-                String targetUrl = requestUrl.substring(apiPrefix.length() - 1);
-                request.getRequestDispatcher(targetUrl).forward(request, response);
-                return true;
-            }
-        } else if (isStaticResource(prefix)) {
-            return true;
-        }
-        ApiUtil.processCommonArguments(request);
-        if (UNAUTHENTICATED_URLS.contains(requestUrl)) {
-            return true;
-        }
-        if (!commonConfig.isStandalone() && !commonConfig.isAuthWithToken()) {
-            String userId = request.getHeader("x-user-id");
-            if (ValueUtil.isEmpty(userId)) {
-                userId = request.getParameter("x-user-id");
-            }
-            if (ValueUtil.isEmpty(userId)) {
-                throw new BusinessRuntimeException(CommonErrorCode.NOT_LOGIN);
-            }
-            SessionUtil.setUserId(Long.parseLong(userId));
-            return true;
-        }
-        boolean ret = sessionService.isLogin();
-        if (ret) {
-            return true;
-        }
-
-        throw new BusinessRuntimeException(CommonErrorCode.NOT_LOGIN);
+        return true;
     }
 
-    private boolean isStaticResource(String prefix) {
-        return commonConfig.getResourcePrefix().contains(prefix);
+    private boolean doApiHandler(HttpServletRequest request) {
+        ApiUtil.processCommonArguments(request);
+        if (commonConfig.isMicroService()) {
+            String userId = request.getHeader(CommonConst.X_USER_ID);
+            if (ValueUtil.isEmpty(userId)) {
+                userId = request.getParameter(CommonConst.X_USER_ID);
+            }
+            if (ValueUtil.isNotEmpty(userId)) {
+                SessionUtil.setUserId(Long.parseLong(userId));
+            }
+
+            String requestId = request.getHeader(CommonConst.X_REQUEST_ID);
+            if (ValueUtil.isEmpty(requestId)) {
+                requestId = request.getParameter(CommonConst.X_REQUEST_ID);
+            }
+            if (ValueUtil.isNotEmpty(requestId)) {
+                MDC.put(CommonConst.REQUEST_ID, requestId);
+            }
+        }
+        return true;
     }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         SessionUtil.remove();
+        MDC.remove(CommonConst.TRACE_ID);
+        MDC.remove(CommonConst.REQUEST_ID);
     }
 }

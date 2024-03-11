@@ -4,6 +4,7 @@
 
 package com.oceancode.cloud.common.web.util;
 
+import com.oceancode.cloud.common.constant.CommonConst;
 import com.oceancode.cloud.common.entity.PartFile;
 import com.oceancode.cloud.common.entity.ResultData;
 import com.oceancode.cloud.common.entity.TextFileContent;
@@ -62,11 +63,11 @@ public final class ApiUtil {
      * @param request HttpServletRequest
      */
     public static void processCommonArguments(HttpServletRequest request) {
-        String projectId = request.getHeader("x-project-id");
+        String projectId = request.getHeader(CommonConst.X_PROJECT_ID);
         if (ValueUtil.isNotEmpty(projectId)) {
             SessionUtil.setProjectId(Long.parseLong(projectId));
         }
-        String tenantId = request.getHeader("x-tenant-id");
+        String tenantId = request.getHeader(CommonConst.X_TENANT_ID);
         if (ValueUtil.isNotEmpty(tenantId)) {
             SessionUtil.setTenantId(Long.parseLong(tenantId));
         }
@@ -295,6 +296,9 @@ public final class ApiUtil {
     }
 
     public static Object getSession(String key) {
+        if (key == null) {
+            return null;
+        }
         return getRequest().getSession().getAttribute(key);
     }
 

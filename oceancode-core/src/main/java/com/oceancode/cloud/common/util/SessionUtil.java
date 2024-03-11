@@ -12,6 +12,9 @@ public final class SessionUtil {
     private final static ThreadLocal<Long> PROJECT_ID = new ThreadLocal<>();
     private final static ThreadLocal<Long> TENANT_ID = new ThreadLocal<>();
 
+    private SessionUtil() {
+    }
+
     public static void setUserId(Long userId) {
         USER_ID.set(userId);
     }

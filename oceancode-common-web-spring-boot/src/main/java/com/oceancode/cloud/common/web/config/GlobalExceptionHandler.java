@@ -34,6 +34,8 @@ public class GlobalExceptionHandler {
                     .message(businessRuntimeException.getMessage());
             if (CommonErrorCode.NOT_LOGIN.equals(businessRuntimeException.getCode())) {
                 ApiUtil.getResponse().setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            } else if (CommonErrorCode.PERMISSION_DENIED.equals(businessRuntimeException.getCode())) {
+                ApiUtil.getResponse().setStatus(HttpServletResponse.SC_FORBIDDEN);
             } else {
                 ApiUtil.getResponse().setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }

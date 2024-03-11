@@ -9,7 +9,7 @@ import com.oceancode.cloud.api.ErrorCode;
 /**
  * @author qinjiawang
  */
-public class BusinessRuntimeException extends ErrorCodeRuntimeException{
+public class BusinessRuntimeException extends ErrorCodeRuntimeException {
 
     private ErrorCode code;
 
@@ -39,7 +39,7 @@ public class BusinessRuntimeException extends ErrorCodeRuntimeException{
 
     @Override
     public String getErrorCode() {
-        return code.getCode();
+        return code.getShortCode();
     }
 
     @Override

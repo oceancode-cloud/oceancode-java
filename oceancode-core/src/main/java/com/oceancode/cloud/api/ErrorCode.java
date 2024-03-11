@@ -21,6 +21,10 @@ public interface ErrorCode {
      */
     String getCode();
 
+    default String getShortCode() {
+        return getCode();
+    }
+
     /**
      * error message
      *
