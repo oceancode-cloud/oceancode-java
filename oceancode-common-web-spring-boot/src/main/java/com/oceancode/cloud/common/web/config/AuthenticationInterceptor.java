@@ -29,6 +29,8 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         String requestUrl = request.getRequestURI();
         if (requestUrl.startsWith(CommonConst.API_PREFIX)) {
             MDC.put(CommonConst.TRACE_ID, UUID.randomUUID().toString());
+            MDC.put(CommonConst.SERVICE_NAME, commonConfig.getServiceName());
+            MDC.put(CommonConst.INSTANCE_NAME, commonConfig.getInstanceName());
             return doApiHandler(request);
         }
         return true;
@@ -59,7 +61,6 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         SessionUtil.remove();
-        MDC.remove(CommonConst.TRACE_ID);
-        MDC.remove(CommonConst.REQUEST_ID);
+        MDC.clear();
     }
 }

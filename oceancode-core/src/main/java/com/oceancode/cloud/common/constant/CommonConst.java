@@ -17,5 +17,7 @@ public class CommonConst {
     public static final String X_USER_ID = "x-user-id";
     public static final String X_REQUEST_ID = "x-request-id";
     public static final String REQUEST_ID = "requestId";
+    public static final String SERVICE_NAME = "serviceName";
+    public static final String INSTANCE_NAME = "instanceName";
     public static final int DEFAULT_RESULT_RECORDS_SIZE = 3000;
 }

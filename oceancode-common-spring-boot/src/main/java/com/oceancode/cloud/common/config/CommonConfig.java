@@ -11,10 +11,13 @@ import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.TypeUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -31,9 +34,19 @@ public class CommonConfig {
     @Value("${server.port:8080}")
     private Integer httpsPort;
 
+    @Value("${spring.application.name:}")
+    private String applicationName;
+
+    private String instanceName;
+
+    @Resource
+    private ServerProperties serverProperties;
+
+
     private static List<String> stripPrefixes;
 
     private static List<String> resourcePrefix;
+
 
     public String getValue(String key, String defaultValue) {
         String val = environment.getProperty(key);
@@ -169,5 +182,21 @@ public class CommonConfig {
         return Objects.nonNull(httpsPort) && Objects.nonNull(port)
                 && ValueUtil.isNotEmpty(getValue("server.ssl.key-store"))
                 && isTrue("server.http2.enabled", false);
+    }
+
+    public String getServiceName() {
+        return this.applicationName;
+    }
+
+    public String getInstanceName() {
+        if (Objects.nonNull(this.instanceName)) {
+            return this.instanceName;
+        }
+        try {
+            this.instanceName = InetAddress.getLocalHost().getHostAddress() + ":" + serverProperties.getPort();
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
+        return this.instanceName;
     }
 }
