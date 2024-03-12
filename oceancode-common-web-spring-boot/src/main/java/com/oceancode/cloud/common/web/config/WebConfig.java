@@ -4,11 +4,15 @@
 
 package com.oceancode.cloud.common.web.config;
 
+import com.oceancode.cloud.api.cache.LocalCacheService;
+import com.oceancode.cloud.api.cache.RedisCacheService;
 import com.oceancode.cloud.api.permission.ApiPermissionService;
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.SystemUtil;
+import com.oceancode.cloud.common.web.service.CaffeineSessionServiceImpl;
+import com.oceancode.cloud.common.web.service.RedisSessionServiceImpl;
 import com.oceancode.cloud.common.web.service.WebSessionServiceImpl;
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
@@ -16,8 +20,7 @@ import io.undertow.servlet.api.SecurityConstraint;
 import io.undertow.servlet.api.SecurityInfo;
 import io.undertow.servlet.api.TransportGuaranteeType;
 import io.undertow.servlet.api.WebResourceCollection;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.ApplicationContext;
@@ -46,6 +49,19 @@ public class WebConfig implements WebMvcConfigurer {
         return new WebSessionServiceImpl();
     }
 
+    @Bean
+    @ConditionalOnMissingBean(SessionService.class)
+    @ConditionalOnBean(LocalCacheService.class)
+    public SessionService caffeineSessionService() {
+        return new CaffeineSessionServiceImpl(commonConfig, ComponentUtil.getBean(LocalCacheService.class));
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(SessionService.class)
+    @ConditionalOnBean(RedisCacheService.class)
+    public SessionService redisSessionService() {
+        return new RedisSessionServiceImpl(commonConfig, ComponentUtil.getBean(RedisCacheService.class));
+    }
     /**
      * 静态资源处理
      **/

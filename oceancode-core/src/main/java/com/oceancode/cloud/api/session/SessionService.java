@@ -4,10 +4,14 @@
 
 package com.oceancode.cloud.api.session;
 
+import com.oceancode.cloud.api.MapTransfer;
+
+import java.util.Map;
+
 /**
  * @author qinjiawang
  */
-public interface SessionService  {
+public interface SessionService {
     /**
      * check user whether login
      *
@@ -20,14 +24,14 @@ public interface SessionService  {
      *
      * @return user info
      */
-    <T>T getUserInfo();
+    Map<String, Object> getUserInfo();
 
     /**
      * set user session info
      *
      * @param userInfo user info
      */
-    <T>void setUserInfo(UserInfo<T> userInfo);
+    void setUserInfo(UserInfo userInfo);
 
     /**
      * logout

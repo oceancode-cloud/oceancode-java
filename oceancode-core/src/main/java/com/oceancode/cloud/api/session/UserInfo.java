@@ -4,16 +4,19 @@
 
 package com.oceancode.cloud.api.session;
 
+import com.oceancode.cloud.api.MapTransfer;
+
+import java.util.Map;
+
 /**
- * @author qinjiawang
  * @param <T> user data
+ * @author qinjiawang
  */
-public class UserInfo<T> {
+public class UserInfo {
     private Long id;
 
     private String token;
-
-    private T detail;
+    private Map<String,Object> detail;
 
     public Long getId() {
         return id;
@@ -31,11 +34,11 @@ public class UserInfo<T> {
         this.token = token;
     }
 
-    public T getDetail() {
+    public Map<String, Object> getDetail() {
         return detail;
     }
 
-    public void setDetail(T detail) {
+    public void setDetail(Map<String, Object> detail) {
         this.detail = detail;
     }
 }

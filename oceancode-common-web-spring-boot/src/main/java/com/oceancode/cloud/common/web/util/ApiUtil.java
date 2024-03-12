@@ -182,6 +182,10 @@ public final class ApiUtil {
         throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
     }
 
+    public static String getToken() {
+        return getToken(getAuthorizationToken());
+    }
+
     private static String getContentTypeByFileType(String fileType) {
         if ("xlsx".equalsIgnoreCase(fileType)) {
             return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";

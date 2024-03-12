@@ -4,58 +4,92 @@
 
 package com.oceancode.cloud.common.web.util;
 
+import com.oceancode.cloud.api.session.TokenInfo;
+import com.oceancode.cloud.common.config.CommonConfig;
+import com.oceancode.cloud.common.config.Config;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
+import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.Md5Util;
 import com.oceancode.cloud.common.util.ValueUtil;
-import org.springframework.util.StringUtils;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 
-import java.util.UUID;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public final class TokenUtil {
 
     private TokenUtil() {
     }
 
-    public static String createUserToken(String param) {
-        String deviceUid = getShortMd5Str(getDeviceUid());
-        String userUid = getShortMd5Str(Md5Util.md5(ValueUtil.isEmpty(param) ? "empty" : param));
-        String uuid = UUID.randomUUID().toString().replace("-", "");
-        String lengthUid = deviceUid.length() + "." + userUid.length();
-        String token = deviceUid + userUid + getShortMd5Str(Md5Util.md5(lengthUid));
-        String tempToken = "ojy5" + getShortMd5Str(Md5Util.md5(token));
-        return tempToken + "." + uuid + "." + getShortMd5Str(Md5Util.md5(token));
-    }
-
-    public static boolean checkUserToken(String token, String param) {
-        if (ValueUtil.isEmpty(token) || !token.startsWith("ojy5")) {
-            return false;
-        }
-        String[] tokens = StringUtils.tokenizeToStringArray(token, ".");
-        if (tokens.length != 3) {
-            return false;
-        }
-        String uuid = tokens[1];
-        if (ValueUtil.isEmpty(uuid) || uuid.length() != 32) {
-            return false;
+    public static String createUserToken(TokenInfo tokenInfo) {
+        if (tokenInfo == null || tokenInfo.getUserId() == null) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "userId is required.");
         }
         String deviceUid = getShortMd5Str(getDeviceUid());
-        String userUid = getShortMd5Str(Md5Util.md5(ValueUtil.isEmpty(param) ? "empty" : param));
-        String lengthUid = deviceUid.length() + "." + userUid.length();
-        String currentToken = deviceUid + userUid + getShortMd5Str(Md5Util.md5(lengthUid));
-        String tempToken = "ojy5" + getShortMd5Str(Md5Util.md5(currentToken));
-        if (!tempToken.equals(tokens[0])) {
-            return false;
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("deviceUid", deviceUid);
+        claims.put("token", ValueUtil.isEmpty(tokenInfo.getToken()) ? UUID.randomUUID().toString().replace("-", "") : tokenInfo.getToken());
+        claims.put("userId", tokenInfo.getUserId());
+        if (Objects.nonNull(tokenInfo.getBody())) {
+            claims.put("body", tokenInfo.getBody());
         }
-        if (!getShortMd5Str(Md5Util.md5(currentToken)).equals(tokens[2])) {
-            return false;
-        }
+        CommonConfig commonConfig = ComponentUtil.getBean(CommonConfig.class);
+        String secret = commonConfig
+                .getValue(Config.Cache.SESSION_TOKEN_SECRET);
 
-        return true;
+        return createJWT(secret, commonConfig.getValueAsLong(Config.Cache.SESSION_TOKEN_EXPIRE, 600000L), claims);
     }
+
+    /**
+     * 生成jwt
+     * 使用Hs256算法, 私匙使用固定秘钥
+     *
+     * @param secretKey jwt秘钥
+     * @param ttlMillis jwt过期时间(毫秒)
+     * @param claims    设置的信息
+     * @return
+     */
+    private static String createJWT(String secretKey, long ttlMillis, Map<String, Object> claims) {
+        // 指定签名的时候使用的签名算法，也就是header那部分
+        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+        // 生成JWT的时间
+        long expMillis = System.currentTimeMillis() + ttlMillis;
+        Date exp = new Date(expMillis);
+        // 设置jwt的body
+        JwtBuilder builder = Jwts.builder()
+                // 如果有私有声明，一定要先设置这个自己创建的私有的声明，这个是给builder的claim赋值，一旦写在标准的声明赋值之后，就是覆盖了那些标准的声明的
+                .setClaims(claims)
+                // 设置签名使用的签名算法和签名使用的秘钥
+                .signWith(signatureAlgorithm, secretKey.getBytes(StandardCharsets.UTF_8))
+                // 设置过期时间
+                .setExpiration(exp);
+        return builder.compact();
+    }
+
+    /**
+     * Token解密
+     *
+     * @param secretKey jwt秘钥 此秘钥一定要保留好在服务端, 不能暴露出去, 否则sign就可以被伪造, 如果对接多个客户端建议改造成多个
+     * @param token     加密后的token
+     * @return
+     */
+    private static Claims parseJWT(String secretKey, String token) {
+        // 得到DefaultJwtParser
+        Claims claims = Jwts.parser()
+                // 设置签名的秘钥
+                .setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8))
+                // 设置需要解析的jwt
+                .parseClaimsJws(token).getBody();
+        return claims;
+    }
+
 
     private static String getShortMd5Str(String str) {
-        return str.substring(0, 3) + str.substring(5, 7) + str.substring(9, 12) + str.substring(str.length() - 2) + "9";
+        return Md5Util.md5(str);
     }
 
     private static String getDeviceUid() {
@@ -68,14 +102,31 @@ public final class TokenUtil {
         return sb.toString();
     }
 
-    public static String parseToken(String authorization) {
-        if (ValueUtil.isEmpty(authorization)) {
-            return null;
+    public static TokenInfo parseToken(String token) {
+        if (ValueUtil.isEmpty(token)) {
+            throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
         }
-        String token = authorization.trim();
-        if (token.startsWith("Bearer ")) {
-            return token.substring("Bearer ".length()).trim();
+
+        CommonConfig commonConfig = ComponentUtil.getBean(CommonConfig.class);
+        String secret = commonConfig
+                .getValue(Config.Cache.SESSION_TOKEN_SECRET);
+        Map<String, Object> claims = parseJWT(secret, token);
+        if (!claims.containsKey("userId") || ValueUtil.isEmpty((String) claims.get("token"))) {
+            throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
         }
-        throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
+        Long userId = (Long) claims.get("userId");
+        if (Objects.isNull(userId) || userId <= 0) {
+            throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
+        }
+        String deviceUid = getShortMd5Str(getDeviceUid());
+        if (!deviceUid.equals(claims.get("deviceUid"))) {
+            throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
+        }
+
+        TokenInfo tokenInfo = new TokenInfo();
+        tokenInfo.setUserId(userId);
+        tokenInfo.setToken((String) claims.get("token"));
+        tokenInfo.setBody((Map<String, Object>) claims.get("body"));
+        return tokenInfo;
     }
 }

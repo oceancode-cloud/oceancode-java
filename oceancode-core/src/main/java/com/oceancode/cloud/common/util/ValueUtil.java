@@ -4,6 +4,10 @@
 
 package com.oceancode.cloud.common.util;
 
+import com.oceancode.cloud.api.TypeEnum;
+
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -46,8 +50,16 @@ public final class ValueUtil {
         return collection == null || collection.isEmpty();
     }
 
-    public static boolean isEmpty(Map<?,?> map) {
+    public static boolean isEmpty(Map<?, ?> map) {
         return map == null || map.isEmpty();
+    }
+
+    public static boolean isEmpty(Timestamp timestamp) {
+        return timestamp == null;
+    }
+
+    public static boolean isEmpty(TypeEnum<?> type) {
+        return type == null;
     }
 
     public static boolean isNotEmpty(String value) {
@@ -81,6 +93,15 @@ public final class ValueUtil {
         return value != null;
     }
 
+    public static boolean isNotEmpty(Timestamp timestamp) {
+        return timestamp != null;
+    }
+
+
+    public static boolean isNotEmpty(TypeEnum<?> type) {
+        return type != null;
+    }
+
     public static boolean isObjectNotEmpty(Object value) {
         return !isObjectEmpty(value);
     }
@@ -92,13 +113,62 @@ public final class ValueUtil {
         if (value instanceof String) {
             return isEmpty((String) value);
         } else if (value instanceof Map) {
-            return isEmpty((Map<?,?>) value);
+            return isEmpty((Map<?, ?>) value);
         } else if (value instanceof Collection) {
             return isEmpty((Collection<?>) value);
         }
 
         return false;
     }
+
+    public static boolean isEquals(Long val1, Long val2) {
+        return (val1 == null && val2 == null) || val1.equals(val2);
+    }
+
+    public static boolean isEquals(String val1, String val2) {
+        return (val1 == null && val2 == null) || val1.equals(val2);
+    }
+
+    public static boolean isEquals(Integer val1, Integer val2) {
+        return (val1 == null && val2 == null) || val1.equals(val2);
+    }
+
+    public static boolean isEquals(BigDecimal val1, BigDecimal val2) {
+        return (val1 == null && val2 == null) || val1.compareTo(val2) == 0;
+    }
+
+    public static boolean isEquals(TypeEnum<?> val1, TypeEnum<?> val2) {
+        return (val1 == null && val2 == null) || val1.equals(val2);
+    }
+
+    public static boolean isBetween(Timestamp val, Timestamp lower, Timestamp upper) {
+        if (val == null || lower == null || upper == null) {
+            return false;
+        }
+        return val.before(lower) && val.after(upper);
+    }
+
+    public static boolean isBetween(Long val, Long lower, Long upper) {
+        if (val == null || lower == null || upper == null) {
+            return false;
+        }
+        return val >= lower && val < upper;
+    }
+
+    public static boolean isBetween(Integer val, Integer lower, Integer upper) {
+        if (val == null || lower == null || upper == null) {
+            return false;
+        }
+        return val >= lower && val < upper;
+    }
+
+    public static boolean isBetween(BigDecimal val, BigDecimal lower, BigDecimal upper) {
+        if (val == null || lower == null || upper == null) {
+            return false;
+        }
+        return val.compareTo(lower) >= 0 && val.compareTo(upper) < 0;
+    }
+
 
     /**
      * get array element by index

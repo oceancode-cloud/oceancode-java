@@ -16,4 +16,11 @@ public class Config {
         String AUTHORITIES = "authorities";
         String OPERATOR = "operator";
     }
+
+    public interface Cache {
+        String SESSION_CACHE_KEY = "os.session.cache.key";
+        String SESSION_TOKEN_SECRET = "os.session.token.secret";
+        String SESSION_TOKEN_EXPIRE = "os.session.token.expire";
+        String SESSION_REFRESH_TOKEN_EXPIRE = "os.session.refresh.token.expire";
+    }
 }
