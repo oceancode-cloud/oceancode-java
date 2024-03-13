@@ -1,65 +1,84 @@
 package com.oceancode.cloud.common.web.service;
 
-import com.oceancode.cloud.api.MapTransfer;
 import com.oceancode.cloud.api.cache.CacheKey;
 import com.oceancode.cloud.api.cache.LocalCacheService;
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.api.session.TokenInfo;
-import com.oceancode.cloud.api.session.UserInfo;
+import com.oceancode.cloud.api.session.UserBaseInfo;
 import com.oceancode.cloud.common.cache.KeyParam;
-import com.oceancode.cloud.common.cache.caffeine.CaffeineServiceImpl;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.config.Config;
-import com.oceancode.cloud.common.util.CacheUtil;
+import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ExpressUtil;
 import com.oceancode.cloud.common.util.SessionUtil;
-import com.oceancode.cloud.common.util.ValueUtil;
-import com.oceancode.cloud.common.web.util.ApiUtil;
 import com.oceancode.cloud.common.web.util.TokenUtil;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.annotation.Resource;
 import java.util.Objects;
 
+@Component
+@ConditionalOnBean(LocalCacheService.class)
 public class CaffeineSessionServiceImpl implements SessionService {
+    @Resource
     private CommonConfig commonConfig;
-    private String sessionKey;
+    @Resource
     private LocalCacheService localCacheService;
 
-    public CaffeineSessionServiceImpl(CommonConfig commonConfig, LocalCacheService localCacheService) {
-        this.commonConfig = commonConfig;
-        this.sessionKey = commonConfig.getValue(Config.Cache.SESSION_CACHE_KEY);
-        this.localCacheService = localCacheService;
+    private String sessionKey() {
+        return commonConfig.getValue(Config.Cache.SESSION_CACHE_KEY);
     }
 
     @Override
-    public boolean isLogin() {
-        return Objects.nonNull(getUserInfo());
+    public boolean isLogin(String token) {
+        return Objects.nonNull(getUserInfo(token));
     }
 
-    @Override
-    public Map<String, Object> getUserInfo() {
-        TokenInfo tokenInfo = TokenUtil.parseToken(ApiUtil.getToken());
-        CacheKey keyParam = KeyParam.of(sessionKey)
-                .addParam("userId", tokenInfo.getUserId());
-        return localCacheService.getMap(keyParam);
-    }
-
-    @Override
-    public void setUserInfo(UserInfo userInfo) {
-        CacheKey cacheKey = KeyParam.of(sessionKey)
-                .addParam("userId", userInfo.getId());
-        userInfo.getDetail().put("_token", userInfo.getToken());
-        localCacheService.setMap(cacheKey, userInfo.getDetail());
-    }
-
-    @Override
-    public void logout() {
-        String token = ApiUtil.getToken();
+    private CacheKey buildKey(String token) {
         TokenInfo tokenInfo = TokenUtil.parseToken(token);
-        CacheKey keyParam = KeyParam.of(sessionKey)
-                .addParam("userId", tokenInfo.getUserId());
-        localCacheService.delete(keyParam);
+        return KeyParam.of(sessionKey())
+                .addParam("userId", tokenInfo.getUserId())
+                .addParam("token", tokenInfo.getSessionId())
+                .addParam("openid", tokenInfo.getOpenid());
+    }
+
+    @Override
+    public UserBaseInfo getUserInfo(String token) {
+        UserBaseInfo userBaseInfo = localCacheService.getEntity(buildKey(token), UserBaseInfo.class);
+        SessionUtil.setUserId(userBaseInfo.getUserId());
+        return userBaseInfo;
+    }
+
+    private String getUserKeyPrefix(String key) {
+        String tokenVar = ":#{#token}";
+        if (key.endsWith(tokenVar)) {
+            return key.substring(0, key.length() - tokenVar.length());
+        } else if (key.contains(tokenVar + ":")) {
+            return key.substring(0, key.indexOf(tokenVar + ":"));
+        }
+        throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "key must contain token variable,eg: uid:#{#token}");
+    }
+
+    @Override
+    public void setUserInfo(String token, UserBaseInfo userInfo) {
+        CacheKey keyParam = KeyParam.of(sessionKey())
+                .addParam("userId", userInfo.getUserId())
+                .addParam("token", token)
+                .addParam("openid", userInfo.getOpenid());
+        String userKey = ExpressUtil.parse(getUserKeyPrefix(keyParam.pattern()), keyParam.params(), String.class);
+        localCacheService.deleteByPrefix(KeyParam.of(keyParam.key())
+                .express(userKey + ":")
+                .addParams(keyParam.params()));
+
+        localCacheService.setEntity(keyParam, userInfo);
+    }
+
+    @Override
+    public void logout(String token) {
+        localCacheService.delete(buildKey(token));
     }
 
 }

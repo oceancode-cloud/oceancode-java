@@ -10,6 +10,7 @@ import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -19,6 +20,7 @@ public final class KeyParam implements CacheKey {
     private String key;
     private String sourceKey;
     private boolean isExpress;
+
     private static CommonConfig commonConfig;
 
     private String resultKey;
@@ -28,27 +30,39 @@ public final class KeyParam implements CacheKey {
         this.key = key;
         commonConfig = ComponentUtil.getBean(CommonConfig.class);
         this.isExpress = true;
+        if (ValueUtil.isEmpty(key)) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "cache key is required.");
+        }
+        sourceKey();
     }
 
     public static CacheKey of(String key) {
         return new KeyParam(key, new HashMap<>(16));
     }
 
-    public static CacheKey of(String key, String argKey, String argVal) {
-        return of(key).addParam(argKey, argVal);
-    }
-
-    public static CacheKey of(String key, String argKey, Long argVal) {
-        return of(key).addParam(argKey, argVal);
-    }
-
-    public static CacheKey of(String key, String argKey, Integer argVal) {
-        return of(key).addParam(argKey, argVal);
-    }
-
-
     public CacheKey addParam(String argKey, String argVal) {
         return putVal(argKey, argVal);
+    }
+
+    @Override
+    public CacheKey addParams(Map<String, Object> params) {
+        this.params.putAll(params);
+        return this;
+    }
+
+
+    @Override
+    public CacheKey express(String express) {
+        this.resultKey = express;
+        return this;
+    }
+
+    @Override
+    public Map<String, Object> params() {
+        if (this.params == null) {
+            this.params = new HashMap<>();
+        }
+        return this.params;
     }
 
     public CacheKey addParam(String argKey, Long argVal) {
@@ -64,13 +78,8 @@ public final class KeyParam implements CacheKey {
         return this;
     }
 
-    public CacheKey sourceKey(String sourceKey) {
-        this.sourceKey = sourceKey;
-        return this;
-    }
-
     public String pattern() {
-        return commonConfig.getValue("app.cache." + key + ".key-pattern");
+        return commonConfig.getValue("oc.cache." + key + ".key-pattern");
     }
 
     public String parseKey() {
@@ -119,7 +128,7 @@ public final class KeyParam implements CacheKey {
     }
 
     public Long expire(boolean originalValue) {
-        Long val = Long.parseLong(commonConfig.getValue("app.cache." + key + ".expire", "3600000"));
+        Long val = Long.parseLong(commonConfig.getValue("oc.cache." + key + ".expire", "3600000"));
         return originalValue ? val : val + CacheUtil.randomExpire(key);
     }
 
@@ -129,23 +138,22 @@ public final class KeyParam implements CacheKey {
     }
 
     public boolean enabledProjectId() {
-        return Boolean.parseBoolean(commonConfig.getValue("app.cache." + key + ".project-id.enabled", "false"));
+        return Boolean.parseBoolean(commonConfig.getValue("oc.cache." + key + ".project-id.enabled", "false"));
     }
 
     public boolean enabledTenantId() {
-        return Boolean.parseBoolean(commonConfig.getValue("app.cache." + key + ".tenant-id.enabled", "false"));
+        return Boolean.parseBoolean(commonConfig.getValue("oc.cache." + key + ".tenant-id.enabled", "false"));
     }
 
     public boolean enabledUserId() {
-        return Boolean.parseBoolean(commonConfig.getValue("app.cache." + key + ".user-id.enabled", "false"));
-    }
-
-    public KeyParam onlyKey() {
-        this.isExpress = false;
-        return this;
+        return Boolean.parseBoolean(commonConfig.getValue("oc.cache." + key + ".user-id.enabled", "false"));
     }
 
     public String sourceKey() {
+        if (Objects.nonNull(this.sourceKey)) {
+            return this.sourceKey;
+        }
+        this.sourceKey = commonConfig.getValue("oc.cache." + key + ".source.id");
         return sourceKey;
     }
 

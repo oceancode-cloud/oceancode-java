@@ -1,43 +1,41 @@
 package com.oceancode.cloud.common.web.service;
 
-import com.oceancode.cloud.api.MapTransfer;
+import com.oceancode.cloud.api.cache.LocalCacheService;
 import com.oceancode.cloud.api.session.SessionService;
-import com.oceancode.cloud.api.session.TokenInfo;
-import com.oceancode.cloud.api.session.UserInfo;
-import com.oceancode.cloud.common.errorcode.CommonErrorCode;
-import com.oceancode.cloud.common.exception.BusinessRuntimeException;
-import com.oceancode.cloud.common.util.ValueUtil;
+import com.oceancode.cloud.api.session.UserBaseInfo;
+import com.oceancode.cloud.common.util.SessionUtil;
 import com.oceancode.cloud.common.web.util.ApiUtil;
-import com.oceancode.cloud.common.web.util.TokenUtil;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.stereotype.Component;
 
-import java.util.Map;
 import java.util.Objects;
 
+
+@Component
+@ConditionalOnMissingBean({RedisSessionServiceImpl.class, CaffeineSessionServiceImpl.class})
 public final class WebSessionServiceImpl implements SessionService {
+    private static final String SESSION_INFO_KEY = "_userInfo";
 
     @Override
-    public boolean isLogin() {
-        return Objects.nonNull(getUserInfo());
+    public boolean isLogin(String token) {
+        return Objects.nonNull(getUserInfo(token));
     }
 
     @Override
-    public Map<String, Object> getUserInfo() {
-        TokenInfo tokenInfo = TokenUtil.parseToken(ApiUtil.getToken());
-        return (Map<String, Object>) ApiUtil.getSession(tokenInfo.getUserId() + "");
+    public UserBaseInfo getUserInfo(String token) {
+        UserBaseInfo userBaseInfo = (UserBaseInfo) ApiUtil.getSession(SESSION_INFO_KEY);
+        SessionUtil.setUserId(userBaseInfo.getUserId());
+        return userBaseInfo;
     }
 
     @Override
-    public void setUserInfo(UserInfo userInfo) {
-        ApiUtil.setSession(userInfo.getId() + "", userInfo.getDetail());
+    public void setUserInfo(String token, UserBaseInfo userInfo) {
+        ApiUtil.setSession(SESSION_INFO_KEY, userInfo);
     }
 
     @Override
-    public void logout() {
-        String token = ApiUtil.getToken();
-        TokenInfo tokenInfo = TokenUtil.parseToken(token);
-        if (ValueUtil.isEmpty(token)) {
-            throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_MISSING, "Authorization token is required");
-        }
-        ApiUtil.removeSession(tokenInfo.getUserId() + "");
+    public void logout(String token) {
+        ApiUtil.removeSession(SESSION_INFO_KEY);
     }
 }

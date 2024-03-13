@@ -1,5 +1,7 @@
 package com.oceancode.cloud.api.cache;
 
+import java.util.Map;
+
 public interface CacheKey {
     Long expire();
 
@@ -11,11 +13,18 @@ public interface CacheKey {
 
     String sourceKey();
 
+
     String key();
 
     CacheKey addParam(String argKey, String argVal);
 
+    CacheKey addParams(Map<String, Object> params);
+
+    Map<String, Object> params();
+
     CacheKey addParam(String argKey, Long argVal);
 
     CacheKey addParam(String argKey, Integer argVal);
+
+    CacheKey express(String express);
 }

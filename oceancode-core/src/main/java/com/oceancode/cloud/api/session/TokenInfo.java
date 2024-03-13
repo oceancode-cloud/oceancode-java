@@ -6,8 +6,11 @@ public class TokenInfo {
 
     private Long userId;
 
+    private String sessionId;
+
+    private String openid;
+
     private String token;
-    private Map<String, Object> body;
 
     public Long getUserId() {
         return userId;
@@ -17,12 +20,20 @@ public class TokenInfo {
         this.userId = userId;
     }
 
-    public Map<String, Object> getBody() {
-        return body;
+    public String getSessionId() {
+        return sessionId;
     }
 
-    public void setBody(Map<String, Object> body) {
-        this.body = body;
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public String getOpenid() {
+        return openid;
+    }
+
+    public void setOpenid(String openid) {
+        this.openid = openid;
     }
 
     public String getToken() {

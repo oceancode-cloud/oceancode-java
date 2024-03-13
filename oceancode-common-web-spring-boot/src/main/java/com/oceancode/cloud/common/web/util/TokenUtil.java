@@ -22,27 +22,48 @@ import java.util.*;
 
 public final class TokenUtil {
 
+    private static final CommonConfig commonConfig;
+
     private TokenUtil() {
     }
 
-    public static String createUserToken(TokenInfo tokenInfo) {
-        if (tokenInfo == null || tokenInfo.getUserId() == null) {
+    static {
+        commonConfig = ComponentUtil.getBean(CommonConfig.class);
+    }
+
+    public static TokenInfo createToken(Long userId) {
+        return createToken(userId, null);
+    }
+
+    public static TokenInfo createToken(Long userId, String openid) {
+        if (userId == null) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "userId is required.");
         }
         String deviceUid = getShortMd5Str(getDeviceUid());
+        String sessionId = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> claims = new HashMap<>();
-        claims.put("deviceUid", deviceUid);
-        claims.put("token", ValueUtil.isEmpty(tokenInfo.getToken()) ? UUID.randomUUID().toString().replace("-", "") : tokenInfo.getToken());
-        claims.put("userId", tokenInfo.getUserId());
-        if (Objects.nonNull(tokenInfo.getBody())) {
-            claims.put("body", tokenInfo.getBody());
-        }
-        CommonConfig commonConfig = ComponentUtil.getBean(CommonConfig.class);
+        claims.put("deviceId", deviceUid);
+        claims.put("sessionId", sessionId);
+        claims.put("userId", userId + "");
+        claims.put("openid", openid);
+        String token = createJWT(getSecret(), commonConfig.getValueAsLong(Config.Cache.SESSION_TOKEN_EXPIRE, 600000L), claims);
+        TokenInfo tokenInfo = new TokenInfo();
+        tokenInfo.setUserId(userId);
+        tokenInfo.setOpenid(openid);
+        tokenInfo.setSessionId(sessionId);
+        tokenInfo.setToken(token);
+        return tokenInfo;
+    }
+
+    private static String getSecret() {
         String secret = commonConfig
                 .getValue(Config.Cache.SESSION_TOKEN_SECRET);
-
-        return createJWT(secret, commonConfig.getValueAsLong(Config.Cache.SESSION_TOKEN_EXPIRE, 600000L), claims);
+        if (ValueUtil.isEmpty(secret)) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "secret is required,please set property " + Config.Cache.SESSION_TOKEN_SECRET);
+        }
+        return secret;
     }
+
 
     /**
      * 生成jwt
@@ -107,26 +128,25 @@ public final class TokenUtil {
             throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
         }
 
-        CommonConfig commonConfig = ComponentUtil.getBean(CommonConfig.class);
-        String secret = commonConfig
-                .getValue(Config.Cache.SESSION_TOKEN_SECRET);
+        String secret = getSecret();
         Map<String, Object> claims = parseJWT(secret, token);
-        if (!claims.containsKey("userId") || ValueUtil.isEmpty((String) claims.get("token"))) {
+        if (!claims.containsKey("userId") || ValueUtil.isEmpty((String) claims.get("sessionId"))) {
             throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
         }
-        Long userId = (Long) claims.get("userId");
+        Long userId = Long.parseLong(claims.get("userId") + "");
         if (Objects.isNull(userId) || userId <= 0) {
             throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
         }
         String deviceUid = getShortMd5Str(getDeviceUid());
-        if (!deviceUid.equals(claims.get("deviceUid"))) {
+        if (!deviceUid.equals(claims.get("deviceId"))) {
             throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
         }
 
         TokenInfo tokenInfo = new TokenInfo();
         tokenInfo.setUserId(userId);
-        tokenInfo.setToken((String) claims.get("token"));
-        tokenInfo.setBody((Map<String, Object>) claims.get("body"));
+        tokenInfo.setOpenid((String) claims.get("openid"));
+        tokenInfo.setToken(token);
+        tokenInfo.setSessionId((String) claims.get("sessionId"));
         return tokenInfo;
     }
 }

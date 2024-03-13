@@ -60,4 +60,5 @@ public interface CacheService {
 
     void delete(CacheKey key);
 
+    void deleteByPrefix(CacheKey key);
 }

@@ -183,7 +183,7 @@ public final class ApiUtil {
     }
 
     public static String getToken() {
-        return getToken(getAuthorizationToken());
+        return getAuthorizationToken();
     }
 
     private static String getContentTypeByFileType(String fileType) {

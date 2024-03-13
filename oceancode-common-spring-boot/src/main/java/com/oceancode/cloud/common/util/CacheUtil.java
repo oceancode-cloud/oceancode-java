@@ -40,31 +40,31 @@ public final class CacheUtil {
     }
 
     public static boolean emptyEnabled(String keyId) {
-        return Boolean.parseBoolean(commonConfig.getValue("app.cache." + keyId + ".empty.enabled", "true"));
+        return Boolean.parseBoolean(commonConfig.getValue("oc.cache." + keyId + ".empty.enabled", "true"));
     }
 
     public static String emptyValue(String keyId) {
-        return commonConfig.getValue("app.cache." + keyId + ".empty.value", "nil");
+        return commonConfig.getValue("oc.cache." + keyId + ".empty.value", "nil");
     }
 
     public static String pattern(String keyId){
-        return commonConfig.getValue("app.cache." + keyId + ".key-pattern");
+        return commonConfig.getValue("oc.cache." + keyId + ".key-pattern");
     }
 
     public static long emptyExpire(String keyId) {
         // default 60s
         // expire+[0,bound) or expire-[0,bound)
-        return Long.parseLong(commonConfig.getValue("app.cache." + keyId + ".empty.expire", "60000")) +
+        return Long.parseLong(commonConfig.getValue("oc.cache." + keyId + ".empty.expire", "60000")) +
                 randomExpire(keyId);
     }
 
     public static int maxLength(String keyId) {
         //B default 10KB
-        return Integer.parseInt(commonConfig.getValue("app.cache." + keyId + ".max-length", "10240"));
+        return Integer.parseInt(commonConfig.getValue("oc.cache." + keyId + ".max-length", "10240"));
     }
 
     public static int replica(String keyId) {
-        return Integer.parseInt(commonConfig.getValue("app.cache." + keyId + ".replica", "1"));
+        return Integer.parseInt(commonConfig.getValue("oc.cache." + keyId + ".replica", "1"));
     }
 
     public static long totalLength(String keyId) {
@@ -73,7 +73,7 @@ public final class CacheUtil {
 
     public static long randomExpire(String keyId) {
         // default 60s
-        int value = Integer.parseInt(commonConfig.getValue("app.cache." + keyId + ".expire.random", "60000"));
+        int value = Integer.parseInt(commonConfig.getValue("oc.cache." + keyId + ".expire.random", "60000"));
         if (value == 0) {
             return 0;
         }
@@ -84,12 +84,12 @@ public final class CacheUtil {
     }
 
     public static boolean isHotKey(String keyId) {
-        return Boolean.parseBoolean(commonConfig.getValue("app.cache." + keyId + ".hot.enabled", "false"));
+        return Boolean.parseBoolean(commonConfig.getValue("oc.cache." + keyId + ".hot.enabled", "false"));
     }
 
 
     public static boolean enabledAb(String keyId) {
         return isHotKey(keyId) &&
-                Boolean.parseBoolean(commonConfig.getValue("app.cache." + keyId + ".concurrency.ab.enabled", "false"));
+                Boolean.parseBoolean(commonConfig.getValue("oc.cache." + keyId + ".concurrency.ab.enabled", "false"));
     }
 }

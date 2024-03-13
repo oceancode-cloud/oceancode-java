@@ -6,6 +6,7 @@ package com.oceancode.cloud.common;
 
 import com.oceancode.cloud.api.ApplicationLifeCycleService;
 import com.oceancode.cloud.common.config.CommonConfig;
+import com.oceancode.cloud.common.util.CacheUtil;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Primary;
@@ -31,5 +32,10 @@ public class CommandLineRunnerInit implements CommandLineRunner {
 
     public void doCheckConfig() {
         commonConfig.getStripPrefixes();
+        try {
+            CacheUtil.init();
+        } catch (Exception e) {
+            // ignore
+        }
     }
 }

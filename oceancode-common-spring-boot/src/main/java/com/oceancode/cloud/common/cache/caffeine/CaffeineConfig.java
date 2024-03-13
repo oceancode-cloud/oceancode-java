@@ -9,19 +9,20 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 
 @Configuration
-@ConditionalOnBean({Caffeine.class})
+@ConditionalOnClass({Caffeine.class})
 public class CaffeineConfig {
     @Bean("caffeineDefaultCache")
     public Cache<String, Object> caffeineCache() {
         return Caffeine.newBuilder()
                 .expireAfter(new CaffeineExpiry())
                 .initialCapacity(100)
-                .maximumSize(1000)
+                .maximumSize(10000)
                 .build();
     }
 

@@ -4,12 +4,9 @@
 
 package com.oceancode.cloud.common.web.config;
 
-import com.oceancode.cloud.api.cache.LocalCacheService;
 import com.oceancode.cloud.api.cache.RedisCacheService;
-import com.oceancode.cloud.api.permission.ApiPermissionService;
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.common.config.CommonConfig;
-import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.SystemUtil;
 import com.oceancode.cloud.common.web.service.CaffeineSessionServiceImpl;
 import com.oceancode.cloud.common.web.service.RedisSessionServiceImpl;
@@ -26,14 +23,12 @@ import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.Resource;
-import java.util.Objects;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -43,25 +38,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Resource
     private CommonConfig commonConfig;
 
-    @Bean
-    @ConditionalOnMissingBean(SessionService.class)
-    public SessionService sessionService() {
-        return new WebSessionServiceImpl();
-    }
+//    @Bean
+//
+//    public SessionService sessionService() {
+//        return new WebSessionServiceImpl();
+//    }
 
-    @Bean
-    @ConditionalOnMissingBean(SessionService.class)
-    @ConditionalOnBean(LocalCacheService.class)
-    public SessionService caffeineSessionService() {
-        return new CaffeineSessionServiceImpl(commonConfig, ComponentUtil.getBean(LocalCacheService.class));
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(SessionService.class)
-    @ConditionalOnBean(RedisCacheService.class)
-    public SessionService redisSessionService() {
-        return new RedisSessionServiceImpl(commonConfig, ComponentUtil.getBean(RedisCacheService.class));
-    }
     /**
      * 静态资源处理
      **/

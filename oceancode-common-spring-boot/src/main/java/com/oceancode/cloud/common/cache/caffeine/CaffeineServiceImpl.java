@@ -22,7 +22,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Component
 @ConditionalOnClass({Caffeine.class})
@@ -48,7 +50,7 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     private static Cache<String, Object> getCache(CacheKey keyParam) {
-        if (keyParam.key().equals(sessionKey)) {
+        if (sessionKey.equals(keyParam.sourceKey()) || "master".equals(keyParam.sourceKey()) || ValueUtil.isEmpty(keyParam.sourceKey())) {
             return sessionCache;
         }
         return ComponentUtil.getBean("caffeineDefaultCache", Cache.class);
@@ -319,5 +321,16 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     @Override
     public void delete(CacheKey key) {
         getCache(key).asMap().remove(key.parseKey());
+    }
+
+    @Override
+    public void deleteByPrefix(CacheKey key) {
+        ConcurrentMap<String, Object> map = getCache(key).asMap();
+        String rKey = key.parseKey();
+        List<String> keys = map.keySet().stream().filter(e -> e.startsWith(rKey))
+                .collect(Collectors.toList());
+        for (String mKey : keys) {
+            map.remove(mKey);
+        }
     }
 }

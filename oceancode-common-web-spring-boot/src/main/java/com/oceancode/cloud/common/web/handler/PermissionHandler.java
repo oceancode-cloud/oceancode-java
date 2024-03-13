@@ -1,4 +1,4 @@
-package com.oceancode.cloud.common.security;
+package com.oceancode.cloud.common.web.handler;
 
 import com.oceancode.cloud.api.ApplicationLifeCycleService;
 import com.oceancode.cloud.api.permission.ApiPermissionService;
@@ -10,6 +10,7 @@ import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.PermissionUtil;
 import com.oceancode.cloud.common.util.SessionUtil;
+import com.oceancode.cloud.common.web.util.ApiUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -61,14 +62,16 @@ public class PermissionHandler implements ApplicationLifeCycleService {
     private boolean doCheckPermission(Permission permission) {
         String[] authorities = permission.authorities();
         boolean checkedLoginAuth = false;
+
+        String token = ApiUtil.getToken();
         for (String authority : authorities) {
             if (PermissionConst.AUTHORITY_LOGIN.equals(authority)) {
-                if (!sessionService.isLogin()) {
+                if (!sessionService.isLogin(token)) {
                     throw new BusinessRuntimeException(CommonErrorCode.NOT_LOGIN);
                 }
                 checkedLoginAuth = true;
             } else if (PermissionConst.AUTHORITY_UN_LOGIN.equals(authority)) {
-                if (SessionUtil.userId() != null || (sessionService != null && sessionService.isLogin())) {
+                if (SessionUtil.userId() != null) {
                     return false;
                 }
                 checkedLoginAuth = true;
@@ -76,7 +79,7 @@ public class PermissionHandler implements ApplicationLifeCycleService {
         }
 
         if (!checkedLoginAuth) {
-            if (!sessionService.isLogin()) {
+            if (!sessionService.isLogin(token)) {
                 throw new BusinessRuntimeException(CommonErrorCode.NOT_LOGIN);
             }
         }

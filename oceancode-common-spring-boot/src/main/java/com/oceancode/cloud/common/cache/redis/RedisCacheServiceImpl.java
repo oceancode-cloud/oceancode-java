@@ -160,19 +160,7 @@ public class RedisCacheServiceImpl implements RedisCacheService {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "the maximum size of key:(" + keyParam.parseKey() + ") is more than " + CacheUtil.maxLength(keyId) + ",current:" + value.size());
         }
 
-        Long result = executeScript(keyParam, "if (redis.call('EXISTS', KEYS[1]) == 0) then\n" +
-                "    redis.call('HSET', KEYS[1], KEYS[2], ARGV[2]);\n" +
-                "end\n" +
-                "redis.call('PEXPIRE', KEYS[1], ARGV[1]);\n" +
-                "if (redis.call('EXISTS', KEYS[1]) == 0) then\n" +
-                "    return -1;\n" +
-                "end\n" +
-                "for i, v in pairs(KEYS) do\n" +
-                "    if (i > 1) then\n" +
-                "        redis.call('HSET', KEYS[1], v, ARGV[i]);\n" +
-                "    end\n" +
-                "end\n" +
-                "return 1;", Long.class, keys, values);
+        Long result = executeScript(keyParam, "if (redis.call('EXISTS', KEYS[1]) == 0) then\n" + "    redis.call('HSET', KEYS[1], KEYS[2], ARGV[2]);\n" + "end\n" + "redis.call('PEXPIRE', KEYS[1], ARGV[1]);\n" + "if (redis.call('EXISTS', KEYS[1]) == 0) then\n" + "    return -1;\n" + "end\n" + "for i, v in pairs(KEYS) do\n" + "    if (i > 1) then\n" + "        redis.call('HSET', KEYS[1], v, ARGV[i]);\n" + "    end\n" + "end\n" + "return 1;", Long.class, keys, values);
         if (result == null || result != 1) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "setMap keyId:%s key:%s return:%d error", keyId, key, result);
         }
@@ -297,8 +285,7 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     public <T> List<SortedValue<T>> getSortedSet(CacheKey keyParam, int start, int end, boolean reversed) {
         RedisTemplate<String, Object> redisTemplate = redisTemplate(keyParam.sourceKey());
         String key = keyParam.parseKey();
-        Set<ZSetOperations.TypedTuple<Object>> result = reversed ? redisTemplate.opsForZSet().reverseRangeWithScores(key, start, end) :
-                redisTemplate.opsForZSet().rangeWithScores(key, start, end);
+        Set<ZSetOperations.TypedTuple<Object>> result = reversed ? redisTemplate.opsForZSet().reverseRangeWithScores(key, start, end) : redisTemplate.opsForZSet().rangeWithScores(key, start, end);
         if (result == null) {
             return Collections.EMPTY_LIST;
         }
@@ -365,11 +352,7 @@ public class RedisCacheServiceImpl implements RedisCacheService {
         List values = new ArrayList();
         keys.add(keyParam.parseKey());
         values.add(timeout);
-        Long result = executeScript(keyParam, "if (redis.call('EXISTS', KEYS[1]) == 0) then\n" +
-                "    return -1;\n" +
-                "end\n" +
-                "redis.call('PEXPIRE', KEYS[1], ARGV[1]);\n" +
-                "return 1;", Long.class, keys, values);
+        Long result = executeScript(keyParam, "if (redis.call('EXISTS', KEYS[1]) == 0) then\n" + "    return -1;\n" + "end\n" + "redis.call('PEXPIRE', KEYS[1], ARGV[1]);\n" + "return 1;", Long.class, keys, values);
         return result == null ? -1L : result;
     }
 
@@ -382,18 +365,29 @@ public class RedisCacheServiceImpl implements RedisCacheService {
         values.add(keyParam.expire());
         values.add(delta);
 
-        Object result = executeScript(keyParam, "if (redis.call('EXISTS', KEYS[1]) == 0) then\n" +
-                "    redis.call('SET', KEYS[1], ARGV[2]);\n" +
-                "    redis.call('PEXPIRE', KEYS[1], ARGV[1]);\n" +
-                "    return redis.call('GET', KEYS[1]);\n" +
-                "end\n" +
-                "redis.call('SET', KEYS[1], redis.call('GET', KEYS[1]) + ARGV[2]);\n" +
-                "return redis.call('GET', KEYS[1]);", Object.class, keys, values);
+        Object result = executeScript(keyParam, "if (redis.call('EXISTS', KEYS[1]) == 0) then\n" + "    redis.call('SET', KEYS[1], ARGV[2]);\n" + "    redis.call('PEXPIRE', KEYS[1], ARGV[1]);\n" + "    return redis.call('GET', KEYS[1]);\n" + "end\n" + "redis.call('SET', KEYS[1], redis.call('GET', KEYS[1]) + ARGV[2]);\n" + "return redis.call('GET', KEYS[1]);", Object.class, keys, values);
         return Long.parseLong(result + "");
     }
 
     @Override
     public void delete(CacheKey key) {
         redisTemplate(key.sourceKey()).delete(key.parseKey());
+    }
+
+    @Override
+    public void deleteByPrefix(CacheKey key) {
+        RedisTemplate<String, Object> redisTemplate = redisTemplate(key.sourceKey());
+        Cursor<String> cursor = redisTemplate.scan(ScanOptions.scanOptions().match(key.parseKey() + "*").count(1000).build());
+        List<String> keys = new ArrayList<>();
+        while (cursor.hasNext()) {
+            keys.add(cursor.next());
+            if (keys.size() % 20 == 0) {
+                redisTemplate.delete(keys);
+                keys.clear();
+            }
+        }
+        if (!keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
     }
 }

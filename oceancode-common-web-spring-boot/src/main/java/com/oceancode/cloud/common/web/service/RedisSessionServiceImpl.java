@@ -4,53 +4,82 @@ import com.oceancode.cloud.api.cache.CacheKey;
 import com.oceancode.cloud.api.cache.RedisCacheService;
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.api.session.TokenInfo;
-import com.oceancode.cloud.api.session.UserInfo;
+import com.oceancode.cloud.api.session.UserBaseInfo;
 import com.oceancode.cloud.common.cache.KeyParam;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.config.Config;
-import com.oceancode.cloud.common.web.util.ApiUtil;
+import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
+import com.oceancode.cloud.common.util.ExpressUtil;
+import com.oceancode.cloud.common.util.SessionUtil;
 import com.oceancode.cloud.common.web.util.TokenUtil;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import javax.annotation.Resource;
 import java.util.Objects;
 
+@Component
+@Primary
+@ConditionalOnBean(RedisCacheService.class)
 public class RedisSessionServiceImpl implements SessionService {
+    @Resource
     private RedisCacheService redisCacheService;
+    @Resource
     private CommonConfig commonConfig;
-    private String sessionKey;
 
-    public RedisSessionServiceImpl(CommonConfig commonConfig, RedisCacheService bean) {
-        this.commonConfig = commonConfig;
-        this.redisCacheService = bean;
-        this.sessionKey = commonConfig.getValue(Config.Cache.SESSION_CACHE_KEY);
+    private String sessionKey() {
+        return commonConfig.getValue(Config.Cache.SESSION_CACHE_KEY);
     }
 
     @Override
-    public boolean isLogin() {
-        return Objects.nonNull(getUserInfo());
+    public boolean isLogin(String token) {
+        return Objects.nonNull(getUserInfo(token));
     }
 
-    @Override
-    public Map<String, Object> getUserInfo() {
-        TokenInfo tokenInfo = TokenUtil.parseToken(ApiUtil.getToken());
-        CacheKey keyParam = KeyParam.of(sessionKey)
-                .addParam("userId", tokenInfo.getUserId());
-        return redisCacheService.getMap(keyParam);
-    }
-
-    @Override
-    public void setUserInfo(UserInfo userInfo) {
-        CacheKey cacheKey = KeyParam.of(sessionKey)
-                .addParam("userId", userInfo.getId());
-        redisCacheService.setMap(cacheKey, userInfo.getDetail());
-    }
-
-    @Override
-    public void logout() {
-        String token = ApiUtil.getToken();
+    private CacheKey buildKey(String token) {
         TokenInfo tokenInfo = TokenUtil.parseToken(token);
-        CacheKey keyParam = KeyParam.of(sessionKey)
-                .addParam("userId", tokenInfo.getUserId());
-        redisCacheService.delete(keyParam);
+        return KeyParam.of(sessionKey())
+                .addParam("userId", tokenInfo.getUserId())
+                .addParam("token", tokenInfo.getSessionId())
+                .addParam("openid", tokenInfo.getOpenid());
+    }
+
+    @Override
+    public UserBaseInfo getUserInfo(String token) {
+        UserBaseInfo userBaseInfo = redisCacheService.getEntity(buildKey(token), UserBaseInfo.class);
+        SessionUtil.setUserId(userBaseInfo.getUserId());
+        return userBaseInfo;
+    }
+
+
+    private String getUserKeyPrefix(String key) {
+        String tokenVar = ":#{#token}";
+        if (key.endsWith(tokenVar)) {
+            return key.substring(0, key.length() - tokenVar.length());
+        } else if (key.contains(tokenVar + ":")) {
+            return key.substring(0, key.indexOf(tokenVar + ":"));
+        }
+        throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "key must contain token variable,eg: uid:#{#token}");
+    }
+
+
+    @Override
+    public void setUserInfo(String token, UserBaseInfo userInfo) {
+        CacheKey keyParam = KeyParam.of(sessionKey())
+                .addParam("userId", userInfo.getUserId())
+                .addParam("token", token)
+                .addParam("openid", userInfo.getOpenid());
+        String userKey = ExpressUtil.parse(getUserKeyPrefix(keyParam.pattern()), keyParam.params(), String.class);
+        redisCacheService.deleteByPrefix(KeyParam.of(keyParam.key())
+                .express(userKey + ":")
+                .addParams(keyParam.params()));
+        redisCacheService.setEntity(keyParam, userInfo);
+    }
+
+    @Override
+    public void logout(String token) {
+        redisCacheService.delete(buildKey(token));
     }
 }
