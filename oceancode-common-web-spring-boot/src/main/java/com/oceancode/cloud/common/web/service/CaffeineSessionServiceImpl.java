@@ -48,6 +48,9 @@ public class CaffeineSessionServiceImpl implements SessionService {
     @Override
     public UserBaseInfo getUserInfo(String token) {
         UserBaseInfo userBaseInfo = localCacheService.getEntity(buildKey(token), UserBaseInfo.class);
+        if (Objects.isNull(userBaseInfo)) {
+            return null;
+        }
         SessionUtil.setUserId(userBaseInfo.getUserId());
         return userBaseInfo;
     }

@@ -49,6 +49,9 @@ public class RedisSessionServiceImpl implements SessionService {
     @Override
     public UserBaseInfo getUserInfo(String token) {
         UserBaseInfo userBaseInfo = redisCacheService.getEntity(buildKey(token), UserBaseInfo.class);
+        if (Objects.isNull(userBaseInfo)) {
+            return null;
+        }
         SessionUtil.setUserId(userBaseInfo.getUserId());
         return userBaseInfo;
     }

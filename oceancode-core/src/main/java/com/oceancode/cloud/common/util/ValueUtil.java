@@ -102,6 +102,10 @@ public final class ValueUtil {
         return type != null;
     }
 
+    public static boolean isNotEmpty(Integer value) {
+        return value != null;
+    }
+
     public static boolean isObjectNotEmpty(Object value) {
         return !isObjectEmpty(value);
     }
