@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.12</version>
+        <groupId>com.oceancode-cloud</groupId>
+        <artifactId>oceancode-spring-boot-parent</artifactId>
+        <version>1.0.0</version>
     </parent>
 
     <groupId>com.oceancode-cloud</groupId>
@@ -26,7 +26,6 @@
         <dependency>
             <groupId>com.oceancode-cloud</groupId>
             <artifactId>oceancode-core</artifactId>
-            <version>1.0.0</version>
         </dependency>
 
         <dependency>
@@ -62,27 +61,23 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.16.1</version>
         </dependency>
 
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid-spring-boot-starter</artifactId>
-            <version>1.2.15</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.7</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>2.0</version>
         </dependency>
 
         <dependency>

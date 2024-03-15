@@ -12,10 +12,7 @@ import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.Md5Util;
 import com.oceancode.cloud.common.util.ValueUtil;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -99,13 +96,17 @@ public final class TokenUtil {
      * @return
      */
     private static Claims parseJWT(String secretKey, String token) {
-        // 得到DefaultJwtParser
-        Claims claims = Jwts.parser()
-                // 设置签名的秘钥
-                .setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8))
-                // 设置需要解析的jwt
-                .parseClaimsJws(token).getBody();
-        return claims;
+        try {
+            // 得到DefaultJwtParser
+            Claims claims = Jwts.parser()
+                    // 设置签名的秘钥
+                    .setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8))
+                    // 设置需要解析的jwt
+                    .parseClaimsJws(token).getBody();
+            return claims;
+        } catch (ExpiredJwtException e) {
+            throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID, "token invalid.");
+        }
     }
 
 
