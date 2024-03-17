@@ -17,8 +17,12 @@ public interface CacheKey {
     String key();
 
     CacheKey addParam(String argKey, String argVal);
+    CacheKey addParamNotEmpty(String argKey, String argVal);
+    CacheKey addParamNotEmpty(String argKey, Long argVal);
 
     CacheKey addParams(Map<String, Object> params);
+
+    CacheKey next();
 
     Map<String, Object> params();
 

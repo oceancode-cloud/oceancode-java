@@ -84,4 +84,8 @@ public class CaffeineSessionServiceImpl implements SessionService {
         localCacheService.delete(buildKey(token));
     }
 
+    @Override
+    public CacheKey getSessionKey(String token) {
+        return buildKey(token);
+    }
 }

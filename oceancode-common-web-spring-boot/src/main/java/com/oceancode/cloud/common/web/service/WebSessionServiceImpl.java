@@ -1,5 +1,6 @@
 package com.oceancode.cloud.common.web.service;
 
+import com.oceancode.cloud.api.cache.CacheKey;
 import com.oceancode.cloud.api.cache.LocalCacheService;
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.api.session.UserBaseInfo;
@@ -37,5 +38,10 @@ public final class WebSessionServiceImpl implements SessionService {
     @Override
     public void logout(String token) {
         ApiUtil.removeSession(SESSION_INFO_KEY);
+    }
+
+    @Override
+    public CacheKey getSessionKey(String token) {
+        return null;
     }
 }

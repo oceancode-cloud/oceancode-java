@@ -4,6 +4,10 @@
 
 package com.oceancode.cloud.common.util;
 
+import com.oceancode.cloud.api.cache.CacheKey;
+import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
+
 /**
  * @author qinjiawang
  */
@@ -33,6 +37,30 @@ public final class SessionUtil {
 
     public static Long projectId() {
         return PROJECT_ID.get();
+    }
+
+    public static Long projectId(boolean mustNotEmpty) {
+        Long value = projectId();
+        if (value == null && mustNotEmpty) {
+            throw new BusinessRuntimeException(CommonErrorCode.PROJECT_ID_MISSING, "projectId is required.");
+        }
+        return value;
+    }
+
+    public static Long userId(boolean mustNotEmpty) {
+        Long value = userId();
+        if (value == null && mustNotEmpty) {
+            throw new BusinessRuntimeException(CommonErrorCode.NOT_LOGIN);
+        }
+        return value;
+    }
+
+    public static Long tenantId(boolean mustNotEmpty) {
+        Long value = tenantId();
+        if (value == null && mustNotEmpty) {
+            throw new BusinessRuntimeException(CommonErrorCode.TENANT_ID_MISSING, "projectId is required.");
+        }
+        return value;
     }
 
     public static Long tenantId() {

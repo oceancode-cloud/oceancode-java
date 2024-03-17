@@ -4,6 +4,7 @@
 
 package com.oceancode.cloud.common.util;
 
+import com.oceancode.cloud.api.Notifier;
 import com.oceancode.cloud.api.TypeEnum;
 import com.oceancode.cloud.api.strategy.StrategyAdaptor;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
@@ -13,8 +14,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 
 @Component
@@ -56,12 +56,26 @@ public final class ComponentUtil implements ApplicationContextAware {
     }
 
     private static <T> T getStrategyBean0(Class<T> typeClass, Object type) {
-        T bean = getBean(typeClass, service -> StrategyAdaptor.class.isAssignableFrom(service.getClass()) &&
-                ((StrategyAdaptor) service).isSupport(type));
+        T bean = getBean(typeClass, service -> StrategyAdaptor.class.isAssignableFrom(service.getClass()) && ((StrategyAdaptor) service).isSupport(type));
         if (Objects.isNull(bean)) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, typeClass.getName() + "[" + type + "] not found");
         }
         return bean;
+    }
+
+    public static List<Notifier> getNotifiers(String name) {
+        Map<String, Notifier> map = getBeans(Notifier.class);
+        if (map == null || map.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Notifier> list = new ArrayList<>(map.size());
+        for (Notifier value : map.values()) {
+            if (value.getResourceId().equals(name)) {
+                list.add(value);
+            }
+        }
+
+        return list;
     }
 
     public void setApplicationContext(ApplicationContext ctx) {

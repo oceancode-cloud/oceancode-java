@@ -14,6 +14,7 @@ import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@Primary
 @ConditionalOnClass({RedisTemplate.class,})
 public class RedisCacheServiceImpl implements RedisCacheService {
     private static final int MAX_MAP_ELEMENTS_COUNT = 30;
@@ -48,7 +50,7 @@ public class RedisCacheServiceImpl implements RedisCacheService {
         } else {
             expire = keyParam.expire();
         }
-        String val = String.valueOf(value);
+        String val = JsonUtil.toJson(value);
         checkKey(keyParam, val);
         int maxReplica = CacheUtil.replica(keyParam.key());
         if (maxReplica > 1) {
@@ -120,10 +122,25 @@ public class RedisCacheServiceImpl implements RedisCacheService {
         if (CacheUtil.isEmpty(keyParam.key(), value)) {
             boolean enabledEmpty = CacheUtil.emptyEnabled(keyParam.key());
             if (enabledEmpty) {
-                return null;
+                return (String) value;
             }
         }
+        if (value instanceof List || value instanceof Map) {
+            return JsonUtil.toJson(value);
+        }
         return String.valueOf(value);
+    }
+
+    @Override
+    public <T> List<T> getStringAsList(CacheKey keyParam, Class<T> returnClassType) {
+        String value = getString(keyParam);
+        if (null == value) {
+            return null;
+        }
+        if (CacheUtil.isEmpty(keyParam.key(), value)) {
+            return Collections.emptyList();
+        }
+        return JsonUtil.toList(value, returnClassType);
     }
 
     @Override

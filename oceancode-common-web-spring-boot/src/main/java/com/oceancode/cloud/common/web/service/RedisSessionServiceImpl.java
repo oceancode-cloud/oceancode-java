@@ -85,4 +85,9 @@ public class RedisSessionServiceImpl implements SessionService {
     public void logout(String token) {
         redisCacheService.delete(buildKey(token));
     }
+
+    @Override
+    public CacheKey getSessionKey(String token) {
+        return buildKey(token);
+    }
 }

@@ -15,6 +15,8 @@ public interface CacheService {
 
     String getString(CacheKey keyParam);
 
+    <T> List<T> getStringAsList(CacheKey keyParam, Class<T> returnClassType);
+
     void setMap(CacheKey keyParam, Map<String, Object> value);
 
     Map<String, Object> getMap(CacheKey keyParam);

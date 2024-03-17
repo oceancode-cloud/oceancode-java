@@ -6,6 +6,7 @@ package com.oceancode.cloud.common.cache.caffeine;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.oceancode.cloud.api.LockActionCallback;
 import com.oceancode.cloud.api.cache.CacheKey;
 import com.oceancode.cloud.api.cache.LocalCacheService;
 import com.oceancode.cloud.api.cache.entity.SortedValue;
@@ -15,6 +16,7 @@ import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.CacheUtil;
 import com.oceancode.cloud.common.util.ComponentUtil;
+import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.stereotype.Component;
@@ -24,6 +26,7 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Component
@@ -98,10 +101,22 @@ public final class CaffeineServiceImpl implements LocalCacheService {
         if (CacheUtil.isEmpty(keyParam.key(), val)) {
             boolean enabledEmpty = CacheUtil.emptyEnabled(keyParam.key());
             if (enabledEmpty) {
-                return null;
+                return val;
             }
         }
-        return String.valueOf(val);
+        return val;
+    }
+
+    @Override
+    public <T> List<T> getStringAsList(CacheKey keyParam, Class<T> returnClassType) {
+        String value = getString(keyParam);
+        if (null == value) {
+            return null;
+        }
+        if (CacheUtil.isEmpty(keyParam.key(), value)) {
+            return Collections.emptyList();
+        }
+        return JsonUtil.toList(value, returnClassType);
     }
 
     private <T> T getVal(CacheKey keyParam) {
@@ -331,6 +346,22 @@ public final class CaffeineServiceImpl implements LocalCacheService {
                 .collect(Collectors.toList());
         for (String mKey : keys) {
             map.remove(mKey);
+        }
+    }
+
+    @Override
+    public void tryLockWith(CacheKey cacheKey, long timeout, LockActionCallback callback) {
+        ConcurrentMap<String, Object> map = getCache(cacheKey).asMap();
+        final long threadId = Thread.currentThread().getId();
+        String key = threadId + "";
+        ReentrantLock lock = (ReentrantLock) map.computeIfAbsent(key, k -> new ReentrantLock());
+        try {
+            lock.tryLock(timeout, TimeUnit.MILLISECONDS);
+            callback.doAction();
+        } catch (InterruptedException e) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
+        } finally {
+            lock.unlock();
         }
     }
 }

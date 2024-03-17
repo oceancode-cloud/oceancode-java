@@ -120,7 +120,8 @@ public final class JsonUtil {
             return null;
         }
         try {
-            return OBJECT_MAPPER.readValue(jsonString, resolveType(List.class, clazz));
+            JavaType javaType = OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, clazz);
+            return OBJECT_MAPPER.readValue(jsonString, javaType);
         } catch (JsonProcessingException e) {
             throw new BusinessRuntimeException(CommonErrorCode.ERROR, e);
         }

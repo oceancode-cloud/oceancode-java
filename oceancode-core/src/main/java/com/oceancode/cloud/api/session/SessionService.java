@@ -4,6 +4,8 @@
 
 package com.oceancode.cloud.api.session;
 
+import com.oceancode.cloud.api.cache.CacheKey;
+
 import java.util.Map;
 
 /**
@@ -35,4 +37,6 @@ public interface SessionService {
      * logout
      */
     void logout(String token);
+
+    CacheKey getSessionKey(String token);
 }

@@ -45,11 +45,31 @@ public final class KeyParam implements CacheKey {
     }
 
     @Override
+    public CacheKey addParamNotEmpty(String argKey, String argVal) {
+        if (ValueUtil.isEmpty(argVal)) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, argKey + " is requried.");
+        }
+        return addParam(argKey, argVal);
+    }
+
+    @Override
+    public CacheKey addParamNotEmpty(String argKey, Long argVal) {
+        if (ValueUtil.isEmpty(argVal)) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, argKey + " is requried.");
+        }
+        return addParam(argKey, argVal);
+    }
+
+    @Override
     public CacheKey addParams(Map<String, Object> params) {
         this.params.putAll(params);
         return this;
     }
 
+    @Override
+    public CacheKey next() {
+        return this;
+    }
 
     @Override
     public CacheKey express(String express) {
@@ -98,7 +118,14 @@ public final class KeyParam implements CacheKey {
         if (ValueUtil.isEmpty(keyPattern)) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "key %s not found", this.key);
         }
-        resultKey = wrapperKey(ExpressUtil.parse(keyPattern, params, String.class));
+        Map<String, Object> tempMap = new HashMap<>();
+        for (Map.Entry<String, Object> entry : params().entrySet()) {
+            if (Objects.isNull(entry.getValue())) {
+                continue;
+            }
+            tempMap.put(entry.getKey(), entry.getValue());
+        }
+        resultKey = wrapperKey(ExpressUtil.parse(keyPattern, tempMap, String.class));
         checkKey(resultKey);
         return resultKey;
     }
@@ -112,13 +139,13 @@ public final class KeyParam implements CacheKey {
     private String wrapperKey(String key) {
         String resultKey = "";
         if (enabledUserId()) {
-            resultKey = "_user:id:" + SessionUtil.userId() + ":";
+            resultKey = "_user:" + SessionUtil.userId() + ":";
         }
         if (enabledProjectId()) {
-            resultKey = "_project:id:" + SessionUtil.projectId() + ":";
+            resultKey = "_project:" + SessionUtil.projectId() + ":";
         }
         if (enabledTenantId()) {
-            resultKey = "_tenant:id:" + SessionUtil.tenantId() + ":";
+            resultKey = "_tenant:" + SessionUtil.tenantId() + ":";
         }
         return resultKey + key;
     }

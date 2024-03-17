@@ -4,6 +4,8 @@
 
 package com.oceancode.cloud.common.util;
 
+import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,5 +49,15 @@ public final class PasswordUtil {
      */
     public static boolean matches(CharSequence rawPassword, String encodedPassword) {
         return PASSWORD_ENCODER.matches(rawPassword, encodedPassword);
+    }
+
+    public static boolean matches(CharSequence rawPassword, String encodedPassword, boolean throwEx) {
+        if (!matches(rawPassword, encodedPassword)) {
+            if (throwEx) {
+                throw new BusinessRuntimeException(CommonErrorCode.USERNAME_OR_PASSWORD_INVLAID);
+            }
+            return false;
+        }
+        return true;
     }
 }
