@@ -12,17 +12,21 @@ import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ExpressUtil;
 import com.oceancode.cloud.common.util.SessionUtil;
-import com.oceancode.cloud.common.web.util.TokenUtil;
+import com.oceancode.cloud.common.web.util.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Objects;
 
+@Order(99)
 @Component
 @Primary
-@ConditionalOnBean(RedisCacheService.class)
+@ConditionalOnMissingBean(SessionService.class)
+@ConditionalOnBean({RedisCacheService.class})
 public class RedisSessionServiceImpl implements SessionService {
     @Resource
     private RedisCacheService redisCacheService;

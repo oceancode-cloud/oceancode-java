@@ -11,10 +11,10 @@ import com.oceancode.cloud.common.util.ComponentUtil;
 
 import java.util.Objects;
 
-public class BaseService<T> {
+public abstract class BaseFunction<T> {
     private T targetService;
 
-    public T getService() {
+    protected T getService() {
         if (Objects.nonNull(targetService)) {
             return targetService;
         }
@@ -26,10 +26,8 @@ public class BaseService<T> {
     }
 
     private <T> T doGetService(Class<T> interfaceClass) {
-        return ComponentUtil.getBean(interfaceClass, service -> !(service instanceof BaseService));
+        return ComponentUtil.getBean(interfaceClass, service -> !(service instanceof BaseFunction));
     }
 
-    public Class<T> getInterfaceClass() {
-        return null;
-    }
+    protected abstract Class<T> getInterfaceClass();
 }

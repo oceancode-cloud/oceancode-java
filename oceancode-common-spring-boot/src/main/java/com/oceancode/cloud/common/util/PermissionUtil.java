@@ -38,7 +38,8 @@ public final class PermissionUtil {
         if (authorities.length == 0) {
             authorities = getAuthorities(permission.resourceId());
         }
-        Set<String> userAuthorities = ComponentUtil.getBean(PermissionResourceService.class).getAuthorities(permission.resourceId());
+        PermissionResourceService permissionResourceService = ComponentUtil.getBean(PermissionResourceService.class);
+        Set<String> userAuthorities = permissionResourceService.getAuthorities(permission.resourceId());
         if (userAuthorities == null && authorities.length > 0) {
             return false;
         }

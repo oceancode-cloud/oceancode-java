@@ -12,16 +12,19 @@ import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ExpressUtil;
 import com.oceancode.cloud.common.util.SessionUtil;
-import com.oceancode.cloud.common.web.util.TokenUtil;
+import com.oceancode.cloud.common.web.util.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Objects;
 
+@Order(98)
 @Component
-@ConditionalOnBean(LocalCacheService.class)
+@ConditionalOnMissingBean(SessionService.class)
+@ConditionalOnBean({LocalCacheService.class})
 public class CaffeineSessionServiceImpl implements SessionService {
     @Resource
     private CommonConfig commonConfig;
