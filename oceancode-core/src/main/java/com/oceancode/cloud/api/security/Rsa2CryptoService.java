@@ -8,4 +8,6 @@ public interface Rsa2CryptoService extends CryptoService<String, String> {
     String decryptByPublicKey(String input, String key);
 
     String decryptByPrivateKey(String input, String key);
+
+    RsaKeyPair generatorKey();
 }

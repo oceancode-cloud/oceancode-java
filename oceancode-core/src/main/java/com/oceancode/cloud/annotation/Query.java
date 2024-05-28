@@ -7,4 +7,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface Query {
     String name() default "";
+
+    Class<?> returnType() default Void.class;
 }

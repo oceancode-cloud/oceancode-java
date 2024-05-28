@@ -21,10 +21,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.Objects;
 
-@Order(98)
-@Component
-@ConditionalOnMissingBean(SessionService.class)
-@ConditionalOnBean({LocalCacheService.class})
 public class CaffeineSessionServiceImpl implements SessionService {
     @Resource
     private CommonConfig commonConfig;

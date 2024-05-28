@@ -6,10 +6,12 @@ import com.oceancode.cloud.api.permission.PermissionResourceService;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.config.Config;
 
+import java.util.Collections;
 import java.util.Set;
 
 public final class PermissionUtil {
     private static CommonConfig commonConfig;
+    private static PermissionResourceService permissionResourceService;
 
     private PermissionUtil() {
 
@@ -17,6 +19,11 @@ public final class PermissionUtil {
 
     static {
         commonConfig = ComponentUtil.getBean(CommonConfig.class);
+        try {
+            permissionResourceService = ComponentUtil.getBean(PermissionResourceService.class);
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
     public static String[] getAuthorities(String resourceId) {
@@ -38,9 +45,9 @@ public final class PermissionUtil {
         if (authorities.length == 0) {
             authorities = getAuthorities(permission.resourceId());
         }
-        PermissionResourceService permissionResourceService = ComponentUtil.getBean(PermissionResourceService.class);
-        Set<String> userAuthorities = permissionResourceService.getAuthorities(permission.resourceId());
-        if (userAuthorities == null && authorities.length > 0) {
+
+        Set<String> userAuthorities = null == permissionResourceService ? Collections.emptySet() : permissionResourceService.getAuthorities(permission.resourceId());
+        if (ValueUtil.isEmpty(userAuthorities) && authorities.length > 0) {
             return false;
         }
         int matchCount = 0;

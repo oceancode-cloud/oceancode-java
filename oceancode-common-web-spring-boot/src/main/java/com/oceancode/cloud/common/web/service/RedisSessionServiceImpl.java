@@ -22,11 +22,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.Objects;
 
-@Order(99)
-@Component
-@Primary
-@ConditionalOnMissingBean(SessionService.class)
-@ConditionalOnBean({RedisCacheService.class})
 public class RedisSessionServiceImpl implements SessionService {
     @Resource
     private RedisCacheService redisCacheService;

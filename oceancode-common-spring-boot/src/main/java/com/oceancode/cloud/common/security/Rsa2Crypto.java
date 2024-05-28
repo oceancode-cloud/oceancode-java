@@ -1,5 +1,6 @@
 package com.oceancode.cloud.common.security;
 
+import com.oceancode.cloud.api.security.RsaKeyPair;
 import com.oceancode.cloud.api.security.Rsa2CryptoService;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
@@ -14,6 +15,7 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 
 public class Rsa2Crypto implements Rsa2CryptoService {
@@ -116,5 +118,18 @@ public class Rsa2Crypto implements Rsa2CryptoService {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
         }
         return result;
+    }
+
+    @Override
+    public RsaKeyPair generatorKey() {
+        try {
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+            generator.initialize(2048);
+            KeyPair res = generator.generateKeyPair();
+            return new RsaKeyPair(org.apache.commons.codec.binary.Base64.encodeBase64String(res.getPublic().getEncoded()),
+                    org.apache.commons.codec.binary.Base64.encodeBase64String(res.getPrivate().getEncoded()));
+        } catch (NoSuchAlgorithmException e) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
+        }
     }
 }

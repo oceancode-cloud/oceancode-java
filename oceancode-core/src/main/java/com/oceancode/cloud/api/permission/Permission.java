@@ -6,7 +6,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Permission {
-    String resourceId();
+    String resourceId() default "";
 
     String operation() default PermissionConst.OPERATION_OR;
 

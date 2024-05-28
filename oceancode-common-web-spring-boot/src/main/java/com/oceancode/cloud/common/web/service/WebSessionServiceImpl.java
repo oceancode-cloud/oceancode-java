@@ -11,9 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-@Order(100)
-@Component
-//@ConditionalOnMissingBean(SessionService.class)
 public final class WebSessionServiceImpl implements SessionService {
     private static final String SESSION_INFO_KEY = "_userInfo";
 
