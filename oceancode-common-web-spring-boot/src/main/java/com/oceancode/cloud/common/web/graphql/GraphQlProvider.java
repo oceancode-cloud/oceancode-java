@@ -149,8 +149,10 @@ public class GraphQlProvider {
     }
 
     private GraphQLScalarType convertQLType(Class type) {
-        if (Integer.class.equals(type) || Long.class.equals(type)) {
+        if (Integer.class.equals(type)) {
             return Scalars.GraphQLInt;
+        } else if (Long.class.equals(type)) {
+            return DslType.GraphQLLong;
         } else if (Boolean.class.equals(type)) {
             return Scalars.GraphQLBoolean;
         } else if (String.class.equals(type)) {

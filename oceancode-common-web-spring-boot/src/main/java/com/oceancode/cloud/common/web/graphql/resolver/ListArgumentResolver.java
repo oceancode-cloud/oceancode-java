@@ -57,9 +57,9 @@ public class ListArgumentResolver implements ArgumentResolver {
             }
             Object targetVal = null;
             if (it instanceof IntValue) {
-                targetVal = ((IntValue) it).getValue().intValue();
+                it = ((IntValue) it).getValue().intValue();
             } else if (it instanceof StringValue) {
-                targetVal = ((StringValue) it).getValue();
+                it = ((StringValue) it).getValue();
             }
 
             if (String.class.equals(elementType)) {
