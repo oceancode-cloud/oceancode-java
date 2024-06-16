@@ -23,7 +23,7 @@ public final class SystemUtil {
 
     public static String dataDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        String dataDir = environment.getProperty("app.system.data.dir");
+        String dataDir = environment.getProperty("os.system.data.dir");
         if (ValueUtil.isEmpty(dataDir)) {
             dataDir = System.getProperty("user.dir") + "/data";
         }
@@ -41,15 +41,28 @@ public final class SystemUtil {
     }
 
     public static boolean enableWeb() {
-        String value = ComponentUtil.getBean(Environment.class).getProperty("app.web.enable", "false");
+        String value = ComponentUtil.getBean(Environment.class).getProperty("oc.web.enable", "false");
         return Boolean.parseBoolean(value);
     }
 
     public static String htmlDir() {
-        return dataDir() + "/web/html";
+        Environment environment = ComponentUtil.getBean(Environment.class);
+        return environment.getProperty("oc.system.web.html");
     }
 
     public static String publicDir() {
-        return dataDir() + "/web/public";
+        Environment environment = ComponentUtil.getBean(Environment.class);
+        return environment.getProperty("oc.system.web.resource.public");
+    }
+
+    public static String privateResourceDir() {
+        Environment environment = ComponentUtil.getBean(Environment.class);
+        return environment.getProperty("oc.system.web.resource.private");
+    }
+
+    public static String privateResourceUrlPrefix() {
+        Environment environment = ComponentUtil.getBean(Environment.class);
+        String url = environment.getProperty("oc.system.web.resource.url.prefix", "/s/");
+        return ValueUtil.isNotEmpty(url) ? (url.endsWith("/") ? url : url + "/") : null;
     }
 }

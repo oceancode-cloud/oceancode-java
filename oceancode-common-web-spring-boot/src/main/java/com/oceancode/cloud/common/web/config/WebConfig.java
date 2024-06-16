@@ -8,6 +8,7 @@ import com.oceancode.cloud.api.cache.RedisCacheService;
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.util.SystemUtil;
+import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.common.web.service.CaffeineSessionServiceImpl;
 import com.oceancode.cloud.common.web.service.RedisSessionServiceImpl;
 import com.oceancode.cloud.common.web.service.WebSessionServiceImpl;
@@ -26,22 +27,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     @Resource
-    private ApplicationContext applicationContext;
-
-    @Resource
     private CommonConfig commonConfig;
 
 //    @Bean
-//
-//    public SessionService sessionService() {
-//        return new WebSessionServiceImpl();
+//    @ConditionalOnExpression(value = "'${oc.web.enable}'=='true'")
+//    public CustomErrorController customErrorController() {
+//        return new CustomErrorController();
 //    }
 
     /**
@@ -52,18 +53,58 @@ public class WebConfig implements WebMvcConfigurer {
         if (!SystemUtil.enableWeb()) {
             return;
         }
-        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/", "file:" + SystemUtil.htmlDir() + "/", "file:" + SystemUtil.publicDir() + "/");
+        List<String> dirs = new ArrayList<>();
+        dirs.add("classpath:/static/");
+        addResourceDir(dirs, SystemUtil.htmlDir());
+        addResourceDir(dirs, SystemUtil.publicDir());
+        addResourceDir(dirs, SystemUtil.privateResourceDir());
+        registry.addResourceHandler("/**")
+                .addResourceLocations(dirs.toArray(new String[0]));
+    }
+
+    private static void addResourceDir(List<String> list, String dir) {
+        if (ValueUtil.isNotEmpty(dir)) {
+            if (!dir.endsWith("/")) {
+                dir = dir + "/";
+            }
+            list.add("file:" + dir);
+        }
+    }
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        if (!SystemUtil.enableWeb()) {
+            return;
+        }
+        String homeUrl = commonConfig.getHomeUrl();
+        if (ValueUtil.isEmpty(homeUrl)) {
+            return;
+        }
+        if (!homeUrl.startsWith("/")) {
+            homeUrl = "/" + homeUrl;
+        }
+        registry.addViewController("/").setViewName("forward:" + homeUrl);
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new AuthenticationInterceptor(commonConfig))
-                .addPathPatterns("/**").order(1);
+                .addPathPatterns("/api/**").order(1);
+
+        if (!SystemUtil.enableWeb()) {
+            return;
+        }
+
+        String securityResourceDir = SystemUtil.privateResourceUrlPrefix();
+        if (ValueUtil.isNotEmpty(securityResourceDir)) {
+            registry.addInterceptor(new SecurityResourceIntercepator(commonConfig))
+                    .addPathPatterns(securityResourceDir).order(2);
+        }
     }
 
 
     @Bean
-    @ConditionalOnExpression(value = "'${server.ssl.key-store}'.trim()!='' and '${server.http2.enabled}'=='true'")
+    @ConditionalOnExpression(value = "'${server.ssl.enabled}'=='true'")
     public ServletWebServerFactory undertowFactory() {
         UndertowServletWebServerFactory undertowFactory = new UndertowServletWebServerFactory();
 
@@ -74,9 +115,7 @@ public class WebConfig implements WebMvcConfigurer {
         undertowFactory.addDeploymentInfoCustomizers(deploymentInfo -> {
             deploymentInfo.addSecurityConstraint(new SecurityConstraint()
                             .addWebResourceCollection(new WebResourceCollection().addUrlPattern("/*"))
-
                             .setTransportGuaranteeType(TransportGuaranteeType.CONFIDENTIAL)
-
                             .setEmptyRoleSemantic(SecurityInfo.EmptyRoleSemantic.PERMIT))
                     .setConfidentialPortManager(exchange -> commonConfig.getHttpsPort());
         });

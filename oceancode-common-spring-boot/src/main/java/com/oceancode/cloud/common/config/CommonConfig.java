@@ -28,10 +28,10 @@ public class CommonConfig {
     @Resource
     private Environment environment;
 
-    @Value("${app.server.port:80}")
+    @Value("${server.port-http:80}")
     private Integer port;
 
-    @Value("${server.port:8080}")
+    @Value("${server.port:443}")
     private Integer httpsPort;
 
     @Value("${spring.application.name:}")
@@ -129,7 +129,7 @@ public class CommonConfig {
         if (!isStandalone()) {
             return null;
         }
-        return getValue("app.web.index", "/index.html");
+        return getValue("oc.web.index", "/index.html");
     }
 
 
