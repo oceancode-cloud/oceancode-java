@@ -45,6 +45,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             }
             if (ValueUtil.isNotEmpty(userId)) {
                 SessionUtil.setUserId(Long.parseLong(userId));
+                MDC.put(CommonConst.USER_ID, userId);
             }
 
             String requestId = request.getHeader(CommonConst.X_REQUEST_ID);

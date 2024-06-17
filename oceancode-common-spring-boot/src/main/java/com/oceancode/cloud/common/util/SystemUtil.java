@@ -47,22 +47,22 @@ public final class SystemUtil {
 
     public static String htmlDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        return parsePath(environment.getProperty("oc.system.web.html"));
+        return parsePath(environment.getProperty("oc.web.html"));
     }
 
     public static String publicDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        return parsePath(environment.getProperty("oc.system.web.resource.public"));
+        return parsePath(environment.getProperty("oc.web.resource.public"));
     }
 
     public static String privateResourceDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        return parsePath(environment.getProperty("oc.system.web.resource.private"));
+        return parsePath(environment.getProperty("oc.web.resource.private"));
     }
 
     public static String privateResourceUrlPrefix() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        String url = environment.getProperty("oc.system.web.resource.url.prefix", "/s/");
+        String url = environment.getProperty("oc.web.resource.private.url.prefix", "/s/");
         return ValueUtil.isNotEmpty(url) ? (url.endsWith("/") ? url : url + "/") : null;
     }
 

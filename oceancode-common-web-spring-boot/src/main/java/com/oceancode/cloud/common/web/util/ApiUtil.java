@@ -12,6 +12,7 @@ import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.SessionUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -66,10 +67,12 @@ public final class ApiUtil {
         String projectId = request.getHeader(CommonConst.X_PROJECT_ID);
         if (ValueUtil.isNotEmpty(projectId)) {
             SessionUtil.setProjectId(Long.parseLong(projectId));
+            MDC.put(CommonConst.PROJECT_ID, projectId);
         }
         String tenantId = request.getHeader(CommonConst.X_TENANT_ID);
         if (ValueUtil.isNotEmpty(tenantId)) {
             SessionUtil.setTenantId(Long.parseLong(tenantId));
+            MDC.put(CommonConst.TENANT_ID, tenantId);
         }
     }
 
