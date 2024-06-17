@@ -34,7 +34,7 @@ public class CommonConfig {
     @Value("${server.port:443}")
     private Integer httpsPort;
 
-    @Value("${spring.application.name:}")
+    @Value("${spring.application.name:ocean-app}")
     private String applicationName;
 
     private String instanceName;

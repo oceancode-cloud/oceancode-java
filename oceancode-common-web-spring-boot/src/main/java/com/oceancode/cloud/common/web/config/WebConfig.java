@@ -18,6 +18,8 @@ import io.undertow.servlet.api.SecurityConstraint;
 import io.undertow.servlet.api.SecurityInfo;
 import io.undertow.servlet.api.TransportGuaranteeType;
 import io.undertow.servlet.api.WebResourceCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
@@ -36,6 +38,8 @@ import java.util.List;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+    private final static Logger LOGGER = LoggerFactory.getLogger(WebConfig.class);
+
     @Resource
     private CommonConfig commonConfig;
 
@@ -58,6 +62,9 @@ public class WebConfig implements WebMvcConfigurer {
         addResourceDir(dirs, SystemUtil.htmlDir());
         addResourceDir(dirs, SystemUtil.publicDir());
         addResourceDir(dirs, SystemUtil.privateResourceDir());
+        LOGGER.info("html dir " + SystemUtil.htmlDir());
+        LOGGER.info("public resource dir " + SystemUtil.publicDir());
+        LOGGER.info("private resource dir " + SystemUtil.privateResourceDir());
         registry.addResourceHandler("/**")
                 .addResourceLocations(dirs.toArray(new String[0]));
     }

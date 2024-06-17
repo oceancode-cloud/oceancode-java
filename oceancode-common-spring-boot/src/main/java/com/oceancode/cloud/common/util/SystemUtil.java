@@ -23,7 +23,7 @@ public final class SystemUtil {
 
     public static String dataDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        String dataDir = environment.getProperty("os.system.data.dir");
+        String dataDir = environment.getProperty("oc.system.data.dir");
         if (ValueUtil.isEmpty(dataDir)) {
             dataDir = System.getProperty("user.dir") + "/data";
         }
@@ -33,31 +33,28 @@ public final class SystemUtil {
 
     public static String tempDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        String tempDir = environment.getProperty("app.system.temp.dir");
-        if (ValueUtil.isEmpty(tempDir)) {
-            return dataDir() + "/temp";
-        }
+        String tempDir = environment.getProperty("oc.tmp.dir", "../data/tmp");
         return tempDir;
     }
 
     public static boolean enableWeb() {
-        String value = ComponentUtil.getBean(Environment.class).getProperty("oc.web.enable", "false");
+        String value = ComponentUtil.getBean(Environment.class).getProperty("oc.web.enabled", "false");
         return Boolean.parseBoolean(value);
     }
 
     public static String htmlDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        return parsePath(environment.getProperty("oc.web.html"));
+        return parsePath(environment.getProperty("oc.web.html", "../data/web/html"));
     }
 
     public static String publicDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        return parsePath(environment.getProperty("oc.web.resource.public"));
+        return parsePath(environment.getProperty("oc.web.resource.public", "../data/web/public"));
     }
 
     public static String privateResourceDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        return parsePath(environment.getProperty("oc.web.resource.private"));
+        return parsePath(environment.getProperty("oc.web.resource.private", "../data/web/private"));
     }
 
     public static String privateResourceUrlPrefix() {
@@ -70,10 +67,10 @@ public final class SystemUtil {
         if (path == null) {
             return null;
         }
-        if (path.startsWith(".")) {
-            return System.getProperty("user.dir") + path;
+        if (path.trim().startsWith(".")) {
+            return System.getProperty("user.dir") + File.separator + path.trim();
         }
-        return path;
+        return path.trim();
     }
 
 }

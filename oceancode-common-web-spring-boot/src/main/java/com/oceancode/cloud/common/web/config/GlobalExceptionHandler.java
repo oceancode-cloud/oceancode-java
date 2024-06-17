@@ -39,10 +39,10 @@ public class GlobalExceptionHandler {
             } else {
                 ApiUtil.getResponse().setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
-            LOGGER.warn("client error,requestUrl:" + request.getRequestURI() + ",code:" + result.getCode() + ",message:" + result.getMessage());
+            LOGGER.error("[C] url:" + request.getRequestURI() + ",code:" + result.getCode() + " - " + result.getMessage());
         } else {
             ApiUtil.getResponse().setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            LOGGER.error("server error,requestUrl:" + request.getRequestURI(), exception);
+            LOGGER.error("[S] url:" + request.getRequestURI() + ",code:" + result.getCode() + " - " + result.getMessage(), exception);
         }
         return result;
     }
@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
         ErrorCodeRuntimeException businessRuntimeException = (ErrorCodeRuntimeException) exception;
         result.setCode(businessRuntimeException.getErrorCode());
         result.message(businessRuntimeException.getMessage());
-        LOGGER.warn("client error,requestUrl:" + request.getRequestURI() + ",code:" + result.getCode() + ",message:" + result.getMessage());
+        LOGGER.error("[C] url:" + request.getRequestURI() + ",code:" + result.getCode() + " - " + result.getMessage());
         if (ValueUtil.isNotEmpty(result.getCode()) && result.getCode().startsWith(CommonConst.CLIENT_ERROR_CODE_PREFIX)) {
             ApiUtil.getResponse().setStatus(HttpServletResponse.SC_BAD_REQUEST);
         } else {
@@ -67,7 +67,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResultData<?> exceptionHandler(HttpServletRequest request, Exception exception) {
         ResultData<?> result = ResultData.isFail();
-        LOGGER.error("server error,requestUrl:" + request.getRequestURI(), exception);
+        LOGGER.error("[S] url:" + request.getRequestURI(), exception);
         ApiUtil.getResponse().setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         return result;
     }
@@ -77,7 +77,7 @@ public class GlobalExceptionHandler {
     public ResultData<?> runtimeException(HttpServletRequest request, Exception exception) {
         ResultData<?> result = ResultData.isFail();
         ApiUtil.getResponse().setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        LOGGER.error("server error,requestUrl:" + request.getRequestURI(), exception);
+        LOGGER.error("[S] url:" + request.getRequestURI(), exception);
         return result;
     }
 }
