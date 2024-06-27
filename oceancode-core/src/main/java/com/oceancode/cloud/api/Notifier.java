@@ -1,8 +1,8 @@
 package com.oceancode.cloud.api;
 
-public interface Notifier<T1, T2> {
+public interface Notifier {
 
-    void notifier(NotifierType notifierType, T1 oldValue, T2 newValue);
+    void notifier(NotifierType notifierType, Object oldValue, Object newValue);
 
     String getResourceId();
 }
