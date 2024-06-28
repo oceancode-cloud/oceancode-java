@@ -44,19 +44,33 @@ public final class ModelUtil {
         }
     }
 
-    public static class Data{
-        public static <T>T query(CacheKey key, Class<T> modelClass, Supplier<T> supplier){
-            T entity = CacheUtil.getCache().getEntity(key,modelClass);
-            if(Objects.nonNull(entity)){
+    public static class Data {
+        public static <T> T query(CacheKey key, Class<T> modelClass, Supplier<T> supplier) {
+            T entity = CacheUtil.getCache().getEntity(key, modelClass);
+            if (Objects.nonNull(entity)) {
                 return entity;
             }
             entity = supplier.get();
-            CacheUtil.getCache().setEntity(key,entity);
+            CacheUtil.getCache().setEntity(key, entity);
             return entity;
         }
 
-        public static <T> void add(CacheKey key,Supplier<Boolean> supplier){
+        public static <T> void add(CacheKey key, T model, Supplier<Boolean> supplier) {
+            if (ValueUtil.isTrue(supplier.get())) {
+                CacheUtil.getCache().delete(key);
+            }
+        }
 
+        public void delete(CacheKey key, Supplier<Boolean> supplier) {
+            if (ValueUtil.isTrue(supplier.get())) {
+                CacheUtil.getCache().delete(key);
+            }
+        }
+
+        public static void update(CacheKey key, Supplier<Boolean> supplier) {
+            if (ValueUtil.isTrue(supplier.get())) {
+                CacheUtil.getCache().delete(key);
+            }
         }
     }
 }
