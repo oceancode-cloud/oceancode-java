@@ -1,6 +1,7 @@
 package com.oceancode.cloud.common.config;
 
 import com.oceancode.cloud.api.security.Rsa2CryptoService;
+import com.oceancode.cloud.common.mq.local.LocalProducer;
 import com.oceancode.cloud.common.security.Rsa2Crypto;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -20,5 +21,11 @@ public class AutoConfigService {
     @ConditionalOnMissingBean(Rsa2CryptoService.class)
     public Rsa2CryptoService cryptoService() {
         return new Rsa2Crypto();
+    }
+
+
+    @Bean
+    public LocalProducer localProducer() {
+        return new LocalProducer();
     }
 }

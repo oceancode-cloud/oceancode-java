@@ -65,17 +65,20 @@ public class PermissionHandler implements ApplicationLifeCycleService {
         boolean checkedLoginAuth = false;
 
         String token = ApiUtil.getToken();
+        int count = 0;
         for (String authority : authorities) {
             if (PermissionConst.AUTHORITY_LOGIN.equals(authority)) {
                 if (!sessionService.isLogin(token)) {
                     throw new BusinessRuntimeException(CommonErrorCode.NOT_LOGIN);
                 }
                 checkedLoginAuth = true;
+                count++;
             } else if (PermissionConst.AUTHORITY_UN_LOGIN.equals(authority)) {
                 if (SessionUtil.userId() != null) {
                     return false;
                 }
                 checkedLoginAuth = true;
+                count++;
             }
         }
 
@@ -89,7 +92,7 @@ public class PermissionHandler implements ApplicationLifeCycleService {
             return apiPermissionService.permission(permission);
         }
 
-        if (permission.authorities().length > 0) {
+        if (permission.authorities().length > count) {
             return PermissionUtil.checkPermission(permission);
         }
 
