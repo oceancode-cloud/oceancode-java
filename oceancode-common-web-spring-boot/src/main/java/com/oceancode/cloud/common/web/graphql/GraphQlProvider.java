@@ -4,6 +4,7 @@ import com.oceancode.cloud.annotation.Query;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
+import com.oceancode.cloud.common.list.LongList;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
@@ -182,6 +183,12 @@ public class GraphQlProvider {
                 argValue = Integer.parseInt(value + "");
             } else if (String.class.equals(type)) {
                 argValue = value + "";
+            } else if (LongList.class.equals(type)) {
+                if (value instanceof IntValue) {
+                    LongList list = new LongList();
+                    list.add(((IntValue) value).getValue().longValue());
+                    argValue = list;
+                }
             } else {
                 Optional<ArgumentResolver> optional = resolvers().stream().filter(e -> e.support(type)).findFirst();
                 if (optional.isPresent()) {
