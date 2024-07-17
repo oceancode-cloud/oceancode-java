@@ -71,6 +71,9 @@ public class GraphQlProvider {
 
     private void getMethods(List<Method> methods, Class classType) {
         for (Method method : classType.getDeclaredMethods()) {
+            if (Objects.isNull(method.getAnnotation(Query.class))) {
+                continue;
+            }
             methods.add(method);
         }
         if (!classType.getSuperclass().equals(Object.class)) {
@@ -82,8 +85,12 @@ public class GraphQlProvider {
 //        String basePackage = commonConfig.getValue("oc.dsl.query.package");
 //        Reflections reflections = new Reflections(basePackage);
 //        Set<Class<?>> sets = reflections.getTypesAnnotatedWith(Query.class);
+        String name = queryFunction.getClass().getSimpleName();
+        if (name.contains("$")) {
+            name = name.substring(0, name.indexOf("$"));
+        }
         GraphQLObjectType.Builder queryBuilder = GraphQLObjectType.newObject()
-                .name(queryFunction.getClass().getSimpleName());
+                .name(name);
         Map<String, GraphQLOutputType> typeMapping = new HashMap<>();
 
 
