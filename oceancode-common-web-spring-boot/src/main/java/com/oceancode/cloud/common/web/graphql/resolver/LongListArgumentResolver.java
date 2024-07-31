@@ -4,7 +4,6 @@ import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.list.LongList;
 import com.oceancode.cloud.function.ArgumentResolver;
-import com.sun.org.apache.xpath.internal.operations.String;
 import graphql.language.ArrayValue;
 import graphql.language.IntValue;
 import graphql.language.StringValue;
