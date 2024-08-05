@@ -8,8 +8,8 @@ import com.oceancode.cloud.common.web.util.ApiUtil;
 import graphql.ExceptionWhileDataFetching;
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
+import jakarta.servlet.http.HttpServletResponse;
 
-import javax.servlet.http.HttpServletResponse;
 import java.util.Objects;
 
 public final class GraphUtil {

@@ -10,11 +10,11 @@ import com.oceancode.cloud.common.constant.CommonConst;
 import com.oceancode.cloud.common.util.SessionUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.common.web.util.ApiUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
 public class AuthenticationInterceptor implements HandlerInterceptor {

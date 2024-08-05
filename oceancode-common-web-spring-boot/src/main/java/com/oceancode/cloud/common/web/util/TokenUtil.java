@@ -14,7 +14,10 @@ import com.oceancode.cloud.common.util.Md5Util;
 import com.oceancode.cloud.common.util.ValueUtil;
 import io.jsonwebtoken.*;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public final class TokenUtil {
@@ -72,19 +75,18 @@ public final class TokenUtil {
      * @return
      */
     private static String createJWT(String secretKey, long ttlMillis, Map<String, Object> claims) {
-        // 指定签名的时候使用的签名算法，也就是header那部分
-        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+        final SecretKey key = Jwts.SIG.HS256.key()
+                .random(new SecureRandom(secretKey.getBytes(StandardCharsets.UTF_8)))
+                .build();
         // 生成JWT的时间
         long expMillis = System.currentTimeMillis() + ttlMillis;
         Date exp = new Date(expMillis);
-        // 设置jwt的body
         JwtBuilder builder = Jwts.builder()
-                // 如果有私有声明，一定要先设置这个自己创建的私有的声明，这个是给builder的claim赋值，一旦写在标准的声明赋值之后，就是覆盖了那些标准的声明的
-                .setClaims(claims)
-                // 设置签名使用的签名算法和签名使用的秘钥
-                .signWith(signatureAlgorithm, secretKey.getBytes(StandardCharsets.UTF_8))
-                // 设置过期时间
-                .setExpiration(exp);
+                .issuer("oceancode")
+                .claims(claims)
+                .issuedAt(new Date())
+                .expiration(exp)
+                .signWith(key);
         return builder.compact();
     }
 
@@ -97,14 +99,23 @@ public final class TokenUtil {
      */
     private static Claims parseJWT(String secretKey, String token) {
         try {
+            final SecretKey key = Jwts.SIG.HS256.key()
+                    .random(new SecureRandom(secretKey.getBytes(StandardCharsets.UTF_8)))
+                    .build();
             // 得到DefaultJwtParser
             Claims claims = Jwts.parser()
-                    // 设置签名的秘钥
-                    .setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8))
-                    // 设置需要解析的jwt
-                    .parseClaimsJws(token).getBody();
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
             return claims;
-        } catch (ExpiredJwtException e) {
+        } catch (Exception e) {
+            if (e instanceof ExpiredJwtException) {
+                throw new BusinessRuntimeException(CommonErrorCode.NOT_LOGIN);
+            }
+            if (e instanceof JwtException) {
+                throw new BusinessRuntimeException(CommonErrorCode.NOT_LOGIN);
+            }
             throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID, "token invalid.");
         }
     }

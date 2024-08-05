@@ -1,10 +1,10 @@
 package com.oceancode.cloud.common.web.config;
 
 import com.oceancode.cloud.common.config.CommonConfig;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 public class SecurityResourceIntercepator implements HandlerInterceptor {
     private CommonConfig commonConfig;

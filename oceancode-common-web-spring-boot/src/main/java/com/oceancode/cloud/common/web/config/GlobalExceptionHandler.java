@@ -11,14 +11,13 @@ import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.common.web.util.ApiUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {

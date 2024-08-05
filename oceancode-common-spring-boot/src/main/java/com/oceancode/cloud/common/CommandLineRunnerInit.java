@@ -8,12 +8,12 @@ import com.oceancode.cloud.api.ApplicationLifeCycleService;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.util.CacheUtil;
 import com.oceancode.cloud.common.util.ComponentUtil;
+import jakarta.annotation.Resource;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 
 @Order(1)
 @Component

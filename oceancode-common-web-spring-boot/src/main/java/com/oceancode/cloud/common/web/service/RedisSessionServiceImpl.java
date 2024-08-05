@@ -13,13 +13,13 @@ import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ExpressUtil;
 import com.oceancode.cloud.common.util.SessionUtil;
 import com.oceancode.cloud.common.web.util.*;
+import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.util.Objects;
 
 public class RedisSessionServiceImpl implements SessionService {

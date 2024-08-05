@@ -7,16 +7,34 @@
     <parent>
         <groupId>com.oceancode-cloud</groupId>
         <artifactId>oceancode-spring-boot-parent</artifactId>
-        <version>1.0.0</version>
+        <version>2.0.0</version>
     </parent>
 
     <groupId>com.oceancode-cloud</groupId>
     <artifactId>oceancode-common-spring-boot</artifactId>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
+    <name>oceancode-common-spring-boot</name>
+    <description>oceancode-common-spring-boot</description>
+
+    <url>https://github.com/oceancode-cloud/oceancode-java/tree/main/oceancode-common-spring-boot</url>
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url></url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Oceancode</name>
+            <email>1354174190qjw@sina.com</email>
+            <organization>oceancode-cloud</organization>
+            <organizationUrl>https://www.oceancode-cloud.com</organizationUrl>
+        </developer>
+    </developers>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
@@ -76,11 +94,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
@@ -108,4 +121,34 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+<!--            <plugin>-->
+<!--                <groupId>org.sonatype.central</groupId>-->
+<!--                <artifactId>central-publishing-maven-plugin</artifactId>-->
+<!--                <version>0.4.0</version>-->
+<!--                <extensions>true</extensions>-->
+<!--                <configuration>-->
+<!--                    <publishingServerId>central</publishingServerId>-->
+<!--                    <tokenAuth>true</tokenAuth>-->
+<!--                    <autoPublish>true</autoPublish>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-gpg-plugin</artifactId>-->
+<!--                <version>1.6</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>sign-artifacts</id>-->
+<!--                        <phase>verify</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>sign</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+        </plugins>
+    </build>
 </project>
