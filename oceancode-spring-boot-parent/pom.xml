@@ -131,7 +131,7 @@
             </dependency>
 
             <dependency>
-                <groupId>com.graphaql-java</groupId>
+                <groupId>com.graphql-java</groupId>
                 <artifactId>graphql-java</artifactId>
                 <version>20.6</version>
             </dependency>
