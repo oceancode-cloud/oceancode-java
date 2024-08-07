@@ -7,6 +7,7 @@ package com.oceancode.cloud.common.util;
 import com.oceancode.cloud.api.TypeEnum;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
@@ -62,6 +63,18 @@ public final class ValueUtil {
         return type == null;
     }
 
+    public static boolean isEmpty(Boolean value) {
+        return null == value;
+    }
+
+    public static boolean isEmpty(Date value) {
+        return null == value;
+    }
+
+    public static boolean isEmpty(BigDecimal value) {
+        return null == value;
+    }
+
     public static boolean isNotEmpty(String value) {
         boolean ret = value != null && !value.isEmpty();
         if (!ret) {
@@ -108,6 +121,14 @@ public final class ValueUtil {
 
     public static boolean isNotEmpty(Boolean value) {
         return value != null;
+    }
+
+    public static boolean isNotEmpty(Date value) {
+        return null != value;
+    }
+
+    public static boolean isNotEmpty(BigDecimal value) {
+        return null != value;
     }
 
     public static boolean isObjectNotEmpty(Object value) {
