@@ -42,7 +42,7 @@ public final class CaffeineServiceImpl implements LocalCacheService {
 
     @PostConstruct
     protected void init() {
-        sessionKey = commonConfig.getValue(Config.Cache.SESSION_CACHE_KEY);
+        sessionKey = commonConfig.getValue(Config.Cache.SESSION_CACHE_KEY, "default");
         if (ValueUtil.isNotEmpty(sessionKey)) {
             sessionCache = Caffeine.newBuilder()
                     .expireAfter(new CaffeineConfig.CaffeineExpiry())
