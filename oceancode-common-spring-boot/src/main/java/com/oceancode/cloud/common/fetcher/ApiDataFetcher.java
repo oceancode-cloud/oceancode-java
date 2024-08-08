@@ -3,6 +3,7 @@ package com.oceancode.cloud.common.fetcher;
 import com.oceancode.cloud.api.fetcher.DataFetcher;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.constant.CommonConst;
+import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.SessionUtil;
 import jakarta.annotation.Resource;
 import org.slf4j.MDC;
@@ -14,11 +15,14 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ApiDataFetcher implements DataFetcher {
-    @Resource
     private CommonConfig commonConfig;
 
-    @Resource
     private WebClient.Builder webClientBuilder;
+
+    public ApiDataFetcher() {
+        commonConfig = ComponentUtil.getBean(CommonConfig.class);
+        webClientBuilder = ComponentUtil.getBean(WebClient.Builder.class);
+    }
 
     @Override
     public <T> T get(String dataId, Object params, Class<T> returnTypeClass) {
