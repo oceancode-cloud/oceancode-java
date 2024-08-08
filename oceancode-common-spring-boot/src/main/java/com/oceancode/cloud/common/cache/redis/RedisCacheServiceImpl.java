@@ -144,6 +144,11 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
+    public void setStringAsList(CacheKey key, List<?> list) {
+        setString(key, list);
+    }
+
+    @Override
     public void setMap(CacheKey keyParam, Map<String, Object> value) {
         if (ValueUtil.isEmpty(value)) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "value is required");
@@ -221,6 +226,16 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     public void setMapValue(CacheKey keyParam, String key, Object value) {
         RedisTemplate<String, Object> redisTemplate = redisTemplate(keyParam.sourceKey());
         redisTemplate.opsForHash().put(keyParam.parseKey(), key, value);
+    }
+
+    @Override
+    public void setMapValues(CacheKey keyParam, Map<String, Object> value) {
+        if (value == null || value.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, Object> item : value.entrySet()) {
+            setMapValue(keyParam, item.getKey(), item.getValue());
+        }
     }
 
     @Override

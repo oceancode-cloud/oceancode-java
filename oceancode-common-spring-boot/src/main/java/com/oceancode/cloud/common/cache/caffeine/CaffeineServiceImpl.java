@@ -101,7 +101,7 @@ public final class CaffeineServiceImpl implements LocalCacheService {
         if (CacheUtil.isEmpty(keyParam.key(), val)) {
             boolean enabledEmpty = CacheUtil.emptyEnabled(keyParam.key());
             if (enabledEmpty) {
-                return val;
+                return null;
             }
         }
         return val;
@@ -117,6 +117,17 @@ public final class CaffeineServiceImpl implements LocalCacheService {
             return Collections.emptyList();
         }
         return JsonUtil.toList(value, returnClassType);
+    }
+
+    @Override
+    public void setStringAsList(CacheKey key, List<?> value) {
+        if (value == null) {
+            if (!CacheUtil.emptyEnabled(key.key())) {
+                return;
+            }
+            value = Collections.emptyList();
+        }
+        putVal(key, value);
     }
 
     private <T> T getVal(CacheKey keyParam) {
@@ -161,6 +172,19 @@ public final class CaffeineServiceImpl implements LocalCacheService {
             map = new HashMap<>();
         }
         map.put(key, value);
+        setMap(keyParam, map);
+    }
+
+    @Override
+    public void setMapValues(CacheKey keyParam, Map<String, Object> value) {
+        if (value == null || value.isEmpty()) {
+            return;
+        }
+        Map<String, Object> map = getMap(keyParam);
+        if (Objects.isNull(map)) {
+            map = new HashMap<>();
+        }
+        map.putAll(value);
         setMap(keyParam, map);
     }
 
