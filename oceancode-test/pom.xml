@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.oceancode-cloud</groupId>
+        <artifactId>oceancode-spring-boot-parent</artifactId>
+        <version>2.0.0</version>
+    </parent>
+    <groupId>com.oceancode-cloud</groupId>
+    <artifactId>oceancode-test</artifactId>
+    <version>2.0.0</version>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <spring-cloud.version>2022.0.0</spring-cloud.version>
+        <spring-framework.version>6.0.8</spring-framework.version>
+        <oceancode-cloud.version>2.0.0</oceancode-cloud.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.oceancode-cloud</groupId>
+            <artifactId>oceancode-common-web-spring-boot</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.14.2</version>
+        </dependency>
+    </dependencies>
+
+</project>

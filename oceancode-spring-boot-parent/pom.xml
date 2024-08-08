@@ -46,6 +46,12 @@
             </dependency>
 
             <dependency>
+                <groupId>com.oceancode-cloud</groupId>
+                <artifactId>oceancode-test</artifactId>
+                <version>${oceancode-cloud.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.mybatis.spring.boot</groupId>
                 <artifactId>mybatis-spring-boot-starter</artifactId>
                 <version>3.0.2</version>
