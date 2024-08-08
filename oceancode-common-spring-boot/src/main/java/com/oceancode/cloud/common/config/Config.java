@@ -3,9 +3,10 @@ package com.oceancode.cloud.common.config;
 public class Config {
 
     public interface App {
-        String APP_MODE = "app.mode";
-        String APP_MQ_TYPE = "app.mq.type";
-        String APP_AUTH_TOKEN_ENABLED = "app.auth.token.enabled";
+        String APP_MODE = "oc.app.mode";
+        int MICROSERVICE = 1;
+        String APP_MQ_TYPE = "oc.mq.type";
+        String APP_AUTH_TOKEN_ENABLED = "oc.app.auth.token.enabled";
         String APP_API_PREFIX = "oc.api.strips";
         String APP_RESOURCE_PREFIX = "oc.resource.prefix";
     }

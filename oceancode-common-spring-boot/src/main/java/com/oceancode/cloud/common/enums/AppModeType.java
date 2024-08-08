@@ -5,10 +5,11 @@
 package com.oceancode.cloud.common.enums;
 
 import com.oceancode.cloud.api.TypeEnum;
+import com.oceancode.cloud.common.config.Config;
 
 public enum AppModeType implements TypeEnum<Integer> {
-    STANDALONE(0, "standalone", "startup with standalone"),
-    MICROSERVICE(1, "microservice", "startup with microservice"),
+    STANDALONE(0, "app", "startup with standalone"),
+    MICROSERVICE(Config.App.MICROSERVICE, "service", "startup with microservice"),
 
     ;
 
