@@ -68,6 +68,14 @@ public class CommonConfig {
         return getValue(key, (String) null);
     }
 
+    public String getValue(String key, boolean mustExists) {
+        String value = getValue(key);
+        if (mustExists && value == null) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "the " + key + "of config not found.");
+        }
+        return value;
+    }
+
     public Integer getValueAsInteger(String key, Integer defaultValue) {
         return TypeUtil.convertToInteger(getValue(key), defaultValue);
     }

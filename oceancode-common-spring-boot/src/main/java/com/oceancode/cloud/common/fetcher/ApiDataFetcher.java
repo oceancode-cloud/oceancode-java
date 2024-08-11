@@ -1,6 +1,9 @@
 package com.oceancode.cloud.common.fetcher;
 
+import com.oceancode.cloud.api.TypeEnum;
 import com.oceancode.cloud.api.fetcher.DataFetcher;
+import com.oceancode.cloud.api.fetcher.FetcherType;
+import com.oceancode.cloud.api.strategy.StrategyEnumAdaptor;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.constant.CommonConst;
 import com.oceancode.cloud.common.util.ComponentUtil;
@@ -14,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class ApiDataFetcher implements DataFetcher {
+public class ApiDataFetcher implements DataFetcher, StrategyEnumAdaptor {
     private CommonConfig commonConfig;
 
     private WebClient.Builder webClientBuilder;
@@ -94,5 +97,10 @@ public class ApiDataFetcher implements DataFetcher {
             return responseSpec.bodyToFlux(returnTypeClass).collectList().block();
         }
         return responseSpec.bodyToMono(returnTypeClass).block();
+    }
+
+    @Override
+    public TypeEnum<?> support() {
+        return FetcherType.API;
     }
 }
