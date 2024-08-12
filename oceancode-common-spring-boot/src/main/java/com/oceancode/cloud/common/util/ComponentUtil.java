@@ -88,7 +88,7 @@ public final class ComponentUtil implements ApplicationContextAware {
         return applicationContext;
     }
 
-    public static <T> T getLocalFunction(Class<T> functionClass) {
+    public static <T extends LocalFunction> T getLocalFunction(Class<T> functionClass) {
         return getBean(functionClass, LocalFunction.class::isInstance);
     }
 }
