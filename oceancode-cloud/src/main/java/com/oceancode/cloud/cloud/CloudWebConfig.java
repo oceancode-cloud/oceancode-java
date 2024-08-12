@@ -1,4 +1,4 @@
-package com.oceancode.platform;
+package com.oceancode.cloud.cloud;
 
 import com.oceancode.cloud.common.fetcher.ApiDataFetcher;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;

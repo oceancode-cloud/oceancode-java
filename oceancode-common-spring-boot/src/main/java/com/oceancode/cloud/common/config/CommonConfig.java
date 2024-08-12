@@ -179,6 +179,9 @@ public class CommonConfig {
     }
 
     public Integer getPort() {
+        if (!enabledHttps()) {
+            return getHttpsPort();
+        }
         return port;
     }
 

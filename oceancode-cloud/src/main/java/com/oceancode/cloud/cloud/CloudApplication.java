@@ -1,4 +1,4 @@
-package com.oceancode.platform;
+package com.oceancode.cloud.cloud;
 
 import com.oceancode.cloud.common.web.Application;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
