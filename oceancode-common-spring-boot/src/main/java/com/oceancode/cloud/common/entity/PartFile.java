@@ -10,6 +10,8 @@ public class PartFile {
 
     private String filename;
 
+    private String originalFilename;
+
     private InputStream inputStream;
 
     private Long size;
@@ -17,20 +19,6 @@ public class PartFile {
     private String contentType;
 
     private String suffix;
-
-    private transient SaveFileCallback callback;
-
-    public PartFile(SaveFileCallback callback) {
-        this.callback = callback;
-    }
-
-    public interface SaveFileCallback<T> {
-        void transferTo(PartFile partFile, T param);
-    }
-
-    public <T> void transferTo(T param) {
-        callback.transferTo(this, param);
-    }
 
     public String getFilename() {
         return filename;
@@ -70,5 +58,13 @@ public class PartFile {
 
     public void setSuffix(String suffix) {
         this.suffix = suffix;
+    }
+
+    public String getOriginalFilename() {
+        return originalFilename;
+    }
+
+    public void setOriginalFilename(String originalFilename) {
+        this.originalFilename = originalFilename;
     }
 }

@@ -8,10 +8,12 @@ import com.oceancode.cloud.common.entity.PartFile;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import org.apache.commons.io.FileUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
  * <B>FileUtil</B>
@@ -25,6 +27,31 @@ import java.nio.charset.StandardCharsets;
  */
 public final class FileUtil {
     private FileUtil() {
+    }
+
+    public static PartFile getPartFile(MultipartFile file) {
+        if (Objects.isNull(file) || file.isEmpty() || file.getSize() <= 0) {
+            return null;
+        }
+
+        PartFile partFile = new PartFile();
+        partFile.setFilename(file.getName());
+        partFile.setOriginalFilename(file.getOriginalFilename());
+
+        if (ValueUtil.isNotEmpty(file.getOriginalFilename())) {
+            if (file.getOriginalFilename().contains(".")) {
+                partFile.setSuffix(file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".")));
+            }
+        }
+        partFile.setSize(file.getSize());
+        try {
+            partFile.setInputStream(file.getInputStream());
+        } catch (IOException e) {
+            throw new BusinessRuntimeException(CommonErrorCode.ERROR, "get file failed", e);
+        }
+
+        partFile.setContentType(file.getContentType());
+        return partFile;
     }
 
     /**
