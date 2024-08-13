@@ -9,6 +9,7 @@ import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.util.SystemUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
+import com.oceancode.cloud.common.web.convert.PartFileConvert;
 import com.oceancode.cloud.common.web.service.CaffeineSessionServiceImpl;
 import com.oceancode.cloud.common.web.service.RedisSessionServiceImpl;
 import com.oceancode.cloud.common.web.service.WebSessionServiceImpl;
@@ -27,6 +28,7 @@ import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -48,6 +50,12 @@ public class WebConfig implements WebMvcConfigurer {
 //    public CustomErrorController customErrorController() {
 //        return new CustomErrorController();
 //    }
+
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new PartFileConvert());
+    }
 
     /**
      * 静态资源处理

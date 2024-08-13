@@ -20,7 +20,6 @@ import java.util.Collection;
  * @since 1.0
  */
 public final class Assert {
-
     public static void notNull(Object object, ErrorCode errorCode, String message) {
         if (null == object) {
             throw new BusinessRuntimeException(errorCode, message);

@@ -108,44 +108,6 @@ public final class ApiUtil {
         return servletRequestAttributes.getResponse();
     }
 
-    /**
-     * Get PartFile from request
-     *
-     * @param request HttpServletRequest
-     * @param key     attribute key
-     * @return PartFile
-     */
-    public static PartFile getPartFile(HttpServletRequest request, String key) {
-        StandardServletMultipartResolver resolver = new StandardServletMultipartResolver();
-        MultipartHttpServletRequest multipartRequest = resolver.resolveMultipart(request);
-        MultipartFile file = multipartRequest.getFileMap().get(key);
-        if (Objects.isNull(file)) {
-            throw new BusinessRuntimeException(CommonErrorCode.ERROR, key + " is required.");
-        }
-        PartFile partFile = new PartFile(((pf, param) -> {
-            try {
-                file.transferTo((File) param);
-            } catch (IOException e) {
-                throw new BusinessRuntimeException(CommonErrorCode.ERROR, "save file error.", e);
-            }
-        }));
-        partFile.setFilename(file.getOriginalFilename());
-        try {
-            partFile.setInputStream(file.getInputStream());
-        } catch (IOException e) {
-            throw new BusinessRuntimeException(CommonErrorCode.ERROR, e);
-        }
-        partFile.setSize(file.getSize());
-        partFile.setContentType(file.getContentType());
-
-        String filename = partFile.getFilename();
-        if (Objects.nonNull(filename)) {
-            if (filename.contains(".")) {
-                partFile.setSuffix(filename.substring(filename.lastIndexOf(".") + 1).trim());
-            }
-        }
-        return partFile;
-    }
 
     /**
      * check session
@@ -225,45 +187,6 @@ public final class ApiUtil {
         response.setHeader("Content-disposition", "attachment;filename=" + exportFilename);
     }
 
-    public static PartFile getPartFile(MultipartFile file) {
-        if (Objects.isNull(file) || file.isEmpty()) {
-            throw new BusinessRuntimeException(CommonErrorCode.ERROR, "file is empty.");
-        }
-        PartFile partFile = new PartFile(((pf, param) -> {
-            try {
-                file.transferTo((File) param);
-            } catch (IOException e) {
-                throw new BusinessRuntimeException(CommonErrorCode.ERROR, "save file error.", e);
-            }
-        }));
-        partFile.setFilename(file.getOriginalFilename());
-        try {
-            partFile.setInputStream(file.getInputStream());
-        } catch (IOException e) {
-            throw new BusinessRuntimeException(CommonErrorCode.ERROR, e);
-        }
-        partFile.setSize(file.getSize());
-        partFile.setContentType(file.getContentType());
-
-        String filename = partFile.getFilename();
-        if (Objects.nonNull(filename)) {
-            if (filename.contains(".")) {
-                partFile.setSuffix(filename.substring(filename.lastIndexOf(".") + 1).trim());
-            }
-        }
-        return partFile;
-    }
-
-    public static List<PartFile> getPartFiles(MultipartFile[] files) {
-        List<PartFile> list = new ArrayList<>();
-        if (Objects.isNull(files)) {
-            return list;
-        }
-        for (MultipartFile file : files) {
-            list.add(getPartFile(file));
-        }
-        return list;
-    }
 
     public static void setCookie(String key, String value) {
         getResponse().addCookie(new Cookie(key, value));

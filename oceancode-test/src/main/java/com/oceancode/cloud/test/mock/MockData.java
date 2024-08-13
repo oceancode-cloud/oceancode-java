@@ -1,4 +1,4 @@
-package com.oceancode.cloud.mock;
+package com.oceancode.cloud.test.mock;
 
 import com.oceancode.cloud.api.TypeEnum;
 import com.oceancode.cloud.common.util.SessionUtil;
@@ -224,8 +224,8 @@ public class MockData {
         }
     }
 
-    public static Map<String,Object> mockMap() {
-        Map<String,Object> map = new HashMap<>();
+    public static Map<String, Object> mockMap() {
+        Map<String, Object> map = new HashMap<>();
         int num = mockNormalInteger(0, 1000) % 5;
         if (num == 0) {
             return null;
@@ -267,6 +267,28 @@ public class MockData {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static <T> Set<T> mockSet(Class<T> typeClass) {
+        int num = mockNormalInteger(0, 1000) % 5;
+        if (num == 0) {
+            return null;
+        }
+        int size = mockNormalInteger(0, 20);
+        Set<T> list = new HashSet<>(20);
+        if (size == 0 || num == 1) {
+            return list;
+        }
+
+        for (int i = 0; i < size; i++) {
+            try {
+                T t = typeClass.newInstance();
+                list.add(mockBean(t));
+            } catch (Exception e) {
+                continue;
+            }
+        }
+        return list;
     }
 
     public static <T> List<T> mockList(Class<T> typeClass) {
@@ -383,8 +405,8 @@ public class MockData {
         return list;
     }
 
-    public static Map<String,Object> mockNormalMap(int size) {
-        Map<String,Object> map = new HashMap<>();
+    public static Map<String, Object> mockNormalMap(int size) {
+        Map<String, Object> map = new HashMap<>();
         if (size == 0) {
             return map;
         }

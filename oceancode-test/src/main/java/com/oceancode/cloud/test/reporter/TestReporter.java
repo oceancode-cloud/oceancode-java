@@ -1,4 +1,4 @@
-package com.oceancode.cloud.reporter;
+package com.oceancode.cloud.test.reporter;
 
 import com.oceancode.cloud.common.util.FileUtil;
 import com.oceancode.cloud.common.util.JsonUtil;

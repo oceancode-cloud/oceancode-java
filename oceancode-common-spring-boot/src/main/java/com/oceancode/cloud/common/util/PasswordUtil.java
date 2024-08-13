@@ -21,14 +21,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @since 1.0
  */
 public final class PasswordUtil {
-    private static PasswordEncoder PASSWORD_ENCODER;
-
     private PasswordUtil() {
     }
 
-    static {
-        PASSWORD_ENCODER = ComponentUtil.getBean(PasswordEncoder.class);
-    }
 
     /**
      * encode str
@@ -48,7 +43,7 @@ public final class PasswordUtil {
      * @return if match return true else return false
      */
     public static boolean matches(CharSequence rawPassword, String encodedPassword) {
-        return PASSWORD_ENCODER.matches(rawPassword, encodedPassword);
+        return ComponentUtil.getBean(PasswordEncoder.class).matches(rawPassword, encodedPassword);
     }
 
     public static boolean matches(CharSequence rawPassword, String encodedPassword, boolean throwEx) {

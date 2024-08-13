@@ -1,5 +1,6 @@
 package com.oceancode.cloud.common.web.graphql;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.oceancode.cloud.annotation.Query;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
@@ -16,9 +17,8 @@ import graphql.GraphQL;
 import graphql.Scalars;
 import graphql.language.*;
 import graphql.schema.*;
-import graphql.schema.idl.*;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -106,7 +106,7 @@ public class GraphQlProvider {
                 methodName = method.getName();
             }
 
-            DataFetcher dataFetcher = environment -> doDataFetcher(environment, method, queryFunction);
+
             boolean isList = Collection.class.isAssignableFrom(method.getReturnType());
             Class returnType = methodQuery.returnType();
             if (!isList) {
@@ -115,12 +115,15 @@ public class GraphQlProvider {
 
             GraphQLFieldDefinition.Builder methodBuilder = GraphQLFieldDefinition.newFieldDefinition();
             methodBuilder.name(methodName);
+            List<String> argList = new ArrayList<>();
             if (method.getParameterCount() > 0) {
                 for (Parameter parameter : method.getParameters()) {
-                    methodBuilder.argument(GraphQLArgument.newArgument().name(parameter.getName()).type(convertQLType(parameter.getType())).build());
+                    String argName = getParamName(parameter);
+                    argList.add(argName);
+                    methodBuilder.argument(GraphQLArgument.newArgument().name(argName).type(convertQLType(parameter.getType())).build());
                 }
             }
-
+            DataFetcher dataFetcher = environment -> doDataFetcher(environment, method, queryFunction, argList);
             String key = returnType.getName();
             GraphQLOutputType graphQLOutputType = typeMapping.get(key);
             if (graphQLOutputType == null) {
@@ -146,11 +149,31 @@ public class GraphQlProvider {
         return GraphQLSchema.newSchema().query(queryBuilder.build()).build();
     }
 
+    private String getParamName(Parameter parameter) {
+        RequestParam requestParam = parameter.getAnnotation(RequestParam.class);
+        String name = parameter.getName();
+        if (Objects.nonNull(requestParam)) {
+            name = requestParam.value();
+            if (ValueUtil.isEmpty(name)) {
+                name = parameter.getName();
+            }
+        }
+        return name;
+    }
+
     public GraphQLOutputType createOutField(Class type) {
         GraphQLObjectType.Builder builder = GraphQLObjectType.newObject().name(type.getSimpleName());
         Field[] fields = type.getDeclaredFields();
         for (Field field : fields) {
-            builder.field(GraphQLFieldDefinition.newFieldDefinition().name(field.getName()).type(convertQLType(field.getType())).build());
+            String name = field.getName();
+            JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
+            if (Objects.nonNull(jsonProperty)) {
+                name = jsonProperty.value();
+                if (ValueUtil.isEmpty(name)) {
+                    name = field.getName();
+                }
+            }
+            builder.field(GraphQLFieldDefinition.newFieldDefinition().name(name).type(convertQLType(field.getType())).build());
         }
 
         return builder.build();
@@ -170,14 +193,14 @@ public class GraphQlProvider {
         return DslType.GraphQLObject;
     }
 
-    private Object[] buildArgs(Method method, DataFetchingEnvironment environment) {
+    private Object[] buildArgs(Method method, DataFetchingEnvironment environment, List<String> argList) {
         if (method.getParameterCount() == 0) {
             return null;
         }
         Object[] args = new Object[method.getParameterCount()];
         for (int i = 0; i < method.getParameterCount(); i++) {
             Parameter parameter = method.getParameters()[i];
-            Object value = environment.getArgument(parameter.getName());
+            Object value = environment.getArgument(argList.get(i));
             if (null == value) {
                 continue;
             }
@@ -260,10 +283,10 @@ public class GraphQlProvider {
 //        return graphQLSchema;
 //    }
 
-    private Object doDataFetcher(DataFetchingEnvironment environment, Method executeMethod, Object instance) throws InvocationTargetException, IllegalAccessException {
+    private Object doDataFetcher(DataFetchingEnvironment environment, Method executeMethod, Object instance, List<String> argList) throws InvocationTargetException, IllegalAccessException {
         ContextUtil.set(new GraphQlContext(environment));
         try {
-            return executeMethod.invoke(instance, buildArgs(executeMethod, environment));
+            return executeMethod.invoke(instance, buildArgs(executeMethod, environment, argList));
         } finally {
             ContextUtil.remove();
         }

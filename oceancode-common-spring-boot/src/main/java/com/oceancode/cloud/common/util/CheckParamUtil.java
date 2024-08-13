@@ -5,14 +5,58 @@
 package com.oceancode.cloud.common.util;
 
 import com.oceancode.cloud.api.TypeEnum;
+import com.oceancode.cloud.api.validation.Validator;
 import com.oceancode.cloud.common.entity.PartFile;
 import com.oceancode.cloud.common.entity.ResultData;
 import com.oceancode.cloud.common.entity.StringTypeMap;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public final class CheckParamUtil {
+    public static void notEmpty(Long value, String field) {
+        if (value == null) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, field + " is required.");
+        }
+    }
+
+    public static <T extends Validator> void checkParam(T param) {
+        if (param == null) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, "param is required.");
+        }
+        param.validate();
+    }
+
+    public static void checkPrimaryKey(Long value, String field) {
+        notEmpty(value, field);
+        if (value < 1) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_INVALID, field + " invalid.");
+        }
+    }
+
+    public static void notEmpty(LocalDateTime value, String field) {
+        if (value == null) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, field + " is required.");
+        }
+    }
+
+    public static void notEmpty(String value, String field) {
+        if (ValueUtil.isEmpty(value)) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, field + " is required.");
+        }
+    }
+
+    public static void checkString(String value, String field, int maxLength) {
+        notEmpty(value, field);
+        if (value != null) {
+            if (value.length() > maxLength) {
+                throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_INVALID, "the size of " + field + " is too large.");
+            }
+        }
+    }
+
     public static boolean checkString(ResultData<?> result, String value, int length, String field) {
         if (ValueUtil.isEmpty(value)) {
             result.code(CommonErrorCode.PARAMETER_MISSING).message(field + " is required.");
