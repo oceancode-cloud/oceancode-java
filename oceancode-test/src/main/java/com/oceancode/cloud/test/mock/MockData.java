@@ -7,6 +7,9 @@ import java.math.BigDecimal;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
@@ -339,6 +342,15 @@ public class MockData {
                     value = mockBigDecimal();
                 } else if (Boolean.class.equals(field.getType())) {
                     value = mockBoolean();
+                } else if (TypeEnum.class.isAssignableFrom(field.getType())) {
+                    Class<TypeEnum<T>> classType = (Class<TypeEnum<T>>) field.getType();
+                    value = mockTypeEnum(classType);
+                } else if (LocalDateTime.class.equals(field.getType())) {
+                    value = LocalDateTime.of(mockNormalInteger(1000, 9999), mockNormalInteger(1, 12), mockNormalInteger(0, LocalDate.now().getDayOfMonth()), mockNormalInteger(0, 24), mockNormalInteger(0, 60));
+                } else if (LocalDate.class.equals(field.getType())) {
+                    value = LocalDate.of(mockNormalInteger(1000, 9999), mockNormalInteger(1, 12), mockNormalInteger(0, LocalDate.now().getDayOfMonth()));
+                } else if (LocalTime.class.equals(field.getType())) {
+                    value = LocalTime.of(mockNormalInteger(0, 24), mockNormalInteger(0, 60));
                 }
 
                 method.invoke(instance, value);
