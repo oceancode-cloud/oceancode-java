@@ -4,6 +4,7 @@
 
 package com.oceancode.cloud.common.web.util;
 
+import com.oceancode.cloud.api.session.TokenGenerator;
 import com.oceancode.cloud.api.session.TokenInfo;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.config.Config;
@@ -13,6 +14,7 @@ import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.Md5Util;
 import com.oceancode.cloud.common.util.ValueUtil;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -31,11 +33,24 @@ public final class TokenUtil {
         commonConfig = ComponentUtil.getBean(CommonConfig.class);
     }
 
+    private static TokenGenerator tokenGenerator() {
+        try {
+            return ComponentUtil.getBean(TokenGenerator.class);
+        } catch (Exception e) {
+            //ignore
+        }
+        return null;
+    }
+
     public static TokenInfo createToken(Long userId) {
         return createToken(userId, null);
     }
 
     public static TokenInfo createToken(Long userId, String openid) {
+        TokenGenerator generator = tokenGenerator();
+        if (Objects.nonNull(generator)) {
+            return generator.get(userId, openid);
+        }
         if (userId == null) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "userId is required.");
         }
@@ -86,7 +101,7 @@ public final class TokenUtil {
                 .claims(claims)
                 .issuedAt(new Date())
                 .expiration(exp)
-                .signWith(key);
+                .signWith(generalKey(secretKey), SignatureAlgorithm.HS512);
         return builder.compact();
     }
 
@@ -99,12 +114,9 @@ public final class TokenUtil {
      */
     private static Claims parseJWT(String secretKey, String token) {
         try {
-            final SecretKey key = Jwts.SIG.HS256.key()
-                    .random(new SecureRandom(secretKey.getBytes(StandardCharsets.UTF_8)))
-                    .build();
             // 得到DefaultJwtParser
             Claims claims = Jwts.parser()
-                    .verifyWith(key)
+                    .verifyWith(generalKey(secretKey))
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
@@ -118,6 +130,14 @@ public final class TokenUtil {
             }
             throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID, "token invalid.");
         }
+    }
+
+    public static SecretKey generalKey(String key) {
+        //调用base64中的getDecoder方法获取解码器，调用解码器中的decode方法将明文密钥进行编码
+        byte[] decodeKey = Base64.getDecoder().decode(key);
+        SecretKey secretKey = Keys.hmacShaKeyFor(decodeKey);
+        //返回加密后的密钥
+        return secretKey;
     }
 
 
@@ -138,6 +158,10 @@ public final class TokenUtil {
     public static TokenInfo parseToken(String token) {
         if (ValueUtil.isEmpty(token)) {
             throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
+        }
+        TokenGenerator generator = tokenGenerator();
+        if (Objects.nonNull(generator)) {
+            return generator.parse(token);
         }
 
         String secret = getSecret();

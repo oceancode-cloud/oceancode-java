@@ -27,6 +27,8 @@ import java.util.Locale;
 import java.util.Map;
 
 public class TestHttpServletRequest implements HttpServletRequest {
+    private static final TestSession SESSION = new TestSession();
+
     @Override
     public String getAuthType() {
         return "";
@@ -124,12 +126,12 @@ public class TestHttpServletRequest implements HttpServletRequest {
 
     @Override
     public HttpSession getSession(boolean b) {
-        return new TestSession();
+        return SESSION;
     }
 
     @Override
     public HttpSession getSession() {
-        return null;
+        return SESSION;
     }
 
     @Override

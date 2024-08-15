@@ -7,13 +7,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 
 @Configuration
 public class SessionConfig {
 
     @Bean
     @ConditionalOnMissingBean(SessionService.class)
-    @ConditionalOnBean({RedisCacheService.class})
+    @ConditionalOnBean({RedisCacheService.class, RedisTemplate.class})
     public RedisSessionServiceImpl redisSessionService() {
         return new RedisSessionServiceImpl();
     }

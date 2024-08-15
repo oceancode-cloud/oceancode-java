@@ -83,9 +83,13 @@ public final class JsonUtil {
     }
 
     public static String toJson(Object value) {
+        if (value instanceof String) {
+            return (String) value;
+        }
         if (Objects.isNull(value)) {
             return null;
         }
+
         try {
             return OBJECT_MAPPER.writeValueAsString(value);
         } catch (JsonProcessingException e) {

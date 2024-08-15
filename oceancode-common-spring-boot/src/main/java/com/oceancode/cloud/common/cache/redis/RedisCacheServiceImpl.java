@@ -108,7 +108,13 @@ public class RedisCacheServiceImpl implements RedisCacheService {
             for (int index = 0; index < count; index++) {
                 sb.append(values.get("_" + index));
             }
-            return sb.toString();
+            String text = sb.toString();
+            if (CacheUtil.enabledAb(keyParam.key())) {
+                if (CacheUtil.isEmpty(keyParam.key(), text)) {
+                    return null;
+                }
+            }
+            return text;
         }
         Object value = redisTemplate(keyParam.sourceKey()).opsForValue().get(keyParam.parseKey());
         if (Objects.isNull(value)) {

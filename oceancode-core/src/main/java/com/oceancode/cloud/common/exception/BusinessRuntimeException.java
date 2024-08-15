@@ -13,24 +13,26 @@ public class BusinessRuntimeException extends ErrorCodeRuntimeException {
 
     private ErrorCode code;
 
-    private String message;
-
     public BusinessRuntimeException(ErrorCode code, String message, Object... args) {
-        super(String.format(message, args));
+        super(formatMessage(message, args));
         this.code = code;
-        this.message = String.format(message, args);
+    }
+
+    private static String formatMessage(String message, Object... args) {
+        if (args == null || args.length == 0) {
+            return message;
+        }
+        return String.format(message, args);
     }
 
     public BusinessRuntimeException(ErrorCode code) {
         super(code.getMessage());
         this.code = code;
-        this.message = code.getMessage();
     }
 
     public BusinessRuntimeException(ErrorCode code, Throwable throwable) {
         super(throwable);
         this.code = code;
-        this.message = throwable.getMessage();
     }
 
     public ErrorCode getCode() {
@@ -44,6 +46,6 @@ public class BusinessRuntimeException extends ErrorCodeRuntimeException {
 
     @Override
     public String getMessage() {
-        return message;
+        return super.getMessage();
     }
 }

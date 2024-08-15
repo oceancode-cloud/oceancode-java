@@ -8,6 +8,7 @@ import java.util.Objects;
 
 public class RecordMeta {
     private String messageId;
+    private Long offsetMsgId;
 
     private Object data;
 
@@ -25,5 +26,13 @@ public class RecordMeta {
 
     public void setData(Object data) {
         this.data = data;
+    }
+
+    public Long getOffsetMsgId() {
+        return offsetMsgId;
+    }
+
+    public void setOffsetMsgId(Long offsetMsgId) {
+        this.offsetMsgId = offsetMsgId;
     }
 }

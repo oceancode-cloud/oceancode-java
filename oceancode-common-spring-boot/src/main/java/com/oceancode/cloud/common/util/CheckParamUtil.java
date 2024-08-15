@@ -12,15 +12,54 @@ import com.oceancode.cloud.common.entity.StringTypeMap;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public final class CheckParamUtil {
-    public static void notEmpty(Long value, String field) {
+    public static void notNull(Object value, String field) {
         if (value == null) {
             throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, field + " is required.");
         }
     }
+
+    public static void notEmpty(Long value, String field) {
+        notNull(value, field);
+    }
+
+    public static void notEmpty(LocalDate value, String field) {
+        notNull(value, field);
+    }
+
+    public static void notEmpty(LocalTime value, String field) {
+        notNull(value, field);
+    }
+
+    public static void notEmpty(BigDecimal value, String field) {
+        notNull(value, field);
+    }
+
+    public static void notEmpty(PartFile value, String field) {
+        notNull(value, field);
+    }
+
+    public static void notEmpty(Collection<?> value, String field) {
+        if (ValueUtil.isEmpty(value)) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, field + " is required.");
+        }
+    }
+
+    public static void notEmpty(Map<?, ?> value, String field) {
+        if (ValueUtil.isEmpty(value)) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, field + " is required.");
+        }
+    }
+
 
     public static <T extends Validator> void checkParam(T param) {
         if (param == null) {
@@ -36,10 +75,15 @@ public final class CheckParamUtil {
         }
     }
 
-    public static void notEmpty(LocalDateTime value, String field) {
-        if (value == null) {
-            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, field + " is required.");
+    public static void checkPrimaryKey(Integer value, String field) {
+        notNull(value, field);
+        if (value < 1) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_INVALID, field + " invalid.");
         }
+    }
+
+    public static void notEmpty(LocalDateTime value, String field) {
+        notNull(value, field);
     }
 
     public static void notEmpty(String value, String field) {

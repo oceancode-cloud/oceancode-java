@@ -185,6 +185,9 @@ public final class KeyParam implements CacheKey {
             return this.sourceKey;
         }
         this.sourceKey = commonConfig.getValue("oc.cache." + key + ".source.id");
+        if (ValueUtil.isEmpty(this.sourceKey)) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "oc.cache." + key + ".source.id is required.");
+        }
         return sourceKey;
     }
 

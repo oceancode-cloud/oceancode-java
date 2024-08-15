@@ -124,10 +124,17 @@ public class MockData {
         }
         StringBuffer buffer = new StringBuffer();
         int len = mockNormalInteger(min, max);
-        for (int i = 0; i < len; i++) {
+        for (int i = 0; i < len || buffer.length() < min; i++) {
+            if (buffer.length() >= max) {
+                break;
+            }
             buffer.append(mockSimpleString());
         }
-        return buffer.toString();
+        String text = buffer.toString();
+        if (text.length() > max) {
+            return text.substring(0, max);
+        }
+        return text;
     }
 
     public static String mockString() {
@@ -208,7 +215,12 @@ public class MockData {
     }
 
     public static String mockText() {
-        return mockString();
+        StringBuilder sb = new StringBuilder();
+        int len = mockNormalInteger(1, 10);
+        for (int i = 0; i < len; i++) {
+            sb.append(mockString());
+        }
+        return sb.toString();
     }
 
     public static Timestamp mockTimestamp() {
@@ -397,7 +409,7 @@ public class MockData {
     }
 
     public static Long mockNormalLong(long min, long max) {
-        return mockLong(min, max);
+        return RANDOM.nextLong(max - min) + min;
     }
 
     public static <T extends TypeEnum<?>> T mockNormalTypeEnum(Class<T> typeClass) {
