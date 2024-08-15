@@ -112,6 +112,9 @@ public class GraphQlProvider {
             if (!isList) {
                 returnType = method.getReturnType();
             }
+            if (void.class.equals(returnType)) {
+                returnType = Void.class;
+            }
 
             GraphQLFieldDefinition.Builder methodBuilder = GraphQLFieldDefinition.newFieldDefinition();
             methodBuilder.name(methodName);
