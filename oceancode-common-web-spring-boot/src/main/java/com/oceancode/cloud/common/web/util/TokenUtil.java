@@ -55,19 +55,34 @@ public final class TokenUtil {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "userId is required.");
         }
         String deviceUid = getShortMd5Str(getDeviceUid());
+        String token = null;
         String sessionId = UUID.randomUUID().toString().replace("-", "");
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("deviceId", deviceUid);
-        claims.put("sessionId", sessionId);
-        claims.put("userId", userId + "");
-        claims.put("openid", openid);
-        String token = createJWT(getSecret(), commonConfig.getValueAsLong(Config.Cache.SESSION_TOKEN_EXPIRE, 600000L), claims);
+        if (isToken()) {
+            token = deviceUid + "." + sessionId;
+        } else {
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("deviceId", deviceUid);
+            claims.put("sessionId", sessionId);
+            claims.put("userId", userId + "");
+            claims.put("openid", openid);
+            token = createJWT(getSecret(), commonConfig.getValueAsLong(Config.Cache.SESSION_TOKEN_EXPIRE, 600000L), claims);
+        }
+
         TokenInfo tokenInfo = new TokenInfo();
         tokenInfo.setUserId(userId);
         tokenInfo.setOpenid(openid);
         tokenInfo.setSessionId(sessionId);
         tokenInfo.setToken(token);
         return tokenInfo;
+    }
+
+    private static String getTokenType() {
+        return commonConfig.getValue(Config.Cache.SESSION_TOKEN_TYPE, "token");
+    }
+
+    private static boolean isToken() {
+        String type = getTokenType();
+        return ValueUtil.isEmpty(type) || "token".equals(type);
     }
 
     private static String getSecret() {
@@ -159,9 +174,26 @@ public final class TokenUtil {
         if (ValueUtil.isEmpty(token)) {
             throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
         }
+
         TokenGenerator generator = tokenGenerator();
         if (Objects.nonNull(generator)) {
             return generator.parse(token);
+        }
+
+        if (isToken()) {
+            String[] strs = token.split("[.]");
+            if (strs.length != 2) {
+                throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
+            }
+            String deviceUid = getShortMd5Str(getDeviceUid());
+            if (!strs[0].equals(deviceUid)) {
+                throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
+            }
+            TokenInfo tokenInfo = new TokenInfo();
+            tokenInfo.setUserId(null);
+            tokenInfo.setToken(strs[1]);
+            tokenInfo.setSessionId(strs[1]);
+            return tokenInfo;
         }
 
         String secret = getSecret();

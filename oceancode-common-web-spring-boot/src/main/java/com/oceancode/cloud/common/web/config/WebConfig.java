@@ -4,15 +4,12 @@
 
 package com.oceancode.cloud.common.web.config;
 
-import com.oceancode.cloud.api.cache.RedisCacheService;
-import com.oceancode.cloud.api.session.SessionService;
+import com.oceancode.cloud.api.ApiClient;
+import com.oceancode.cloud.common.ApiClientImpl;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.util.SystemUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.common.web.convert.PartFileConvert;
-import com.oceancode.cloud.common.web.service.CaffeineSessionServiceImpl;
-import com.oceancode.cloud.common.web.service.RedisSessionServiceImpl;
-import com.oceancode.cloud.common.web.service.WebSessionServiceImpl;
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
 import io.undertow.servlet.api.SecurityConstraint;
@@ -25,11 +22,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -44,6 +39,14 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Resource
     private CommonConfig commonConfig;
+
+    @Bean
+    @ConditionalOnMissingBean({ApiClient.class})
+    public ApiClient apiClient() {
+        return new ApiClientImpl();
+    }
+
+
 
 //    @Bean
 //    @ConditionalOnExpression(value = "'${oc.web.enable}'=='true'")

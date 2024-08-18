@@ -1,6 +1,5 @@
 package com.oceancode.cloud.cloud;
 
-import com.oceancode.cloud.common.fetcher.ApiDataFetcher;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,10 +11,5 @@ public class CloudWebConfig {
     @LoadBalanced
     public WebClient.Builder webClientBuilder() {
         return WebClient.builder();
-    }
-
-    @Bean
-    public ApiDataFetcher apiDataFetcher(){
-        return new ApiDataFetcher();
     }
 }

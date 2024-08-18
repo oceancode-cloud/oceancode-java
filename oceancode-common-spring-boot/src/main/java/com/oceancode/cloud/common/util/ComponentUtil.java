@@ -13,15 +13,21 @@ import com.oceancode.cloud.common.function.BaseFunction;
 import com.oceancode.cloud.common.function.ClientFunction;
 import com.oceancode.cloud.common.function.LocalFunction;
 import com.oceancode.cloud.common.function.RemoteFunction;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.function.Function;
 
-@Component
-public final class ComponentUtil implements ApplicationContextAware {
+public final class ComponentUtil {
     private static ApplicationContext applicationContext;
 
     private ComponentUtil() {
@@ -81,7 +87,7 @@ public final class ComponentUtil implements ApplicationContextAware {
         return list;
     }
 
-    public void setApplicationContext(ApplicationContext ctx) {
+    public static void setApplicationContext(ApplicationContext ctx) {
         applicationContext = ctx;
     }
 

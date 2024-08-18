@@ -142,7 +142,10 @@ public final class ApiUtil {
         }
         String token = authorization.trim();
         if (token.startsWith("Bearer ")) {
-            return token.substring("Bearer ".length()).trim();
+            String value = token.substring("Bearer ".length()).trim();
+            if (ValueUtil.isNotEmpty(value) && !"null".equalsIgnoreCase(value)) {
+                return value;
+            }
         }
         throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
     }

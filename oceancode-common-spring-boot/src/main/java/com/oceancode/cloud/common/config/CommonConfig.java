@@ -8,11 +8,13 @@ import com.oceancode.cloud.api.TypeEnum;
 import com.oceancode.cloud.common.enums.AppModeType;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
+import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.TypeUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
@@ -42,6 +44,9 @@ public class CommonConfig {
     @Resource
     private ServerProperties serverProperties;
 
+    public CommonConfig(ApplicationContext applicationContext) {
+        ComponentUtil.setApplicationContext(applicationContext);
+    }
 
     private static List<String> stripPrefixes;
 

@@ -22,4 +22,5 @@ public interface Result<T> {
     String getMessage();
 
     String getCode();
+
 }

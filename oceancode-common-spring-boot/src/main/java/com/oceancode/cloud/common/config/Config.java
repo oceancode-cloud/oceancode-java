@@ -21,6 +21,7 @@ public class Config {
     public interface Cache {
         String SESSION_CACHE_KEY = "oc.session.cache.key";
         String SESSION_TOKEN_SECRET = "oc.session.token.secret";
+        String SESSION_TOKEN_TYPE = "oc.session.token.type";
         String SESSION_TOKEN_EXPIRE = "oc.session.token.expire";
         String SESSION_REFRESH_TOKEN_EXPIRE = "oc.session.refresh.token.expire";
     }
