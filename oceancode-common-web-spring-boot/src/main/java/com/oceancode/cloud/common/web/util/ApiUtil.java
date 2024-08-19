@@ -154,6 +154,10 @@ public final class ApiUtil {
         return getAuthorizationToken();
     }
 
+    public static String getPrivateToken() {
+        return getRequest().getHeader("PRIVATE-TOKEN");
+    }
+
     private static String getContentTypeByFileType(String fileType) {
         if ("xlsx".equalsIgnoreCase(fileType)) {
             return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";

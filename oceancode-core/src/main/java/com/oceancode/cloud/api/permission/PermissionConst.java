@@ -4,6 +4,7 @@ public class PermissionConst {
     public static final String OPERATION_OR = "or";
     public static final String OPERATION_AND = "and";
     public static final String AUTHORITY_LOGIN = "login";
+    public static final String PRIVATE_TOKEN = "PRIVATE-TOKEN";
     public static final String AUTHORITY_UN_LOGIN = "unlogin";
     public static final String AUTHORITY_VISITOR = AUTHORITY_UN_LOGIN;
     public static final String AUTHORITY_CRUD_ADD = "add";

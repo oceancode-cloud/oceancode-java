@@ -5,8 +5,11 @@ import com.oceancode.cloud.api.permission.PermissionConst;
 import com.oceancode.cloud.api.permission.PermissionResourceService;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.config.Config;
+import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 
 public final class PermissionUtil {
@@ -38,6 +41,12 @@ public final class PermissionUtil {
         return commonConfig.getValue(Config.Permission.PREFIX + resourceId + "." + Config.Permission.OPERATOR, PermissionConst.OPERATION_OR);
     }
 
+    public static boolean checkPrivateToken(Permission permission) {
+        if (Objects.isNull(permissionResourceService)) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, PermissionResourceService.class.getName() + " not found implementation.");
+        }
+        return permissionResourceService.checkPerssion(permission, PermissionConst.PRIVATE_TOKEN);
+    }
 
     public static boolean checkPermission(Permission permission) {
         boolean isAnd = PermissionConst.OPERATION_OR.equals(getOperator(permission.resourceId())) || PermissionConst.OPERATION_OR.equals(permission.operation());
@@ -46,10 +55,6 @@ public final class PermissionUtil {
             authorities = getAuthorities(permission.resourceId());
         }
 
-        Set<String> userAuthorities = null == permissionResourceService ? Collections.emptySet() : permissionResourceService.getAuthorities(permission.resourceId());
-        if (ValueUtil.isEmpty(userAuthorities) && authorities.length > 0) {
-            return false;
-        }
         int matchCount = 0;
         for (String authority : authorities) {
             if (PermissionConst.AUTHORITY_LOGIN.equals(authority) ||
@@ -57,7 +62,7 @@ public final class PermissionUtil {
                 matchCount++;
                 continue;
             }
-            if (userAuthorities.contains(authority)) {
+            if (permissionResourceService.checkPerssion(permission, authority)) {
                 matchCount++;
                 if (!isAnd) {
                     return true;

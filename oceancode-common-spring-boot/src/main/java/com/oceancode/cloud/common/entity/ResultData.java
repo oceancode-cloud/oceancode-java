@@ -58,6 +58,10 @@ public class ResultData<T> implements Result<T> {
     }
 
     public ResultData<T> message(String message, Object... args) {
+        if (null == args || args.length == 0 || message == null) {
+            setMessage(message);
+            return this;
+        }
         setMessage(String.format(message, args));
         return this;
     }

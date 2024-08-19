@@ -1,6 +1,7 @@
 package com.oceancode.cloud.test.util;
 
 import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
+import com.oceancode.cloud.test.data.Data;
 
 public final class TestUtil {
     private TestUtil() {
@@ -20,5 +21,17 @@ public final class TestUtil {
 
     public static void fuzz(Runnable runnable) {
         fuzz(100000, runnable);
+    }
+
+    public static void withData(Data data, Runnable runnable, boolean ignoreBusinesses) {
+        try {
+            runnable.run();
+        } catch (Throwable throwable) {
+            if (data.isPositive()) {
+                if (!(ignoreBusinesses && throwable instanceof ErrorCodeRuntimeException)) {
+                    throw throwable;
+                }
+            }
+        }
     }
 }

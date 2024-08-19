@@ -10,6 +10,7 @@ import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.PermissionUtil;
 import com.oceancode.cloud.common.util.SessionUtil;
+import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.common.web.util.ApiUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -68,6 +69,9 @@ public class PermissionHandler implements ApplicationLifeCycleService {
         int count = 0;
         for (String authority : authorities) {
             if (PermissionConst.AUTHORITY_LOGIN.equals(authority)) {
+                if (ValueUtil.isEmpty(token)) {
+                    return false;
+                }
                 if (!sessionService.isLogin(token)) {
                     throw new BusinessRuntimeException(CommonErrorCode.NOT_LOGIN);
                 }
@@ -79,6 +83,12 @@ public class PermissionHandler implements ApplicationLifeCycleService {
                 }
                 checkedLoginAuth = true;
                 count++;
+            } else if (PermissionConst.PRIVATE_TOKEN.equals(authority)) {
+                String privateToken = ApiUtil.getPrivateToken();
+                if (ValueUtil.isEmpty(privateToken)) {
+                    return false;
+                }
+                return PermissionUtil.checkPermission(permission);
             }
         }
 
