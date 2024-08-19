@@ -1,7 +1,9 @@
 package com.oceancode.cloud.test.data;
 
 import com.oceancode.cloud.common.entity.StringTypeMap;
+import com.oceancode.cloud.common.util.JsonUtil;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
@@ -86,6 +88,18 @@ public class Data {
 
     public boolean hasData() {
         return Objects.nonNull(datasets) && !datasets.isEmpty();
+    }
+
+    public Map<String, Object> getMap(String key) {
+        Object value = get(key);
+        if (value == null || !(value instanceof Map)) {
+            return Collections.emptyMap();
+        }
+        return (Map<String, Object>) value;
+    }
+
+    public <T> T getMap2Bean(String key, Class<T> typeClass) {
+        return JsonUtil.mapToBean(getMap(key), typeClass);
     }
 
     @Override

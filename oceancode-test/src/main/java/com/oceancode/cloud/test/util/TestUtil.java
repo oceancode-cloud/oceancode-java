@@ -3,6 +3,8 @@ package com.oceancode.cloud.test.util;
 import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
 import com.oceancode.cloud.test.data.Data;
 
+import java.util.function.Supplier;
+
 public final class TestUtil {
     private TestUtil() {
     }
@@ -33,5 +35,12 @@ public final class TestUtil {
                 }
             }
         }
+    }
+
+    public static void smokeWithData(Data data, Runnable runnable) {
+        if (!data.isPositive()) {
+            return;
+        }
+        runnable.run();
     }
 }
