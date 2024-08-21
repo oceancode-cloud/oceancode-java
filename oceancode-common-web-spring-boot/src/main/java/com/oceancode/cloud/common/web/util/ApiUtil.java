@@ -74,6 +74,14 @@ public final class ApiUtil {
             SessionUtil.setTenantId(Long.parseLong(tenantId));
             MDC.put(CommonConst.TENANT_ID, tenantId);
         }
+
+        String branch = request.getHeader(CommonConst.X_BRANCH);
+        if (ValueUtil.isEmpty(branch)) {
+            branch = request.getParameter(CommonConst.X_BRANCH);
+        }
+        if (ValueUtil.isNotEmpty(branch)) {
+            SessionUtil.setBranch(branch);
+        }
     }
 
     /**

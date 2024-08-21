@@ -13,6 +13,7 @@ public class CommonConst {
     public static final String API_PREFIX = "/api/";
     public static final String TRACE_ID = "traceId";
     public static final String X_PROJECT_ID = "x-project-id";
+    public static final String X_BRANCH = "x-branch";
     public static final String X_TENANT_ID = "x-tenant-id";
     public static final String X_USER_ID = "x-user-id";
     public static final String X_REQUEST_ID = "x-request-id";

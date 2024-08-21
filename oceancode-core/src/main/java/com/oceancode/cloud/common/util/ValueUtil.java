@@ -275,6 +275,13 @@ public final class ValueUtil {
         return value;
     }
 
+    public static String[] splitWithSeparator(String str) {
+        if (isEmpty(str)) {
+            return null;
+        }
+        return str.split(String.valueOf((char) 10));
+    }
+
     public static <T> T getValue(Object data, Supplier<T> supplier) {
         return getValue(data, supplier, null);
     }

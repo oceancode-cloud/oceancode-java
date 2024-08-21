@@ -42,5 +42,6 @@ public final class TestUtil {
             return;
         }
         runnable.run();
+        data.release();
     }
 }

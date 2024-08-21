@@ -1,9 +1,20 @@
 package com.oceancode.cloud.test.data;
 
+import com.oceancode.cloud.common.config.CommonConfig;
+import com.oceancode.cloud.common.entity.PartFile;
 import com.oceancode.cloud.common.entity.StringTypeMap;
+import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
+import com.oceancode.cloud.common.util.ValueUtil;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -13,6 +24,8 @@ public class Data {
     private Boolean positive;
 
     private Map<String, Object> datasets;
+
+    private List<Runnable> releaseQueue = new ArrayList<>();
 
     public String getName() {
         return name;
@@ -86,8 +99,71 @@ public class Data {
         return Integer.parseInt(value + "");
     }
 
+    public Integer getInteger(String key) {
+        return getInteger(key, null);
+    }
+
     public boolean hasData() {
         return Objects.nonNull(datasets) && !datasets.isEmpty();
+    }
+
+    public File getFile(String key, File defaultValue) {
+        Object value = get(key);
+        if (value == null) {
+            return defaultValue;
+        }
+        if (value instanceof File) {
+            return (File) value;
+        }
+        String path = ((String) value).trim();
+        String workspace = ComponentUtil.getBean(CommonConfig.class).getValue("oc.test.workspace.dir");
+        if (ValueUtil.isNotEmpty(workspace)) {
+            path = workspace + path;
+        }
+        if (path.startsWith(".")) {
+            path = Thread.currentThread().getContextClassLoader().getResource("").getPath() + path;
+        }
+        if (ValueUtil.isNotEmpty(path)) {
+            return new File(path);
+        }
+        return defaultValue;
+    }
+
+    public File getFile(String key) {
+        return getFile(key, null);
+    }
+
+    public PartFile getPartFile(String key) {
+        File file = getFile(key);
+        if (Objects.isNull(file)) {
+            return null;
+        }
+        PartFile partFile = new PartFile();
+        partFile.setFilename(file.getName());
+        partFile.setFilename(file.getName());
+        partFile.setSize(file.getTotalSpace());
+        partFile.setOriginalFilename(file.getName());
+        if (!file.exists()) {
+            return partFile;
+        }
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            partFile.setInputStream(fileInputStream);
+            releaseQueue.add(() -> {
+                try {
+                    fileInputStream.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        if (file.getName().contains(".")) {
+            partFile.setSuffix(file.getName().substring(file.getName().lastIndexOf(".") + 1));
+        }
+
+        return partFile;
     }
 
     public Map<String, Object> getMap(String key) {
@@ -96,6 +172,20 @@ public class Data {
             return Collections.emptyMap();
         }
         return (Map<String, Object>) value;
+    }
+
+    public void release() {
+        Iterator<Runnable> iterator = releaseQueue.iterator();
+        while (iterator.hasNext()) {
+            Runnable runnable = iterator.next();
+            try {
+                runnable.run();
+            } catch (Throwable e) {
+                //ignore
+            } finally {
+                iterator.remove();
+            }
+        }
     }
 
     public <T> T getMap2Bean(String key, Class<T> typeClass) {
