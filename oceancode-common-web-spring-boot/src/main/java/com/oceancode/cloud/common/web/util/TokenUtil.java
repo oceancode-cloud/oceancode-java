@@ -54,11 +54,15 @@ public final class TokenUtil {
         if (userId == null) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "userId is required.");
         }
-        String deviceUid = getShortMd5Str(getDeviceUid());
+        String uid = "o" + userId;
+        if (ValueUtil.isNotEmpty(openid)) {
+            uid = "u" + openid;
+        }
+        String deviceUid = getShortMd5Str(getDeviceUid() + uid);
         String token = null;
         String sessionId = UUID.randomUUID().toString().replace("-", "");
         if (isToken()) {
-            token = deviceUid + "." + sessionId;
+            token = deviceUid + "." + sessionId + "." + uid;
         } else {
             Map<String, Object> claims = new HashMap<>();
             claims.put("deviceId", deviceUid);
@@ -182,10 +186,18 @@ public final class TokenUtil {
 
         if (isToken()) {
             String[] strs = token.split("[.]");
-            if (strs.length != 2) {
+            if (strs.length != 3) {
                 throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
             }
-            String deviceUid = getShortMd5Str(getDeviceUid());
+            String s3 = strs[2];
+            if (ValueUtil.isEmpty(s3)) {
+                throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
+            }
+            String s3C = s3.substring(1);
+            if (ValueUtil.isEmpty(s3C)) {
+                throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
+            }
+            String deviceUid = getShortMd5Str(getDeviceUid() + s3);
             if (!strs[0].equals(deviceUid)) {
                 throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
             }
@@ -193,6 +205,14 @@ public final class TokenUtil {
             tokenInfo.setUserId(null);
             tokenInfo.setToken(strs[1]);
             tokenInfo.setSessionId(strs[1]);
+            if (s3.startsWith("o")) {
+                tokenInfo.setOpenid(s3C);
+            } else if (s3.startsWith("u")) {
+                tokenInfo.setUserId(Long.parseLong(s3C));
+            }
+            if (ValueUtil.isEmpty(tokenInfo.getUserId()) && ValueUtil.isEmpty(tokenInfo.getOpenid())) {
+                throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
+            }
             return tokenInfo;
         }
 
