@@ -17,7 +17,7 @@ public class BaseUiTest extends BaseTest {
     private UIContainer container;
 
     public BaseUiTest() {
-
+        init();
     }
 
     protected void init() {
@@ -30,5 +30,9 @@ public class BaseUiTest extends BaseTest {
                 .setChannel("chrom"));
         page = browser.newPage();
         container = new UIContainer(page, null, page.locator("html"));
+    }
+
+    protected UIContainer container() {
+        return this.container;
     }
 }
