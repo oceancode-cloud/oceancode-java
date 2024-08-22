@@ -54,6 +54,12 @@
 
             <dependency>
                 <groupId>com.oceancode-cloud</groupId>
+                <artifactId>oceancode-ui-test</artifactId>
+                <version>${oceancode-cloud.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.oceancode-cloud</groupId>
                 <artifactId>oceancode-cloud</artifactId>
                 <version>${oceancode-cloud.version}</version>
             </dependency>
