@@ -2,6 +2,7 @@ package com.oceancode.cloud.test.ui.container;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.MouseButton;
 import com.oceancode.cloud.common.util.ValueUtil;
 
 public class UIContainer {
@@ -25,6 +26,10 @@ public class UIContainer {
 
     public Locator locator() {
         return this.locator;
+    }
+
+    public Locator locator(String selector) {
+        return this.locator.locator(selector);
     }
 
     public UIContainer container(String selector, String label) {
@@ -78,5 +83,17 @@ public class UIContainer {
 
     public Dialog dialog() {
         return dialog(null);
+    }
+
+    public String getText() {
+        return locator.innerText();
+    }
+
+    public void contextmenu() {
+        locator.click(new Locator.ClickOptions().setButton(MouseButton.RIGHT));
+    }
+
+    public boolean exists() {
+        return locator.count() != 0;
     }
 }
