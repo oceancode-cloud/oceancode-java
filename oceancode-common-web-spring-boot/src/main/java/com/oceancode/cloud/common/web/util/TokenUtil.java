@@ -54,9 +54,9 @@ public final class TokenUtil {
         if (userId == null) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "userId is required.");
         }
-        String uid = "o" + userId;
+        String uid = "u" + userId;
         if (ValueUtil.isNotEmpty(openid)) {
-            uid = "u" + openid;
+            uid = "o" + openid;
         }
         String deviceUid = getShortMd5Str(getDeviceUid() + uid);
         String token = null;
