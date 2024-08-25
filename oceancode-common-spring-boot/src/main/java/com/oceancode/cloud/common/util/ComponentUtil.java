@@ -97,44 +97,66 @@ public final class ComponentUtil {
     }
 
     public static <T> T getLocalFunction(Class<T> functionClass) {
-        return getBean(functionClass, e -> {
-            if (e instanceof LocalFunction) {
-                return true;
+        return getLocalFunction(functionClass, true);
+    }
+
+    public static <T> T getLocalFunction(Class<T> functionClass, boolean throwEx) {
+        try {
+            return getBean(functionClass, e -> {
+                if (e instanceof LocalFunction) {
+                    return true;
+                }
+                if (e instanceof RemoteFunction || e instanceof ClientFunction) {
+                    return false;
+                }
+                return !(e instanceof BaseFunction<?>);
+            });
+        } catch (Throwable throwable) {
+            if (throwEx) {
+                throw throwable;
             }
-            if (e instanceof RemoteFunction || e instanceof ClientFunction) {
-                return false;
-            }
-            return !(e instanceof BaseFunction<?>);
-        });
+        }
+        return null;
     }
 
     public static <T> T getRemoteFunction(Class<T> functionClass, boolean onlyGetRemoteFunction) {
-        List<T> clientFunction = new ArrayList<>();
-        List<T> remoteFunction = new ArrayList<>();
-        for (T value : getBeans(functionClass).values()) {
-            if (ClientFunction.class.isInstance(value)) {
-                clientFunction.add(value);
-            } else if (RemoteFunction.class.isInstance(value)) {
-                remoteFunction.add(value);
+        return getRemoteFunction(functionClass, onlyGetRemoteFunction, true);
+    }
+
+    public static <T> T getRemoteFunction(Class<T> functionClass, boolean onlyGetRemoteFunction, boolean throwEx) {
+        try {
+            List<T> clientFunction = new ArrayList<>();
+            List<T> remoteFunction = new ArrayList<>();
+            for (T value : getBeans(functionClass).values()) {
+                if (ClientFunction.class.isInstance(value)) {
+                    clientFunction.add(value);
+                } else if (RemoteFunction.class.isInstance(value)) {
+                    remoteFunction.add(value);
+                }
+            }
+            clientFunction.sort(new Comparator<T>() {
+                @Override
+                public int compare(T o1, T o2) {
+                    ClientFunction c1 = (ClientFunction) o1;
+                    ClientFunction c2 = (ClientFunction) o2;
+                    return c1.getType().getOrder() - c2.getType().getOrder();
+                }
+            });
+            if (onlyGetRemoteFunction) {
+                return clientFunction.isEmpty() ? null : clientFunction.get(0);
+            }
+            if (!remoteFunction.isEmpty() && !clientFunction.isEmpty()) {
+                return getLocalFunction(functionClass);
+            }
+            if (clientFunction.isEmpty()) {
+                return getLocalFunction(functionClass);
+            }
+            return clientFunction.get(0);
+        } catch (Throwable throwable) {
+            if (throwEx) {
+                throw throwable;
             }
         }
-        clientFunction.sort(new Comparator<T>() {
-            @Override
-            public int compare(T o1, T o2) {
-                ClientFunction c1 = (ClientFunction) o1;
-                ClientFunction c2 = (ClientFunction) o2;
-                return c1.getType().getOrder() - c2.getType().getOrder();
-            }
-        });
-        if (onlyGetRemoteFunction) {
-            return clientFunction.isEmpty() ? null : clientFunction.get(0);
-        }
-        if (!remoteFunction.isEmpty() && !clientFunction.isEmpty()) {
-            return getLocalFunction(functionClass);
-        }
-        if (clientFunction.isEmpty()) {
-            return getLocalFunction(functionClass);
-        }
-        return clientFunction.get(0);
+        return null;
     }
 }
