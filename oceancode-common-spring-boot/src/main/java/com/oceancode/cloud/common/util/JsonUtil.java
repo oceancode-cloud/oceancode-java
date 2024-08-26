@@ -131,7 +131,7 @@ public final class JsonUtil {
         }
     }
 
-    private static class TypeEnumSerializer extends JsonSerializer<TypeEnum> {
+    public static class TypeEnumSerializer extends JsonSerializer<TypeEnum> {
 
         @Override
         public void serialize(TypeEnum value, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {

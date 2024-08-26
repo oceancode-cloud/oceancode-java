@@ -90,6 +90,10 @@ public final class ValueUtil {
         return null == value;
     }
 
+    public static boolean isEmpty(String[] value) {
+        return null == value || value.length == 0;
+    }
+
 
     public static boolean isNotEmpty(String value) {
         boolean ret = value != null && !value.isEmpty();
@@ -145,6 +149,10 @@ public final class ValueUtil {
 
     public static boolean isNotEmpty(BigDecimal value) {
         return null != value;
+    }
+
+    public static boolean isNotEmpty(String[] value) {
+        return null != value && value.length > 0;
     }
 
     public static boolean isObjectNotEmpty(Object value) {

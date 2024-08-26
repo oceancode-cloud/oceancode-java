@@ -57,6 +57,9 @@ public interface TypeEnum<T> {
     }
 
     static <E extends TypeEnum<?>> E from(Object value, Class<E> clazz, E defaultValue) {
+        if (Objects.isNull(value)) {
+            return defaultValue;
+        }
         for (E each : clazz.getEnumConstants()) {
             if (Objects.nonNull(each.getValue()) && each.getValue().equals(value)) {
                 return each;

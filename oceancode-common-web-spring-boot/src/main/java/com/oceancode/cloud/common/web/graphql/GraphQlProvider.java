@@ -2,6 +2,7 @@ package com.oceancode.cloud.common.web.graphql;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.oceancode.cloud.annotation.Query;
+import com.oceancode.cloud.api.TypeEnum;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
@@ -176,7 +177,11 @@ public class GraphQlProvider {
                     name = field.getName();
                 }
             }
-            builder.field(GraphQLFieldDefinition.newFieldDefinition().name(name).type(convertQLType(field.getType())).build());
+            GraphQLScalarType scalarType = convertQLType(field.getType());
+            if (Long.class.equals(field.getType())) {
+                scalarType = Scalars.GraphQLString;
+            }
+            builder.field(GraphQLFieldDefinition.newFieldDefinition().name(name).type(scalarType).build());
         }
 
         return builder.build();
@@ -216,6 +221,14 @@ public class GraphQlProvider {
                 argValue = Integer.parseInt(value + "");
             } else if (String.class.equals(type)) {
                 argValue = value + "";
+            } else if (TypeEnum.class.isAssignableFrom(type)) {
+                Object targetValue = value;
+                if (value instanceof IntValue) {
+                    targetValue = Integer.parseInt(((IntValue) value).getValue().toString());
+                } else if (value instanceof StringValue) {
+                    targetValue = ((StringValue) value).getValue();
+                }
+                argValue = TypeEnum.from(targetValue, type);
             } else if (LongList.class.equals(type)) {
                 if (value instanceof IntValue) {
                     LongList list = new LongList();
