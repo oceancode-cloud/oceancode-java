@@ -1,21 +1,20 @@
-package com.oceancode.cloud.test.ui.page;
+package com.oceancode.cloud.test.ui.view;
 
-import com.microsoft.playwright.Page;
 import com.oceancode.cloud.test.ui.container.UIContainer;
 import com.oceancode.cloud.test.ui.container.UiUtil;
 
-public class BasePage {
+public class BaseView {
     private UIContainer container;
-    private Page page;
 
-    public BasePage(UIContainer container) {
+    public BaseView(UIContainer container) {
         this.container = container;
-        page = UiUtil.getPage();
     }
 
-    public void load() {
-
+    public BaseView() {
+        this.container = UiUtil.rootContainer();
     }
+
+
 
     public UIContainer container() {
         return this.container;

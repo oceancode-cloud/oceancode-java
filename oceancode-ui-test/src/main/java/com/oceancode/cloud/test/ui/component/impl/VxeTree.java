@@ -52,6 +52,6 @@ public class VxeTree extends Tree {
     @Override
     public Dropdown menu() {
         container().contextmenu();
-        return new Dropdown(container().page(), root(), root().locator(".vue-contextmenu-listWrapper"));
+        return new Dropdown(root(), root().locator(".vue-contextmenu-listWrapper"));
     }
 }

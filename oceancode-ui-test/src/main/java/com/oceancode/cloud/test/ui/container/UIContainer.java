@@ -10,8 +10,8 @@ public class UIContainer {
     private UIContainer parent;
     private Locator locator;
 
-    public UIContainer(Page page, UIContainer parent, Locator locator) {
-        this.page = page;
+    public UIContainer(UIContainer parent, Locator locator) {
+        this.page = UiUtil.getPage();
         this.parent = parent;
         this.locator = locator;
     }
@@ -38,7 +38,7 @@ public class UIContainer {
             loc = loc.filter(new Locator.FilterOptions().setHasText(label));
         }
 
-        return new UIContainer(page, this, loc);
+        return new UIContainer(this, loc);
     }
 
     public UIContainer container(String selector) {
@@ -54,7 +54,7 @@ public class UIContainer {
     }
 
     public UIContainer button(String label) {
-        return new UIContainer(page, this, locator.locator("button").filter(new Locator.FilterOptions().setHasText(label)));
+        return new UIContainer(this, locator.locator("button").filter(new Locator.FilterOptions().setHasText(label)));
     }
 
     public void click() {
@@ -62,7 +62,7 @@ public class UIContainer {
     }
 
     public UIContainer findByText(String text) {
-        return new UIContainer(page, this, locator.filter(new Locator.FilterOptions().setHasText(text)));
+        return new UIContainer(this, locator.filter(new Locator.FilterOptions().setHasText(text)));
     }
 
     public UIContainer findByTitle(String text) {
@@ -70,7 +70,7 @@ public class UIContainer {
     }
 
     public UIContainer findByAttr(String attr, String value) {
-        return new UIContainer(page, this, locator.locator("*[" + attr + "=" + value + "]"));
+        return new UIContainer(this, locator.locator("*[" + attr + "=" + value + "]"));
     }
 
     public Dialog dialog(String title) {

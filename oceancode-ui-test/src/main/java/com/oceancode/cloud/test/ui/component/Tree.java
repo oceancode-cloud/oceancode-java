@@ -1,7 +1,5 @@
 package com.oceancode.cloud.test.ui.component;
 
-import com.microsoft.playwright.Locator;
-import com.microsoft.playwright.Page;
 import com.oceancode.cloud.test.ui.container.Dropdown;
 import com.oceancode.cloud.test.ui.container.UIContainer;
 

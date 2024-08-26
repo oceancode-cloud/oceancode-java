@@ -20,6 +20,6 @@ public class BaseComponent {
     }
 
     public UIContainer root() {
-        return this.container;
+        return this.root;
     }
 }

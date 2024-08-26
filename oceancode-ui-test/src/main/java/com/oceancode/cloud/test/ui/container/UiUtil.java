@@ -69,4 +69,8 @@ public final class UiUtil {
     public static Properties getProperties() {
         return properties;
     }
+
+    public static UIContainer rootContainer() {
+        return new UIContainer(null, getPage().locator("html"));
+    }
 }
