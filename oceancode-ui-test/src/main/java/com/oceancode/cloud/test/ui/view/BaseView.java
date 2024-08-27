@@ -15,9 +15,11 @@ public class BaseView {
     }
 
 
-
     public UIContainer container() {
         return this.container;
     }
 
+    public UIContainer rootContainer() {
+        return UiUtil.rootContainer();
+    }
 }

@@ -46,7 +46,7 @@ public class UIContainer {
     }
 
     public Form form() {
-        return new Form(page, this, locator().locator("form"));
+        return new Form( this, locator().locator("form"));
     }
 
     protected String getClassName(String className) {
@@ -78,7 +78,7 @@ public class UIContainer {
         if (ValueUtil.isNotEmpty(title)) {
             loc = loc.filter(new Locator.FilterOptions().setHasText(title));
         }
-        return new Dialog(page, this, loc);
+        return new Dialog(this, loc);
     }
 
     public Dialog dialog() {
