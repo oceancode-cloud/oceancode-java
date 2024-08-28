@@ -196,6 +196,8 @@ public class GraphQlProvider {
             return Scalars.GraphQLBoolean;
         } else if (String.class.equals(type)) {
             return Scalars.GraphQLString;
+        } else if (TypeEnum.class.isAssignableFrom(type)) {
+            return DslType.GraphQLTypeEnum;
         }
 
         return DslType.GraphQLObject;

@@ -7,5 +7,8 @@ public class DslType {
             .name("Object").description("Custom Object").coercing(new GraphsqlObjectCoercing()).build();
 
     public static final GraphQLScalarType GraphQLLong = GraphQLScalarType.newScalar()
-            .name("Long").description("Built-in Int").coercing(new GraphqlLongCoercing()).build();
+            .name("Long").description("Custom Int").coercing(new GraphqlLongCoercing()).build();
+
+    public static final GraphQLScalarType GraphQLTypeEnum = GraphQLScalarType.newScalar()
+            .name("TypeEnum").description("Custom TypeEnum").coercing(new GraphsqlTypeEnumCoercing()).build();
 }
