@@ -28,6 +28,10 @@ public final class CheckParamUtil {
         }
     }
 
+    public static void notEmpty(Boolean value, String field) {
+        notNull(value, field);
+    }
+
     public static void notEmpty(Long value, String field) {
         notNull(value, field);
     }

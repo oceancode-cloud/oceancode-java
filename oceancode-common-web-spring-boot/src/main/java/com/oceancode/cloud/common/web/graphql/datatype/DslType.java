@@ -11,4 +11,7 @@ public class DslType {
 
     public static final GraphQLScalarType GraphQLTypeEnum = GraphQLScalarType.newScalar()
             .name("TypeEnum").description("Custom TypeEnum").coercing(new GraphsqlTypeEnumCoercing()).build();
+
+    public static final GraphQLScalarType GraphQLMap = GraphQLScalarType.newScalar()
+            .name("Map").description("Custom Map").coercing(new GraphsqlTypeEnumCoercing()).build();
 }

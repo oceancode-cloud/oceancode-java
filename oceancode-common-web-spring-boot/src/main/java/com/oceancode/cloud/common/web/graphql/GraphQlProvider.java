@@ -198,6 +198,8 @@ public class GraphQlProvider {
             return Scalars.GraphQLString;
         } else if (TypeEnum.class.isAssignableFrom(type)) {
             return DslType.GraphQLTypeEnum;
+        } else if (Map.class.isAssignableFrom(type)) {
+            return DslType.GraphQLMap;
         }
 
         return DslType.GraphQLObject;
