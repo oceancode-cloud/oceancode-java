@@ -30,6 +30,7 @@ public enum CommonErrorCode implements ErrorCode {
      * some error only be log and can't return to client.
      */
     SERVER_ERROR(CommonConst.SERVER_ERROR_CODE_PREFIX + "error", "SERVER ERROR"),
+    SERVER_UNKNOWN_ERROR(CommonConst.SERVER_ERROR_CODE_PREFIX + "unknown.error", "SERVER UNKNOWN ERROR"),
 
     /**
      * too many results

@@ -163,6 +163,11 @@ public final class JsonUtil {
         return OBJECT_MAPPER.convertValue(map, typeClass);
     }
 
+    public static <T> List<T> mapToBean(List<Map<String, Object>> list, Class<T> typeClass) {
+        JavaType javaType = OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, typeClass);
+        return getObjectMapper().convertValue(list, javaType);
+    }
+
     public static <T, R extends Result<?>> Result<T> withType(String jsonString, Class<R> resultTypeClass, Class<T> resultDataClass) {
         TypeFactory typeFactory = OBJECT_MAPPER.getTypeFactory();
         JavaType javaType = typeFactory.constructParametricType(resultTypeClass, resultDataClass);
