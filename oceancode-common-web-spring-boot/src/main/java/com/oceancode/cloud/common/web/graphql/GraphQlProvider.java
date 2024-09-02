@@ -165,9 +165,30 @@ public class GraphQlProvider {
         return name;
     }
 
+    private void collectClassAllFields(List<Field> list, Set<String> ids, Class<?> type) {
+        if (Objects.isNull(type)) {
+            return;
+        }
+        Field[] fields = type.getDeclaredFields();
+        if (Objects.isNull(fields) || fields.length == 0) {
+            return;
+        }
+        for (Field field : fields) {
+            if (ids.contains(field.getName())) {
+                continue;
+            }
+            list.add(field);
+        }
+        Class<?> superclass = type.getSuperclass();
+        if (Objects.nonNull(superclass) && !Objects.class.equals(superclass)) {
+            collectClassAllFields(list, ids, superclass);
+        }
+    }
+
     public GraphQLOutputType createOutField(Class type) {
         GraphQLObjectType.Builder builder = GraphQLObjectType.newObject().name(type.getSimpleName());
-        Field[] fields = type.getDeclaredFields();
+        List<Field> fields = new ArrayList<>();
+        collectClassAllFields(fields, new HashSet<>(), type);
         for (Field field : fields) {
             String name = field.getName();
             JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
