@@ -6,7 +6,10 @@ import com.oceancode.cloud.api.TypeEnum;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
+import com.oceancode.cloud.common.list.IntegerList;
 import com.oceancode.cloud.common.list.LongList;
+import com.oceancode.cloud.common.list.ResourceInfo;
+import com.oceancode.cloud.common.list.StringList;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
@@ -25,6 +28,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
 import java.util.*;
 
 public class GraphQlProvider {
@@ -131,7 +135,7 @@ public class GraphQlProvider {
             String key = returnType.getName();
             GraphQLOutputType graphQLOutputType = typeMapping.get(key);
             if (graphQLOutputType == null) {
-                graphQLOutputType = createOutField(returnType);
+                graphQLOutputType = createOutField(typeMapping, returnType);
                 typeMapping.put(key, graphQLOutputType);
             }
             methodBuilder.type(isList ? new GraphQLList(graphQLOutputType) : graphQLOutputType);
@@ -185,7 +189,7 @@ public class GraphQlProvider {
         }
     }
 
-    public GraphQLOutputType createOutField(Class type) {
+    public GraphQLOutputType createOutField(Map<String, GraphQLOutputType> typeMapping, Class type) {
         GraphQLObjectType.Builder builder = GraphQLObjectType.newObject().name(type.getSimpleName());
         List<Field> fields = new ArrayList<>();
         collectClassAllFields(fields, new HashSet<>(), type);
@@ -201,11 +205,47 @@ public class GraphQlProvider {
             GraphQLScalarType scalarType = convertQLType(field.getType());
             if (Long.class.equals(field.getType())) {
                 scalarType = Scalars.GraphQLString;
+            } else if (ResourceInfo.class.isAssignableFrom(field.getType())) {
+                String fieldKey = field.getType().getName();
+                GraphQLOutputType outputType = null;
+                if (typeMapping.containsKey(fieldKey)) {
+                    outputType = typeMapping.get(fieldKey);
+                } else {
+                    outputType = createOutField(typeMapping, field.getType());
+                    typeMapping.put(fieldKey, outputType);
+                }
+                builder.field(GraphQLFieldDefinition.newFieldDefinition().name(name).type(outputType).build());
+                continue;
+            } else if (List.class.isAssignableFrom(field.getType()) && !isSimpleList(field.getType())) {
+                ParameterizedType parameterizedType = (ParameterizedType) field.getType().getGenericSuperclass();
+                if (parameterizedType.getActualTypeArguments().length == 0) {
+                    continue;
+                }
+                Class<?> targetClass = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+                if (Object.class.equals(targetClass)) {
+                    continue;
+                }
+                String fieldKey = field.getType().getName();
+                GraphQLOutputType outputType = null;
+                if (typeMapping.containsKey(fieldKey)) {
+                    outputType = typeMapping.get(fieldKey);
+                } else {
+                    outputType = createOutField(typeMapping, targetClass);
+                    typeMapping.put(fieldKey, outputType);
+                }
+                builder.field(GraphQLFieldDefinition.newFieldDefinition().name(name).type(GraphQLList.list(outputType)).build());
+                continue;
             }
             builder.field(GraphQLFieldDefinition.newFieldDefinition().name(name).type(scalarType).build());
         }
 
         return builder.build();
+    }
+
+    private boolean isSimpleList(Class<?> type) {
+        return LongList.class.isAssignableFrom(type) ||
+                IntegerList.class.isAssignableFrom(type) ||
+                StringList.class.isAssignableFrom(type);
     }
 
     private GraphQLScalarType convertQLType(Class type) {
