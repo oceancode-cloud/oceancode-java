@@ -20,6 +20,20 @@ import java.util.Objects;
  */
 public interface TypeEnum<T> {
     /**
+     * Useful constant for the highest precedence value.
+     *
+     * @see java.lang.Integer#MIN_VALUE
+     */
+    int HIGHEST_PRECEDENCE = Integer.MIN_VALUE;
+
+    /**
+     * Useful constant for the lowest precedence value.
+     *
+     * @see java.lang.Integer#MAX_VALUE
+     */
+    int LOWEST_PRECEDENCE = Integer.MAX_VALUE;
+
+    /**
      * get enum value
      * <p>You can map to the corresponding enumeration through value.</p>
      * <p>You can use value to convert enumeration by TypeEnum.from().</p>
@@ -27,6 +41,15 @@ public interface TypeEnum<T> {
      * @return value
      */
     T getValue();
+
+    /**
+     * get order
+     *
+     * @return
+     */
+    default int getOrder() {
+        return 0;
+    }
 
     /**
      * get name is a label used to describe value
