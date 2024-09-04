@@ -21,4 +21,8 @@ public final class ContextUtil {
     public static void remove() {
         CONTEXT_LOCAL.remove();
     }
+
+    public static boolean hasQuerySelectionFields(String field, String... fields) {
+        return isDsl() && get().hasSelectionFields(field, fields);
+    }
 }
