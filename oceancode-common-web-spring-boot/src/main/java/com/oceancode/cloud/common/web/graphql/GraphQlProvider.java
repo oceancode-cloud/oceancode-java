@@ -225,7 +225,7 @@ public class GraphQlProvider {
                 if (Object.class.equals(targetClass)) {
                     continue;
                 }
-                String fieldKey = field.getType().getName();
+                String fieldKey = targetClass.getName();
                 GraphQLOutputType outputType = null;
                 if (typeMapping.containsKey(fieldKey)) {
                     outputType = typeMapping.get(fieldKey);
