@@ -8,9 +8,7 @@ import com.oceancode.cloud.common.config.Config;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 
-import java.util.Collections;
 import java.util.Objects;
-import java.util.Set;
 
 public final class PermissionUtil {
     private static CommonConfig commonConfig;
@@ -45,7 +43,7 @@ public final class PermissionUtil {
         if (Objects.isNull(permissionResourceService)) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, PermissionResourceService.class.getName() + " not found implementation.");
         }
-        return permissionResourceService.checkPerssion(permission, PermissionConst.PRIVATE_TOKEN);
+        return permissionResourceService.checkPermission(permission, PermissionConst.PRIVATE_TOKEN);
     }
 
     public static boolean checkPermission(Permission permission) {
@@ -62,7 +60,7 @@ public final class PermissionUtil {
                 matchCount++;
                 continue;
             }
-            if (permissionResourceService.checkPerssion(permission, authority)) {
+            if (permissionResourceService.checkPermission(permission, authority)) {
                 matchCount++;
                 if (!isAnd) {
                     return true;

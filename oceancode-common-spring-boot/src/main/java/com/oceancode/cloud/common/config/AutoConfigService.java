@@ -28,4 +28,6 @@ public class AutoConfigService {
     public LocalProducer localProducer() {
         return new LocalProducer();
     }
+
+
 }

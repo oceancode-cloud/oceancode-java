@@ -8,6 +8,10 @@ import com.oceancode.cloud.api.cache.CacheKey;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * @author qinjiawang
  */
@@ -89,5 +93,19 @@ public final class SessionUtil {
         PROJECT_ID.remove();
         TENANT_ID.remove();
         BRANCH.remove();
+    }
+
+    public static List<Object> getValues() {
+        return Collections.unmodifiableList(Arrays.asList(tenantId(), projectId(), userId(), branch()));
+    }
+
+    public static void setValues(List<Object> values) {
+        if (ValueUtil.isEmpty(values) || values.size() < 4) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "invalid");
+        }
+        setTenantId((Long) values.get(0));
+        setProjectId((Long) values.get(1));
+        setUserId((Long) values.get(2));
+        setBranch((String) values.get(3));
     }
 }
