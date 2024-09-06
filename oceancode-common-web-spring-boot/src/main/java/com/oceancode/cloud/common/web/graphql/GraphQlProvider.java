@@ -225,6 +225,10 @@ public class GraphQlProvider {
                 if (Object.class.equals(targetClass)) {
                     continue;
                 }
+                if (!ResourceInfo.class.isAssignableFrom(targetClass)) {
+                    builder.field(GraphQLFieldDefinition.newFieldDefinition().name(name).type(scalarType).build());
+                    continue;
+                }
                 String fieldKey = targetClass.getName();
                 GraphQLOutputType outputType = null;
                 if (typeMapping.containsKey(fieldKey)) {
