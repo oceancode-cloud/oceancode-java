@@ -32,6 +32,10 @@ public final class CheckParamUtil {
         notNull(value, field);
     }
 
+    public static void notEmpty(Integer value, String field) {
+        notNull(value, field);
+    }
+
     public static void notEmpty(Long value, String field) {
         notNull(value, field);
     }
