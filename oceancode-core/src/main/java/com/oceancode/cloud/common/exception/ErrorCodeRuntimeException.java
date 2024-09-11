@@ -10,7 +10,6 @@ package com.oceancode.cloud.common.exception;
 public class ErrorCodeRuntimeException extends RuntimeException {
 
     private String errorCode;
-    private String message;
 
     public ErrorCodeRuntimeException(String message) {
         super(message);
@@ -23,7 +22,6 @@ public class ErrorCodeRuntimeException extends RuntimeException {
     public ErrorCodeRuntimeException(String code, String message) {
         super(message);
         this.errorCode = code;
-        this.message = message;
     }
 
     public String getErrorCode() {
@@ -32,6 +30,6 @@ public class ErrorCodeRuntimeException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return message;
+        return super.getMessage();
     }
 }
