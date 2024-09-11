@@ -3,9 +3,10 @@ package com.oceancode.cloud.common.enums;
 import com.oceancode.cloud.api.TypeEnum;
 
 public enum DataChangeRecordType implements TypeEnum<Integer> {
-    ADD(0, "add", ""),
-    DELETE(1, "delete", ""),
-    UPDATE(2, "update", null),
+    RAW(0, "raw", null),
+    ADD(1, "add", ""),
+    DELETE(2, "delete", ""),
+    UPDATE(3, "update", null),
     ;
 
     DataChangeRecordType(int value, String name, String desc) {
