@@ -1,7 +1,9 @@
 package com.oceancode.cloud.common.config;
 
+import com.oceancode.cloud.api.security.AesCryptoService;
 import com.oceancode.cloud.api.security.Rsa2CryptoService;
 import com.oceancode.cloud.common.mq.local.LocalProducer;
+import com.oceancode.cloud.common.security.AesCrypto;
 import com.oceancode.cloud.common.security.Rsa2Crypto;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +25,11 @@ public class AutoConfigService {
         return new Rsa2Crypto();
     }
 
+    @Bean
+    @ConditionalOnMissingBean(AesCryptoService.class)
+    public AesCrypto aesCrypto() {
+        return new AesCrypto();
+    }
 
     @Bean
     public LocalProducer localProducer() {
