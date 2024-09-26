@@ -82,6 +82,11 @@ public final class ApiUtil {
         if (ValueUtil.isNotEmpty(branch)) {
             SessionUtil.setBranch(branch);
         }
+
+        String clientId = request.getHeader(CommonConst.X_CLIENT_ID);
+        if (ValueUtil.isNotEmpty(clientId)) {
+            SessionUtil.setClientId(clientId);
+        }
     }
 
     /**

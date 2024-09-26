@@ -1,25 +1,25 @@
-package com.oceancode.cloud.api.crypto;
+package com.oceancode.cloud.api.security;
 
 import com.oceancode.cloud.api.TypeEnum;
 
-public enum CryptoType implements TypeEnum<String> {
-    RSA_AES("rsa-aes", "Rsa AES", null),
-    BASE64("base64", "Base 64", null),
-    OTHER("other", "Other", null),
+public enum KeyType implements TypeEnum<String> {
+    PUBLIC("publicKey", "Public Key", null),
+    PRIVATE("privateKey", "PrivateKey", null),
+    KEY("key", "key", null),
     ;
 
     private String value;
     private String name;
     private String desc;
 
-    CryptoType(String value, String name, String desc) {
+    KeyType(String value, String name, String desc) {
         this.value = value;
         this.name = name;
         this.desc = desc;
     }
 
-    public static CryptoType from(String value) {
-        return TypeEnum.from(value, CryptoType.class);
+    public static KeyType from(String value) {
+        return TypeEnum.from(value, KeyType.class);
     }
 
     @Override

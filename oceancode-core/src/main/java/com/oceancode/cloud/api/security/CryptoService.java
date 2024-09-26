@@ -1,6 +1,8 @@
 package com.oceancode.cloud.api.security;
 
-public interface CryptoService<T,R> {
+import com.oceancode.cloud.api.strategy.StrategyAdaptor;
+
+public interface CryptoService<T,R> extends StrategyAdaptor<String> {
 
     R encrypt(T input,String key);
 

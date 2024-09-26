@@ -1,8 +1,11 @@
 package com.oceancode.cloud.api.crypto;
 
+import java.util.List;
+import java.util.Objects;
+
 public class CryptoData {
     private String key;
-    private String data;
+    private List<Object> data;
     private String id;
     private String type;
 
@@ -14,11 +17,11 @@ public class CryptoData {
         this.key = key;
     }
 
-    public String getData() {
+    public List<Object> getData() {
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(List<Object> data) {
         this.data = data;
     }
 

@@ -20,6 +20,7 @@ public final class SessionUtil {
     private final static ThreadLocal<Long> PROJECT_ID = new ThreadLocal<>();
     private final static ThreadLocal<Long> TENANT_ID = new ThreadLocal<>();
     private final static ThreadLocal<String> BRANCH = new ThreadLocal<>();
+    private final static ThreadLocal<String> CLIENT_ID = new ThreadLocal<>();
 
     private SessionUtil() {
     }
@@ -38,6 +39,10 @@ public final class SessionUtil {
 
     public static void setBranch(String branch) {
         BRANCH.set(branch);
+    }
+
+    public static void setClientId(String clientId) {
+        CLIENT_ID.set(clientId);
     }
 
     public static Long userId() {
@@ -62,6 +67,18 @@ public final class SessionUtil {
             throw new BusinessRuntimeException(CommonErrorCode.NOT_LOGIN);
         }
         return value;
+    }
+
+    public static String clientId() {
+        return CLIENT_ID.get();
+    }
+
+    public static String clientId(boolean mustNotEmpty) {
+        String clientId = clientId();
+        if (mustNotEmpty && ValueUtil.isEmpty(clientId)) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, "client id is required.");
+        }
+        return clientId;
     }
 
     public static Long tenantId(boolean mustNotEmpty) {
@@ -93,19 +110,21 @@ public final class SessionUtil {
         PROJECT_ID.remove();
         TENANT_ID.remove();
         BRANCH.remove();
+        CLIENT_ID.remove();
     }
 
     public static List<Object> getValues() {
-        return Collections.unmodifiableList(Arrays.asList(tenantId(), projectId(), userId(), branch()));
+        return Collections.unmodifiableList(Arrays.asList(tenantId(), projectId(), userId(), branch(), clientId()));
     }
 
     public static void setValues(List<Object> values) {
-        if (ValueUtil.isEmpty(values) || values.size() < 4) {
+        if (ValueUtil.isEmpty(values) || values.size() < 5) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "invalid");
         }
         setTenantId((Long) values.get(0));
         setProjectId((Long) values.get(1));
         setUserId((Long) values.get(2));
         setBranch((String) values.get(3));
+        setClientId((String) values.get(4));
     }
 }

@@ -17,6 +17,7 @@ public class CommonConst {
     public static final String X_TENANT_ID = "x-tenant-id";
     public static final String X_USER_ID = "x-user-id";
     public static final String X_REQUEST_ID = "x-request-id";
+    public static final String X_CLIENT_ID = "x-client-id";
     public static final String REQUEST_ID = "requestId";
     public static final String SERVICE_NAME = "serviceName";
     public static final String INSTANCE_NAME = "instanceName";

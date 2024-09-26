@@ -64,6 +64,10 @@ public final class ComponentUtil {
         return getStrategyBean0(typeClass, type);
     }
 
+    public static <T> T getStrategyBean(Class<T> typeClass, String id) {
+        return getStrategyBean0(typeClass, id);
+    }
+
     private static <T> T getStrategyBean0(Class<T> typeClass, Object type) {
         T bean = getBean(typeClass, service -> StrategyAdaptor.class.isAssignableFrom(service.getClass()) && ((StrategyAdaptor) service).isSupport(type));
         if (Objects.isNull(bean)) {

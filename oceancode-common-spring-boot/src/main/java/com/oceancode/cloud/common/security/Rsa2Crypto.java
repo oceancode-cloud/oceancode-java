@@ -5,17 +5,22 @@ import com.oceancode.cloud.api.security.Rsa2CryptoService;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ValueUtil;
+import org.apache.commons.codec.binary.Base64;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import java.io.IOException;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
 
 
 public class Rsa2Crypto implements Rsa2CryptoService {
@@ -129,6 +134,19 @@ public class Rsa2Crypto implements Rsa2CryptoService {
             return new RsaKeyPair(org.apache.commons.codec.binary.Base64.encodeBase64String(res.getPublic().getEncoded()),
                     org.apache.commons.codec.binary.Base64.encodeBase64String(res.getPrivate().getEncoded()));
         } catch (NoSuchAlgorithmException e) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
+        }
+    }
+
+    @Override
+    public String getPublicKeyFromPem(String publicPemKey) {
+        try (StringReader stringReader = new StringReader(publicPemKey)) {
+            PEMParser pemParser = new PEMParser(stringReader);
+            Object obj = pemParser.readObject();
+            JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+            PublicKey publicKey = converter.getPublicKey((SubjectPublicKeyInfo) obj);
+            return new String(Base64.encodeBase64Chunked(publicKey.getEncoded()));
+        } catch (Exception e) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
         }
     }

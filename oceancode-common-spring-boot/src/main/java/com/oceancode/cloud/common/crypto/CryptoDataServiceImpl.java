@@ -4,15 +4,24 @@ import com.oceancode.cloud.api.crypto.CryptoData;
 import com.oceancode.cloud.api.crypto.CryptoDataService;
 import com.oceancode.cloud.api.crypto.CryptoType;
 import com.oceancode.cloud.api.crypto.Decrypt;
+import com.oceancode.cloud.api.crypto.DecryptCryptoFunction;
 import com.oceancode.cloud.api.crypto.Encrypt;
+import com.oceancode.cloud.api.crypto.EncryptCryptoFunction;
+import com.oceancode.cloud.api.security.CryptoService;
+import com.oceancode.cloud.api.security.KeyManager;
+import com.oceancode.cloud.api.security.KeyType;
 import com.oceancode.cloud.api.security.Rsa2CryptoService;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.security.AesCrypto;
+import com.oceancode.cloud.common.util.Base64Util;
 import com.oceancode.cloud.common.util.ComponentUtil;
+import com.oceancode.cloud.common.util.ValueUtil;
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -28,6 +37,9 @@ public class CryptoDataServiceImpl implements CryptoDataService {
 
     @Resource
     private AesCrypto aesCrypto;
+
+    @Autowired(required = false)
+    private KeyManager keyManager;
 
     private String createCode() {
         String code = "123456790ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -51,11 +63,37 @@ public class CryptoDataServiceImpl implements CryptoDataService {
             String iv = createCode();
             String aesKey = createCode();
             String publicKey = commonConfig.getValue("oc.api.crypto.response.secret");
+            if (Objects.nonNull(keyManager)) {
+                String keys = keyManager.getKey(cryptoData.getId(), cryptoData.getType(), KeyType.PUBLIC);
+                if (ValueUtil.isNotEmpty(keys)) {
+                    publicKey = keys;
+                }
+            }
+
             cryptoData.setKey(rsa2CryptoService.encryptByPublicKey(iv + ":" + aesKey, publicKey));
-            cryptoData.setData(aesCrypto.encrypt(data.rawData(), iv + ":" + aesKey));
+            EncryptCryptoFunction function = value -> {
+                String targetValue = null;
+                if (Objects.isNull(value)) {
+                    return null;
+                }
+                if (value instanceof String) {
+                    targetValue = value.toString();
+                } else {
+                    targetValue = String.valueOf(value);
+                }
+                if (Objects.isNull(targetValue)) {
+                    return null;
+                }
+                return aesCrypto.encrypt(targetValue, iv + ":" + aesKey);
+            };
+            data.encrypt(function);
+        } else if (CryptoType.BASE64.equals(cryptoType)) {
+            EncryptCryptoFunction function = value -> Base64Util.encodeObject(value);
+            data.encrypt(function);
         } else {
-            CryptoDataService cryptoDataService = ComponentUtil.getStrategyBean(CryptoDataService.class, cryptoType);
-            cryptoDataService.encode(data, cryptoType);
+            CryptoService cryptoService = ComponentUtil.getStrategyBean(CryptoService.class, cryptoData.getType());
+            EncryptCryptoFunction function = value -> cryptoService.encrypt(value, cryptoData.getKey());
+            data.encrypt(function);
         }
     }
 
@@ -67,11 +105,33 @@ public class CryptoDataServiceImpl implements CryptoDataService {
         }
         if (CryptoType.RSA_AES.equals(cryptoType)) {
             String privateKey = commonConfig.getValue("oc.api.crypto.request.secret");
+            if (Objects.nonNull(keyManager)) {
+                String key = keyManager.getKey(cryptoData.getId(), cryptoData.getType(), KeyType.PRIVATE);
+                if (ValueUtil.isNotEmpty(key)) {
+                    privateKey = key;
+                }
+            }
             String key = rsa2CryptoService.decryptByPrivateKey(cryptoData.getKey(), privateKey);
-            data.decrypt(aesCrypto.decrypt(cryptoData.getData(), key));
+            DecryptCryptoFunction function = value -> {
+                String targetValue = null;
+                if (Objects.isNull(value)) {
+                    return null;
+                } else if (value instanceof String) {
+                    targetValue = value.toString();
+                } else {
+                    targetValue = String.valueOf(value);
+                }
+
+                if (Objects.isNull(targetValue)) {
+                    return null;
+                }
+                return aesCrypto.decrypt(targetValue, key);
+            };
+            data.decrypt(function);
         } else {
-            CryptoDataService cryptoDataService = ComponentUtil.getStrategyBean(CryptoDataService.class, cryptoType);
-            cryptoDataService.decode(data, cryptoType);
+            CryptoService cryptoService = ComponentUtil.getStrategyBean(CryptoService.class, cryptoData.getType());
+            DecryptCryptoFunction function = value -> cryptoService.decrypt(value, cryptoData.getKey());
+            data.decrypt(function);
         }
     }
 

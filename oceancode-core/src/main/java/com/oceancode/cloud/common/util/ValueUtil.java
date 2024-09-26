@@ -283,6 +283,16 @@ public final class ValueUtil {
         return value;
     }
 
+    public static Object getValueFromList(List<?> list, int pos) {
+        if (Objects.isNull(list)) {
+            return null;
+        }
+        if (pos >= 0 && pos < list.size()) {
+            return list.get(pos);
+        }
+        return null;
+    }
+
     public static String[] splitWithSeparator(String str) {
         if (isEmpty(str)) {
             return null;
