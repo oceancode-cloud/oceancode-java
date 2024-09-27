@@ -7,17 +7,15 @@ public interface KeyManager {
      * get keys
      *
      * @param id
-     * @param type
      */
-    String getKey(String id, String type, KeyType keyType);
+    String getKey(String id, KeyType keyType);
 
     /**
      * update keys
      *
      * @param id
-     * @param type
      */
-    void updateKeys(String id, String type, KeyType keyType, String key);
+    void updateKeys(String id, KeyType keyType, String key);
 
-    void deleteKeys(String id, String type, KeyType keyType);
+    void deleteKeys(String id, KeyType keyType);
 }

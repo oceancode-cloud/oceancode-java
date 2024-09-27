@@ -64,7 +64,7 @@ public class CryptoDataServiceImpl implements CryptoDataService {
             String aesKey = createCode();
             String publicKey = commonConfig.getValue("oc.api.crypto.response.secret");
             if (Objects.nonNull(keyManager)) {
-                String keys = keyManager.getKey(cryptoData.getId(), cryptoData.getType(), KeyType.PUBLIC);
+                String keys = keyManager.getKey(cryptoData.getId(), KeyType.PUBLIC);
                 if (ValueUtil.isNotEmpty(keys)) {
                     publicKey = keys;
                 }
@@ -106,7 +106,7 @@ public class CryptoDataServiceImpl implements CryptoDataService {
         if (CryptoType.RSA_AES.equals(cryptoType)) {
             String privateKey = commonConfig.getValue("oc.api.crypto.request.secret");
             if (Objects.nonNull(keyManager)) {
-                String key = keyManager.getKey(cryptoData.getId(), cryptoData.getType(), KeyType.PRIVATE);
+                String key = keyManager.getKey(cryptoData.getId(), KeyType.PRIVATE);
                 if (ValueUtil.isNotEmpty(key)) {
                     privateKey = key;
                 }
