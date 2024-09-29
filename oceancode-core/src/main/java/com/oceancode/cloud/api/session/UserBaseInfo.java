@@ -41,4 +41,32 @@ public class UserBaseInfo {
         this.param.put(key, value);
         return this;
     }
+
+    public UserBaseInfo username(String username) {
+        return addParam("username", username);
+    }
+
+    public UserBaseInfo nickname(String nickname) {
+        return addParam("nickname", nickname);
+    }
+
+    public UserBaseInfo avatar(String avatar) {
+        return addParam("avatar", avatar);
+    }
+
+    public String username() {
+        return (String) getValue("username");
+    }
+
+    public String nickname() {
+        return (String) getValue("nickname");
+    }
+
+    public String avatar() {
+        return (String) getValue("avatar");
+    }
+
+    private Object getValue(String key) {
+        return param.get(key);
+    }
 }
