@@ -76,6 +76,12 @@ public final class CheckParamUtil {
         param.validate();
     }
 
+    public static <T extends TypeEnum> void checkParam(T param) {
+        if (param == null) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, "param is required.");
+        }
+    }
+
     public static void checkPrimaryKey(Long value, String field) {
         notEmpty(value, field);
         if (value < 1) {
