@@ -5,6 +5,7 @@ import com.oceancode.cloud.api.TypeEnum;
 public enum CryptoType implements TypeEnum<String> {
     RSA_AES("rsa-aes", "Rsa AES", null),
     BASE64("base64", "Base 64", null),
+    AES("aes", "Aes", null),
     OTHER("other", "Other", null),
     ;
 

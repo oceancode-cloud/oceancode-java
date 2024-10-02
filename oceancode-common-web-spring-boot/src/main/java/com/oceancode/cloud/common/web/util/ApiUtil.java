@@ -149,6 +149,10 @@ public final class ApiUtil {
         return getToken(getRequest().getHeader("Authorization"));
     }
 
+    public static String getSecretKey(){
+        return getRequest().getHeader("x-secret-key");
+    }
+
     public static String getToken(String authorization) {
         if (ValueUtil.isEmpty(authorization)) {
             return null;
