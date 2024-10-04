@@ -11,4 +11,6 @@ public @interface Permission {
     String operation() default PermissionConst.OPERATION_OR;
 
     String[] authorities();
+
+    int resourceType() default PermissionConst.RESOURCE_TYPE_ANY;
 }

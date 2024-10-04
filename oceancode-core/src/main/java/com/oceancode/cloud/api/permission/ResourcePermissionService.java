@@ -1,5 +1,5 @@
 package com.oceancode.cloud.api.permission;
 
-public interface ApiPermissionService {
+public interface ResourcePermissionService {
     boolean permission(Permission permission);
 }

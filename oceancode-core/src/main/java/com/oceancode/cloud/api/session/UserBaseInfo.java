@@ -7,6 +7,7 @@ import java.util.Objects;
 public class UserBaseInfo {
     private Long userId;
     private String openid;
+    private UserType userType;
     private Map<String, Object> param;
 
 
@@ -24,6 +25,14 @@ public class UserBaseInfo {
 
     public void setOpenid(String openid) {
         this.openid = openid;
+    }
+
+    public UserType getUserType() {
+        return userType;
+    }
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
     }
 
     public Map<String, Object> getParam() {

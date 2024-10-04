@@ -1,10 +1,12 @@
 package com.oceancode.cloud.common.web.handler;
 
 import com.oceancode.cloud.api.ApplicationLifeCycleService;
-import com.oceancode.cloud.api.permission.ApiPermissionService;
+import com.oceancode.cloud.api.permission.ResourcePermissionService;
 import com.oceancode.cloud.api.permission.Permission;
 import com.oceancode.cloud.api.permission.PermissionConst;
 import com.oceancode.cloud.api.session.SessionService;
+import com.oceancode.cloud.api.session.UserBaseInfo;
+import com.oceancode.cloud.api.session.UserType;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
@@ -20,19 +22,18 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
-import java.util.Objects;
 
 @Aspect
 @Component
 public class PermissionHandler implements ApplicationLifeCycleService {
 
-    private static ApiPermissionService apiPermissionService;
+    private static ResourcePermissionService resourcePermissionService;
     private static SessionService sessionService;
 
     @Override
     public void onReady() {
         try {
-            apiPermissionService = ComponentUtil.getBean(ApiPermissionService.class);
+            resourcePermissionService = ComponentUtil.getBean(ResourcePermissionService.class);
         } catch (Exception e) {
             // ignore
         }
@@ -65,7 +66,16 @@ public class PermissionHandler implements ApplicationLifeCycleService {
         String[] authorities = permission.authorities();
         boolean checkedLoginAuth = false;
 
+
         String token = ApiUtil.getToken();
+
+        if (permission.resourceType() != PermissionConst.RESOURCE_TYPE_QUERY && permission.resourceType() != PermissionConst.RESOURCE_TYPE_ANY) {
+            UserBaseInfo userBaseInfo = sessionService.getUserInfo(token);
+            if (UserType.EXAMPLE.equals(userBaseInfo.getUserType())) {
+                return false;
+            }
+        }
+
         int count = 0;
         for (String authority : authorities) {
             if (PermissionConst.AUTHORITY_LOGIN.equals(authority)) {
@@ -98,8 +108,8 @@ public class PermissionHandler implements ApplicationLifeCycleService {
             }
         }
 
-        if (apiPermissionService != null) {
-            return apiPermissionService.permission(permission);
+        if (resourcePermissionService != null) {
+            return resourcePermissionService.permission(permission);
         }
 
         if (permission.authorities().length > count) {
