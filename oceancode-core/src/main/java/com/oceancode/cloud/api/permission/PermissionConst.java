@@ -25,6 +25,7 @@ public class PermissionConst {
     public static final int RESOURCE_TYPE_UPDATE = 10;
     public static final int RESOURCE_TYPE_UPDATE_MANY = 11;
     public static final int RESOURCE_TYPE_QUERY = 15;
+    public static final int RESOURCE_DOWNLOAD = 20;
 
     // 安装用户的配置权限判定
     public static final String AUTHORITY_CUSTOM_USER = "custom.user";
