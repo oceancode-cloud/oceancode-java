@@ -22,6 +22,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 @Aspect
 @Component
@@ -68,10 +69,9 @@ public class PermissionHandler implements ApplicationLifeCycleService {
 
 
         String token = ApiUtil.getToken();
-
         if (permission.resourceType() != PermissionConst.RESOURCE_TYPE_QUERY && permission.resourceType() != PermissionConst.RESOURCE_TYPE_ANY) {
             UserBaseInfo userBaseInfo = sessionService.getUserInfo(token);
-            if (UserType.EXAMPLE.equals(userBaseInfo.getUserType())) {
+            if (Objects.nonNull(userBaseInfo) && UserType.EXAMPLE.equals(userBaseInfo.getUserType())) {
                 return false;
             }
         }
