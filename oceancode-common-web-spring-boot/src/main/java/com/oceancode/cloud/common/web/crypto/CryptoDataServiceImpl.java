@@ -86,9 +86,13 @@ public class CryptoDataServiceImpl implements CryptoDataService {
             EncryptCryptoFunction function = value -> Base64Util.encodeObject(value);
             data.encrypt(function);
         } else if (CryptoType.AES.equals(cryptoType)) {
+            String key = cryptoData.getKey();
+            if (ValueUtil.isEmpty(key)) {
+                key = ApiUtil.getSecretKey();
+            }
             cryptoData.setType(cryptoType.getValue());
-            String aesKey = createCode() + ":" + createCode();
-            cryptoData.setKey(rsa2CryptoService.encryptByPrivateKey(aesKey, getPrivateKey(cryptoData.getId())));
+            String privateKey = getPrivateKey(cryptoData.getId());
+            String aesKey = rsa2CryptoService.decryptByPrivateKey(key, privateKey);
             EncryptCryptoFunction function = value -> {
                 String targetValue = null;
                 if (Objects.isNull(value)) {

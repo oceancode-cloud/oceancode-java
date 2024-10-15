@@ -4,11 +4,16 @@ import com.oceancode.cloud.api.security.AesCryptoService;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ValueUtil;
+import org.apache.commons.codec.CodecPolicy;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.StringUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+
+import static org.apache.commons.codec.binary.Base64.encodeBase64;
 
 public class AesCrypto implements AesCryptoService {
     @Override
@@ -27,8 +32,8 @@ public class AesCrypto implements AesCryptoService {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
             cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
 
-            byte[] encrypted = cipher.doFinal(input.getBytes());
-            return org.apache.commons.codec.binary.Base64.encodeBase64String(encrypted);
+            byte[] encrypted = cipher.doFinal(input.getBytes(StandardCharsets.UTF_8));
+            return Base64.encodeBase64String(encrypted);
         } catch (Exception ex) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, ex);
         }
