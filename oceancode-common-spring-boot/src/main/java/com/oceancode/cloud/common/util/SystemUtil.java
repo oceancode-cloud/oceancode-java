@@ -63,7 +63,7 @@ public final class SystemUtil {
         return ValueUtil.isNotEmpty(url) ? (url.endsWith("/") ? url : url + "/") : null;
     }
 
-    private static String parsePath(String path) {
+    public static String parsePath(String path) {
         if (path == null) {
             return null;
         }
