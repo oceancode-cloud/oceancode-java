@@ -119,6 +119,19 @@ public final class JsonUtil {
         }
     }
 
+    public static <T> T toBean(String jsonString, Class<?> rawTypeClass, Class<T> clazz) {
+        if (!StringUtils.hasText(jsonString)) {
+            return null;
+        }
+        try {
+            JavaType javaType = OBJECT_MAPPER.getTypeFactory().constructParametricType(rawTypeClass, clazz);
+            return OBJECT_MAPPER.readValue(jsonString, javaType);
+        } catch (JsonProcessingException e) {
+            throw new BusinessRuntimeException(CommonErrorCode.ERROR, e);
+        }
+    }
+
+
     public static <T> List<T> toList(String jsonString, Class<T> clazz) {
         if (!StringUtils.hasText(jsonString)) {
             return null;
