@@ -40,9 +40,12 @@ public class GraphQlProvider {
 
     private QueryFunction queryFunction;
 
-    public GraphQlProvider(QueryFunction queryFunction, CommonConfig commonConfig) {
+    private DataFetcherProvider dataFetcherProvider;
+
+    public GraphQlProvider(QueryFunction queryFunction, CommonConfig commonConfig, DataFetcherProvider dataFetcherProvider) {
         this.queryFunction = queryFunction;
         this.commonConfig = commonConfig;
+        this.dataFetcherProvider = dataFetcherProvider;
         try {
             init();
         } catch (Exception e) {
@@ -131,7 +134,14 @@ public class GraphQlProvider {
                     methodBuilder.argument(GraphQLArgument.newArgument().name(argName).type(convertQLType(parameter.getType())).build());
                 }
             }
-            DataFetcher dataFetcher = environment -> doDataFetcher(environment, method, queryFunction, argList);
+            DataFetcher defaultFeatcher =
+                    environment -> doDataFetcher(environment, method, queryFunction, argList);
+            DataFetcher dataFetcher;
+            if (Objects.nonNull(dataFetcherProvider)) {
+                dataFetcher = dataFetcherProvider.get(defaultFeatcher);
+            } else {
+                dataFetcher = new DefaultDataFetcher(defaultFeatcher);
+            }
             String key = returnType.getName();
             GraphQLOutputType graphQLOutputType = typeMapping.get(key);
             if (graphQLOutputType == null) {
@@ -229,10 +239,11 @@ public class GraphQlProvider {
                 continue;
             } else if (List.class.isAssignableFrom(field.getType()) && !isSimpleList(field.getType())) {
                 ParameterizedType parameterizedType = (ParameterizedType) field.getType().getGenericSuperclass();
-                if (parameterizedType.getActualTypeArguments().length == 0) {
+                boolean hasSuper = Objects.nonNull(parameterizedType) && parameterizedType.getActualTypeArguments().length > 0;
+                if (hasSuper && parameterizedType.getActualTypeArguments().length == 0) {
                     continue;
                 }
-                Class<?> targetClass = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+                Class<?> targetClass = hasSuper ? (Class<?>) parameterizedType.getActualTypeArguments()[0] : null;
                 if (Object.class.equals(targetClass)) {
                     continue;
                 }
