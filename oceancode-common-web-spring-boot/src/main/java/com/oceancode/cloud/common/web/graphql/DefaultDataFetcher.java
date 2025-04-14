@@ -4,6 +4,8 @@ import com.oceancode.cloud.common.util.SessionUtil;
 import graphql.schema.AsyncDataFetcher;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -21,9 +23,11 @@ public class DefaultDataFetcher extends AsyncDataFetcher {
     @Override
     public CompletableFuture get(DataFetchingEnvironment environment) {
         List<Object> values = SessionUtil.getValues();
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         return CompletableFuture.supplyAsync(() -> {
             try {
                 SessionUtil.setValues(values);
+                RequestContextHolder.setRequestAttributes(requestAttributes);
                 return getWrappedDataFetcher().get(environment);
             } catch (Exception e) {
                 if (e instanceof RuntimeException) {
@@ -33,6 +37,7 @@ public class DefaultDataFetcher extends AsyncDataFetcher {
                 }
             } finally {
                 SessionUtil.remove();
+                RequestContextHolder.resetRequestAttributes();
             }
         }, getExecutor());
     }
