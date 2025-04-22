@@ -2,7 +2,9 @@ package com.oceancode.cloud.test.base;
 
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.config.Config;
+import com.oceancode.cloud.test.reporter.ReporterTestExecutionListener;
 import jakarta.annotation.Resource;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+@ExtendWith(ReporterTestExecutionListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BaseTest extends AbstractTestNGSpringContextTests {
 

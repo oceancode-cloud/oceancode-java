@@ -1,92 +1,40 @@
 package com.oceancode.cloud.test.reporter;
 
-import com.oceancode.cloud.common.util.FileUtil;
-import com.oceancode.cloud.common.util.JsonUtil;
-import org.testng.*;
-import org.testng.xml.XmlSuite;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class TestReporter implements IReporter {
-    @Override
-    public void generateReport(List<XmlSuite> xmlSuites, List<ISuite> suites, String outputDirectory) {
-        List<ITestResult> list = new ArrayList<>();
-        for (ISuite suite : suites) {
-            Map<String, ISuiteResult> suiteResults = suite.getResults();
-            for (ISuiteResult suiteResult : suiteResults.values()) {
-                ITestContext testContext = suiteResult.getTestContext();
-                IResultMap passedTests = testContext.getPassedTests();
-                IResultMap failedTests = testContext.getFailedTests();
-                IResultMap skippedTests = testContext.getSkippedTests();
-                IResultMap failedConfig = testContext.getFailedConfigurations();
-                list.addAll(this.listTestResult(passedTests));
-                list.addAll(this.listTestResult(failedTests));
-                list.addAll(this.listTestResult(skippedTests));
-                list.addAll(this.listTestResult(failedConfig));
-            }
-        }
-        this.sort(list);
-        this.outputResult(list, outputDirectory + "/smoke-repository-reporter.json");
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+public class TestReporter {
+    private final static Map<String, TestResult> results = new HashMap<>();
+
+    protected void addTestResult(TestResult result) {
+        String key = result.getNamespace() + ":" + result.getMethodName();
+        results.put(key, result);
     }
 
-    private void outputResult(List<ITestResult> list, String outputDir) {
-        List<Map<String, Object>> outList = new ArrayList<>();
-        for (ITestResult result : list) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("className", result.getTestClass().getRealClass().getName());
-            map.put("methodName", result.getMethod().getMethodName());
-            map.put("startTime", this.formatDate(result.getStartMillis()));
-            map.put("endTime", this.formatDate(result.getEndMillis()));
-            map.put("used", result.getEndMillis() - result.getStartMillis());
-            map.put("status", result.getStatus());
-            map.put("statusDesc", this.getStatus(result.getStatus()));
-            map.put("description", result.getMethod().getDescription());
-            map.put("groups", result.getMethod().getGroups());
-
-            outList.add(map);
+    protected TestResult addTestResult(ExtensionContext context) {
+        TestResult result = new TestResult();
+        if (context.getTestClass().isPresent()) {
+            result.setNamespace(context.getTestClass().get().getName());
+        }
+        if (context.getTestMethod().isPresent()) {
+            result.setMethodName(context.getTestMethod().get().getName());
         }
 
-        writerReporter(outputDir, outList);
+        addTestResult(result);
+        result.setStartTime(System.nanoTime());
+        return result;
     }
 
-    protected void writerReporter(String outputDir, List<Map<String, Object>> outList) {
-        FileUtil.writeStringToFile(new File(outputDir), JsonUtil.toJson(outList));
+    protected TestResult getTestResult(ExtensionContext context) {
+        String key = context.getTestClass().get().getName() + ":" + context.getTestMethod().get().getName();
+        return results.get(key);
     }
 
-    private Object getStatus(int status) {
-        switch (status) {
-            case 1:
-                return "SUCCESS";
-            case 2:
-                return "FAILURE";
-            case 3:
-                return "SKIP";
-        }
-        return null;
-    }
-
-    private Object formatDate(long date) {
-        SimpleDateFormat format = new SimpleDateFormat();
-        return format.format(date);
-    }
-
-    private void sort(List<ITestResult> list) {
-        Collections.sort(list, new Comparator<ITestResult>() {
-            @Override
-            public int compare(ITestResult o1, ITestResult o2) {
-                if (o1.getStartMillis() > o2.getStartMillis()) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            }
-        });
-    }
-
-    private ArrayList<ITestResult> listTestResult(IResultMap resultMap) {
-        Set<ITestResult> results = resultMap.getAllResults();
-        return new ArrayList<>(results);
+    public static Collection<TestResult> getResults() {
+        return results.values();
     }
 }
