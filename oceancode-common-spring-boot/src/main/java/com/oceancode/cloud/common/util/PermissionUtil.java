@@ -60,6 +60,9 @@ public final class PermissionUtil {
                 matchCount++;
                 continue;
             }
+            if (Objects.isNull(permissionResourceService)) {
+                return false;
+            }
             if (permissionResourceService.checkPermission(permission, authority)) {
                 matchCount++;
                 if (!isAnd) {
