@@ -8,6 +8,8 @@ import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.SystemUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.test.data.Data;
+import com.oceancode.cloud.test.data.TestData;
+import org.springframework.test.context.transaction.TestTransaction;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -63,7 +65,7 @@ public final class TestUtil {
         data.release();
     }
 
-    public static <T> List<T> loadDatasets(String filePath, Class<T> returnType) {
+    public static <T> List<TestData<T>> loadDatasets(String filePath, Class<T> returnType) {
         if (ValueUtil.isEmpty(filePath)) {
             return Collections.emptyList();
         }
@@ -76,12 +78,12 @@ public final class TestUtil {
         return Collections.emptyList();
     }
 
-    public static <T> T loadDataset(String filePath, Class<T> returnType) {
-        List<T> list = loadDatasets(filePath, returnType);
+    public static <T> TestData<T> loadDataset(String filePath, Class<T> returnType) {
+        List<TestData<T>> list = loadDatasets(filePath, returnType);
         return list.isEmpty() ? null : list.get(0);
     }
 
-    private static <T> List<T> loadCsv(String filePath, Class<T> returnType) {
+    private static <T> List<TestData<T>> loadCsv(String filePath, Class<T> returnType) {
         if (ValueUtil.isEmpty(filePath)) {
             return Collections.emptyList();
         }
@@ -101,16 +103,28 @@ public final class TestUtil {
                                     field = field.substring(field.indexOf("(") + 1, field.indexOf(")"));
                                 }
                             }
-                            fields.add(field);
+                            if (Objects.isNull(field)) {
+                                field = "";
+                            }
+                            fields.add(field.trim());
                         }
                     }
                 } else {
                     Map<String, Object> map = new HashMap<>();
+                    Map<String, Object> dataMap = new HashMap<>();
+                    map.put("data", dataMap);
                     for (int i = 0; i < fields.size(); i++) {
                         String value = i < cells.length - 1 ? cells[i] : null;
-                        map.put(fields.get(i), value);
+                        String field = fields.get(i);
+                        if ("positive".equals((field + "").trim())) {
+                            if ("true".equalsIgnoreCase((value + "").trim()) || "false".equalsIgnoreCase((value + "").trim())) {
+                                map.put("positive", value);
+                                continue;
+                            }
+                        }
+                        dataMap.put(field, value);
                     }
-                    if (!map.isEmpty()) {
+                    if (!dataMap.isEmpty()) {
                         dataList.add(map);
                     }
                 }
@@ -121,7 +135,7 @@ public final class TestUtil {
         if (dataList.isEmpty()) {
             return Collections.emptyList();
         }
-        return JsonUtil.toList(JsonUtil.toJson(dataList), returnType);
+        return (List<TestData<T>>) JsonUtil.toList(JsonUtil.toJson(dataList), TestData.class, returnType);
     }
 
     private static String getFilePath(String filePath) {
@@ -131,13 +145,13 @@ public final class TestUtil {
         return ComponentUtil.getBean(CommonConfig.class).getValue("dataset.base.dir", SystemUtil.dataDir() + filePath);
     }
 
-    private static <T> List<T> loadJson(String filePath, Class<T> returnType) {
+    private static <T> List<TestData<T>> loadJson(String filePath, Class<T> returnType) {
         try {
             String fileContent = new String(Files.readAllBytes(Paths.get(getFilePath(filePath))));
             if (!fileContent.trim().startsWith("[")) {
                 fileContent = "[" + fileContent + "]";
             }
-            return JsonUtil.toList(fileContent, returnType);
+            return (List<TestData<T>>) JsonUtil.toList(fileContent, TestTransaction.class, returnType);
         } catch (IOException e) {
             return Collections.emptyList();
         }

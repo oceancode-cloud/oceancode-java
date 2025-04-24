@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface ApiClient {
+    String SERVICE_CLIENT_NAME = "service-api-client";
+
     <T> ClientResult<List<T>> postForList(String uri, Object params, Class<T> returnTypeClass);
 
     <T extends Result<E>, E> ClientResult<List<E>> postForList(String uri, Object params, Class<T> returnTypeClass, Class<E> dataTypeClass);

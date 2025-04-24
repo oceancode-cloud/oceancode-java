@@ -19,6 +19,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
@@ -37,13 +38,41 @@ public class ApiClientImpl implements ApiClient {
     private CommonConfig commonConfig;
 
     private WebClient.Builder webClientBuilder;
+    private WebClient.Builder webServiceClientBuilder;
+    private final static String CONFIG_PREFIX = "::";
 
     public ApiClientImpl() {
         commonConfig = ComponentUtil.getBean(CommonConfig.class);
         webClientBuilder = ComponentUtil.getBean(WebClient.Builder.class);
+        try {
+            webServiceClientBuilder = ComponentUtil.getBean(ApiClient.SERVICE_CLIENT_NAME, WebClient.Builder.class);
+        } catch (Exception e) {
+
+        }
     }
 
-    private WebClient.Builder client() {
+    private String getUrl(String url) {
+        if (url.startsWith(CONFIG_PREFIX)) {
+            String value = url.substring(CONFIG_PREFIX.length());
+            return value.substring(value.indexOf(":" + 1));
+        }
+        return url;
+    }
+
+    private boolean isService(String url) {
+        if (!url.startsWith(CONFIG_PREFIX)) {
+            return false;
+        }
+        String configId = url.substring(CONFIG_PREFIX.length());
+        configId = configId.substring(0, url.indexOf(":"));
+        String key = "oc.api." + configId + ".type";
+        return "service".equals(commonConfig.getValue(key));
+    }
+
+    private WebClient.Builder client(String url) {
+        if (isService(url)) {
+            return webServiceClientBuilder;
+        }
         return webClientBuilder;
 //                .filter(cookieFilter());
     }
@@ -68,13 +97,16 @@ public class ApiClientImpl implements ApiClient {
 
     @Override
     public <T extends Result<E>, E> ClientResult<List<E>> postForList(String uri, Object params, Class<T> returnTypeClass, Class<E> dataTypeClass) {
-        WebClient webClient = client()
+        WebClient webClient = client(uri)
                 .build();
         WebClient.RequestHeadersSpec<?> spec = webClient.post()
-                .uri(uri)
+                .uri(getUrl(uri))
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(params);
 
-        processCommon(spec);
+        if (isService(uri)) {
+            processCommon(spec);
+        }
+
 
         TypeFactory typeFactory = JsonUtil.getObjectMapper().getTypeFactory();
         JavaType inner = typeFactory.constructParametricType(List.class, dataTypeClass);
@@ -85,41 +117,47 @@ public class ApiClientImpl implements ApiClient {
 
     @Override
     public <T> ClientResult<List<T>> postForList(String uri, Object params, Class<T> returnTypeClass) {
-        WebClient webClient = client()
+        WebClient webClient = client(uri)
 //                .filter(cookieFilter())
                 .build();
         WebClient.RequestHeadersSpec<?> spec = webClient.post()
-                .uri(uri)
+                .uri(getUrl(uri))
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(params);
 
-        processCommon(spec);
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResultList(spec.exchange(), returnTypeClass, null);
     }
 
     @Override
     public <T> ClientResult<T> postFor(String uri, Object params, Class<T> returnTypeClass) {
-        WebClient webClient = client().build();
+        WebClient webClient = client(uri).build();
         WebClient.RequestHeadersSpec<?> spec = webClient.post()
-                .uri(uri)
+                .uri(getUrl(uri))
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(params);
 
-        processCommon(spec);
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResult(spec.exchange(), returnTypeClass, null);
     }
 
     @Override
     public <T extends Result<T2>, T2> ClientResult<T2> postFor(String uri, Object params, Class<T> returnTypeClass, Class<T2> dataTypeClass) {
-        WebClient webClient = client().build();
+        WebClient webClient = client(uri).build();
 
         TypeFactory typeFactory = JsonUtil.getObjectMapper().getTypeFactory();
         JavaType javaType = typeFactory.constructParametricType(returnTypeClass, dataTypeClass);
         ParameterizedTypeReference<Object> reference = ParameterizedTypeReference.forType(javaType);
 
         WebClient.RequestHeadersSpec<?> spec = webClient.post()
-                .uri(uri)
+                .uri(getUrl(uri))
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(params);
 
-        processCommon(spec);
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         Mono<ClientResponse> result = spec.exchange();
         return processResult(result, dataTypeClass, reference);
     }
@@ -192,37 +230,45 @@ public class ApiClientImpl implements ApiClient {
 
     @Override
     public <T> ClientResult<List<T>> getForList(String uri, Object params, Class<T> returnTypeClass) {
-        WebClient webClient = client().build();
+        WebClient webClient = client(uri).build();
         WebClient.RequestHeadersSpec<?> spec = webClient.get()
-                .uri(uri);
-        processCommon(spec);
+                .uri(getUrl(uri));
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResultList(spec.exchange(), returnTypeClass, null);
     }
 
     @Override
     public <T extends Result<E>, E> ClientResult<List<E>> getForList(String uri, Object params, Class<T> returnTypeClass, Class<E> dataTypeClass) {
-        WebClient webClient = client().build();
+        WebClient webClient = client(uri).build();
         WebClient.RequestHeadersSpec<?> spec = webClient.get()
-                .uri(uri);
-        processCommon(spec);
+                .uri(getUrl(uri));
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResultList(spec.exchange(), null, getResultType(returnTypeClass, dataTypeClass));
     }
 
     @Override
     public <T> ClientResult<T> getFor(String uri, Object params, Class<T> returnTypeClass) {
-        WebClient webClient = client().build();
+        WebClient webClient = client(uri).build();
         WebClient.RequestHeadersSpec<?> spec = webClient.get()
-                .uri(uri);
-        processCommon(spec);
+                .uri(getUrl(uri));
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResult(spec.exchange(), returnTypeClass, null);
     }
 
     @Override
     public <T extends Result<E>, E> ClientResult<E> getFor(String uri, Object params, Class<T> returnTypeClass, Class<E> dataTypeClass) {
-        WebClient webClient = client().build();
+        WebClient webClient = client(uri).build();
         WebClient.RequestHeadersSpec<?> spec = webClient.get()
-                .uri(uri);
-        processCommon(spec);
+                .uri(getUrl(uri));
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResult(spec.exchange(), null, getResultType(returnTypeClass, dataTypeClass));
     }
 
@@ -237,65 +283,81 @@ public class ApiClientImpl implements ApiClient {
 
     @Override
     public <T> ClientResult<List<T>> putForList(String uri, Object params, Class<T> returnTypeClass) {
-        WebClient webClient = client().build();
-        WebClient.RequestHeadersSpec<?> spec = webClient.put().uri(uri).contentType(MediaType.APPLICATION_JSON).bodyValue(params);
-        processCommon(spec);
+        WebClient webClient = client(uri).build();
+        WebClient.RequestHeadersSpec<?> spec = webClient.put().uri(getUrl(uri)).contentType(MediaType.APPLICATION_JSON).bodyValue(params);
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResultList(spec.exchange(), returnTypeClass, null);
     }
 
     @Override
     public <T extends Result<List<E>>, E> ClientResult<List<E>> putForList(String uri, Object params, Class<T> returnTypeClass, Class<E> dataTypeClass) {
-        WebClient webClient = client().build();
-        WebClient.RequestHeadersSpec<?> spec = webClient.put().uri(uri).contentType(MediaType.APPLICATION_JSON).bodyValue(params);
-        processCommon(spec);
+        WebClient webClient = client(uri).build();
+        WebClient.RequestHeadersSpec<?> spec = webClient.put().uri(getUrl(uri)).contentType(MediaType.APPLICATION_JSON).bodyValue(params);
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResultList(spec.exchange(), null, getResultType(returnTypeClass, dataTypeClass));
     }
 
     @Override
     public <T> ClientResult<T> putFor(String uri, Object params, Class<T> returnTypeClass) {
-        WebClient webClient = client().build();
-        WebClient.RequestHeadersSpec<?> spec = webClient.put().uri(uri).contentType(MediaType.APPLICATION_JSON).bodyValue(params);
-        processCommon(spec);
+        WebClient webClient = client(uri).build();
+        WebClient.RequestHeadersSpec<?> spec = webClient.put().uri(getUrl(uri)).contentType(MediaType.APPLICATION_JSON).bodyValue(params);
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResult(spec.exchange(), returnTypeClass, null);
     }
 
     @Override
     public <T extends Result<E>, E> ClientResult<E> putFor(String uri, Object params, Class<T> returnTypeClass, Class<E> dataTypeClass) {
-        WebClient webClient = client().build();
-        WebClient.RequestHeadersSpec<?> spec = webClient.put().uri(uri).contentType(MediaType.APPLICATION_JSON).bodyValue(params);
-        processCommon(spec);
+        WebClient webClient = client(uri).build();
+        WebClient.RequestHeadersSpec<?> spec = webClient.put().uri(getUrl(uri)).contentType(MediaType.APPLICATION_JSON).bodyValue(params);
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResult(spec.exchange(), null, getResultType(returnTypeClass, dataTypeClass));
     }
 
     @Override
     public <T> ClientResult<List<T>> deleteForList(String uri, Object params, Class<T> returnTypeClass) {
-        WebClient webClient = client().build();
-        WebClient.RequestHeadersSpec<?> spec = webClient.delete().uri(uri);
-        processCommon(spec);
+        WebClient webClient = client(uri).build();
+        WebClient.RequestHeadersSpec<?> spec = webClient.delete().uri(getUrl(uri));
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResultList(spec.exchange(), returnTypeClass, null);
     }
 
     @Override
     public <T extends Result<E>, E> ClientResult<List<E>> deleteForList(String uri, Object params, Class<T> returnTypeClass, Class<E> dataTypeClass) {
-        WebClient webClient = client().build();
-        WebClient.RequestHeadersSpec<?> spec = webClient.delete().uri(uri);
-        processCommon(spec);
+        WebClient webClient = client(uri).build();
+        WebClient.RequestHeadersSpec<?> spec = webClient.delete().uri(getUrl(uri));
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResultList(spec.exchange(), null, getResultType(returnTypeClass, dataTypeClass));
     }
 
     @Override
     public <T> ClientResult<T> deleteFor(String uri, Object params, Class<T> returnTypeClass) {
-        WebClient webClient = client().build();
-        WebClient.RequestHeadersSpec<?> spec = webClient.delete().uri(uri);
-        processCommon(spec);
+        WebClient webClient = client(uri).build();
+        WebClient.RequestHeadersSpec<?> spec = webClient.delete().uri(getUrl(uri));
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResult(spec.exchange(), returnTypeClass, null);
     }
 
     @Override
     public <T extends Result<E>, E> ClientResult<E> deleteFor(String uri, Object params, Class<T> returnTypeClass, Class<E> dataTypeClass) {
-        WebClient webClient = client().build();
-        WebClient.RequestHeadersSpec<?> spec = webClient.delete().uri(uri);
-        processCommon(spec);
+        WebClient webClient = client(uri).build();
+        WebClient.RequestHeadersSpec<?> spec = webClient.delete().uri(getUrl(uri));
+        if (isService(uri)) {
+            processCommon(spec);
+        }
         return processResult(spec.exchange(), null, getResultType(returnTypeClass, dataTypeClass));
     }
 

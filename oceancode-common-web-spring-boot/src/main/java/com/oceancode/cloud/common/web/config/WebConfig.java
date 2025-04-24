@@ -25,6 +25,7 @@ import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -41,11 +42,16 @@ public class WebConfig implements WebMvcConfigurer {
     private CommonConfig commonConfig;
 
     @Bean
+    @ConditionalOnMissingBean({WebClient.Builder.class})
+    public WebClient.Builder webApiClientBuilder() {
+        return WebClient.builder();
+    }
+
+    @Bean
     @ConditionalOnMissingBean({ApiClient.class})
     public ApiClient apiClient() {
         return new ApiClientImpl();
     }
-
 
 
 //    @Bean

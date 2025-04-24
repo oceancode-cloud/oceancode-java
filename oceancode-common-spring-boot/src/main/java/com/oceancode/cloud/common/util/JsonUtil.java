@@ -132,6 +132,30 @@ public final class JsonUtil {
     }
 
 
+    /**
+     * json转List数组，对象包含泛型
+     *
+     * @param jsonString
+     * @param clazz
+     * @param dataClass
+     * @param <T>
+     * @param <E>
+     * @return
+     */
+    public static <T, E> Object toList(String jsonString, Class<T> clazz, Class<E> dataClass) {
+        if (!StringUtils.hasText(jsonString)) {
+            return null;
+        }
+        try {
+            TypeFactory typeFactory = OBJECT_MAPPER.getTypeFactory();
+            JavaType innerType = typeFactory.constructParametricType(clazz, dataClass);
+            JavaType javaType = OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, innerType);
+            return OBJECT_MAPPER.readValue(jsonString, javaType);
+        } catch (JsonProcessingException e) {
+            throw new BusinessRuntimeException(CommonErrorCode.ERROR, e);
+        }
+    }
+
     public static <T> List<T> toList(String jsonString, Class<T> clazz) {
         if (!StringUtils.hasText(jsonString)) {
             return null;
