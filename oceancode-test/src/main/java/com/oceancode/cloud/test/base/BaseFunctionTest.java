@@ -1,6 +1,7 @@
 package com.oceancode.cloud.test.base;
 
-import org.springframework.web.context.request.FacesRequestAttributes;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.testng.annotations.AfterClass;
@@ -9,13 +10,15 @@ import org.testng.annotations.BeforeClass;
 public class BaseFunctionTest extends BaseTest {
 
     @BeforeClass
-    public void init() {
+    @BeforeAll
+    public static void init() {
         TestHttpServletRequest request = new TestHttpServletRequest();
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     }
 
     @AfterClass
-    public void destroy() {
+    @AfterAll
+    public static void destroy() {
         RequestContextHolder.resetRequestAttributes();
     }
 }
