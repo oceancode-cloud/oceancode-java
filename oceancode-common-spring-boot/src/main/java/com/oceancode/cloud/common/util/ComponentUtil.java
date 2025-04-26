@@ -13,16 +13,7 @@ import com.oceancode.cloud.common.function.BaseFunction;
 import com.oceancode.cloud.common.function.ClientFunction;
 import com.oceancode.cloud.common.function.LocalFunction;
 import com.oceancode.cloud.common.function.RemoteFunction;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.function.Function;
@@ -41,8 +32,30 @@ public final class ComponentUtil {
         return applicationContext.getBean(beanTypeClassType);
     }
 
+    public static <T> T getBean(Class<T> beanTypeClassType, boolean throwEx) {
+        try {
+            return applicationContext.getBean(beanTypeClassType);
+        } catch (Throwable throwable) {
+            if (throwEx) {
+                throw throwable;
+            }
+        }
+        return null;
+    }
+
     public static <T> T getBean(String key, Class<T> returnClassType) {
         return applicationContext.getBean(key, returnClassType);
+    }
+
+    public static <T> T getBean(String key, Class<T> returnClassType, boolean throwEx) {
+        try {
+            return applicationContext.getBean(key, returnClassType);
+        } catch (Throwable t) {
+            if (throwEx) {
+                throw t;
+            }
+        }
+        return null;
     }
 
     public static <T> T getBean(Class<T> beanTypeClassType, Function<T, Boolean> function) {

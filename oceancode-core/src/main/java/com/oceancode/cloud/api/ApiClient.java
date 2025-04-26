@@ -1,11 +1,23 @@
 package com.oceancode.cloud.api;
 
-import java.util.Collections;
+import com.oceancode.cloud.api.query.QueryMethod;
+
 import java.util.List;
-import java.util.Map;
 
 public interface ApiClient {
     String SERVICE_CLIENT_NAME = "service-api-client";
+
+    <T> ClientResult<List<T>> queryForList(String uri, QueryMethod method, Class<T> dataTypeClass);
+
+    <T> ClientResult<List<T>> queryForList(QueryMethod method, Class<T> dataTypeClass);
+
+    <T extends Result<E>, E> ClientResult<List<E>> queryForList(String uri, QueryMethod method, Class<T> returnTypeClass, Class<E> dataTypeClass);
+
+    <T extends Result<E>, E> ClientResult<List<E>> queryForList(QueryMethod method, Class<T> returnTypeClass, Class<E> dataTypeClass);
+
+    <T> ClientResult<T> queryFor(String uri, List<QueryMethod> methods, Class<T> dataTypeClass);
+
+    <T> ClientResult<T> queryFor(List<QueryMethod> methods, Class<T> dataTypeClass);
 
     <T> ClientResult<List<T>> postForList(String uri, Object params, Class<T> returnTypeClass);
 
@@ -38,12 +50,4 @@ public interface ApiClient {
     <T> ClientResult<T> deleteFor(String uri, Object params, Class<T> returnTypeClass);
 
     <T extends Result<E>, E> ClientResult<E> deleteFor(String uri, Object params, Class<T> returnTypeClass, Class<E> dataTypeClass);
-
-    default String createUri(String url) {
-        return url;
-    }
-
-    default Map<String, String> getHeaderParams() {
-        return Collections.emptyMap();
-    }
 }
