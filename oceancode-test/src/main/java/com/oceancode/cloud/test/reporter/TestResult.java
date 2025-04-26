@@ -10,6 +10,10 @@ public class TestResult {
     private String message;
     private Throwable throwable;
     private boolean success;
+    private String id;
+    private Object response;
+    private String errorCode;
+    private Object inputs;
 
     public Long getStartTime() {
         return startTime;
@@ -81,5 +85,54 @@ public class TestResult {
 
     public void setSuccess(boolean success) {
         this.success = success;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Object getResponse() {
+        return response;
+    }
+
+    public void setResponse(Object response) {
+        this.response = response;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
+    }
+
+    public Object getInputs() {
+        return inputs;
+    }
+
+    public void setInputs(Object inputs) {
+        this.inputs = inputs;
+    }
+
+    @Override
+    public String toString() {
+        return "TestResult{" +
+                "namespace='" + namespace + '\'' +
+                ", methodName='" + methodName + '\'' +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", totalTime=" + totalTime +
+                ", description='" + description + '\'' +
+                ", message='" + message + '\'' +
+                ", throwable=" + throwable +
+                ", success=" + success +
+                ", id='" + id + '\'' +
+                ", response=" + response +
+                '}';
     }
 }

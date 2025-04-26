@@ -1,37 +1,23 @@
 package com.oceancode.cloud.test.reporter;
 
-
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TestReporter {
-    private final static Map<String, TestResult> results = new HashMap<>();
+    private final static Map<String, TestResult> results = new ConcurrentHashMap<>();
 
-    protected void addTestResult(TestResult result) {
-        String key = result.getNamespace() + ":" + result.getMethodName();
-        results.put(key, result);
+
+    public static void addResult(TestResult testResult) {
+        if (Objects.nonNull(results.get(testResult.getId()))) {
+            throw new RuntimeException(testResult.getId() + " case already exists.");
+        }
+        results.put(testResult.getId(), testResult);
     }
 
-    protected TestResult addTestResult(ExtensionContext context) {
-        TestResult result = new TestResult();
-        if (context.getTestClass().isPresent()) {
-            result.setNamespace(context.getTestClass().get().getName());
-        }
-        if (context.getTestMethod().isPresent()) {
-            result.setMethodName(context.getTestMethod().get().getName());
-        }
-
-        addTestResult(result);
-        result.setStartTime(System.nanoTime());
-        return result;
-    }
-
-    protected TestResult getTestResult(ExtensionContext context) {
-        String key = context.getTestClass().get().getName() + ":" + context.getTestMethod().get().getName();
-        return results.get(key);
+    public static TestResult getResultById(String caseId) {
+        return results.get(caseId);
     }
 
     public static Collection<TestResult> getResults() {

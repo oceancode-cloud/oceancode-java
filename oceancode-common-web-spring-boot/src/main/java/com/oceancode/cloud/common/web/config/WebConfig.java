@@ -24,6 +24,7 @@ import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFa
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -42,6 +43,7 @@ public class WebConfig implements WebMvcConfigurer {
     private CommonConfig commonConfig;
 
     @Bean
+    @Primary
     @ConditionalOnMissingBean({WebClient.Builder.class})
     public WebClient.Builder webApiClientBuilder() {
         return WebClient.builder();

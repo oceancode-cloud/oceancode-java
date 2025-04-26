@@ -1,7 +1,6 @@
 package com.oceancode.cloud.test.util;
 
 import com.oceancode.cloud.common.config.CommonConfig;
-import com.oceancode.cloud.common.constant.CommonConst;
 import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
@@ -9,7 +8,10 @@ import com.oceancode.cloud.common.util.SystemUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.test.data.Data;
 import com.oceancode.cloud.test.data.TestData;
-import org.springframework.test.context.transaction.TestTransaction;
+import com.oceancode.cloud.test.reporter.TestReporter;
+import com.oceancode.cloud.test.reporter.TestResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,10 +25,65 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class TestUtil {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestUtil.class);
+
     private TestUtil() {
+    }
+
+    public static <T> T test(String caseId, Supplier<T> supplier) {
+        return test(caseId, null, data -> supplier.get(), true);
+    }
+
+    public static <T, E> T test(String caseId, E data, Function<E, T> supplier) {
+        return test(caseId, data, supplier, true);
+    }
+
+    public static <T, E> T test(String caseId, E data, Supplier<T> supplier) {
+        return test(caseId, data, supplier, true);
+    }
+
+    public static <T, E> T test(String caseId, E data, Supplier<T> supplier, boolean throwEx) {
+        return test(caseId, data, e -> supplier.get(), throwEx);
+    }
+
+    public static <T> T test(String caseId, Supplier<T> supplier, boolean throwEx) {
+        return test(caseId, null, data -> supplier.get(), throwEx);
+    }
+
+    public static <T, E> T test(String caseId, E data, Function<E, T> supplier, boolean throwEx) {
+        TestResult testResult = TestReporter.getResultById(caseId);
+        if (Objects.isNull(testResult)) {
+            throw new RuntimeException(caseId + " is not same as the value of @CaseId,");
+        }
+        testResult.setStartTime(System.nanoTime());
+        testResult.setSuccess(true);
+        testResult.setInputs(data);
+
+        T resulst = null;
+        try {
+            resulst = supplier.apply(data);
+            testResult.setEndTime(System.nanoTime());
+            testResult.setResponse(resulst);
+        } catch (Throwable throwable) {
+            testResult.setEndTime(System.nanoTime());
+            testResult.setThrowable(throwable);
+            testResult.setMessage(throwable.getMessage());
+            testResult.setSuccess(false);
+
+            if (throwEx) {
+                throw throwable;
+            }
+
+        } finally {
+            testResult.setTotalTime(testResult.getEndTime() - testResult.getStartTime());
+        }
+
+        return resulst;
     }
 
     public static void fuzz(int maxCount, Runnable runnable) {
@@ -114,7 +171,7 @@ public final class TestUtil {
                     Map<String, Object> dataMap = new HashMap<>();
                     map.put("data", dataMap);
                     for (int i = 0; i < fields.size(); i++) {
-                        String value = i < cells.length - 1 ? cells[i] : null;
+                        String value = i < cells.length ? cells[i] : null;
                         String field = fields.get(i);
                         if ("positive".equals((field + "").trim())) {
                             if ("true".equalsIgnoreCase((value + "").trim()) || "false".equalsIgnoreCase((value + "").trim())) {
@@ -130,7 +187,7 @@ public final class TestUtil {
                 }
             }
         } catch (Exception e) {
-            return Collections.emptyList();
+            throw new RuntimeException(e);
         }
         if (dataList.isEmpty()) {
             return Collections.emptyList();
@@ -139,8 +196,11 @@ public final class TestUtil {
     }
 
     private static String getFilePath(String filePath) {
-        if (!(filePath.startsWith("/") || filePath.startsWith(File.separator))) {
-            filePath = File.separator + filePath;
+        if (Objects.isNull(filePath)) {
+            return null;
+        }
+        if (!filePath.startsWith("/")) {
+            filePath = "/" + filePath;
         }
         return ComponentUtil.getBean(CommonConfig.class).getValue("dataset.base.dir", SystemUtil.dataDir() + filePath);
     }
@@ -151,9 +211,13 @@ public final class TestUtil {
             if (!fileContent.trim().startsWith("[")) {
                 fileContent = "[" + fileContent + "]";
             }
-            return (List<TestData<T>>) JsonUtil.toList(fileContent, TestTransaction.class, returnType);
+            return (List<TestData<T>>) JsonUtil.toList(fileContent, TestData.class, returnType);
         } catch (IOException e) {
-            return Collections.emptyList();
+            throw new RuntimeException(e);
         }
+    }
+
+    public static boolean isDevelopEnv() {
+        return new File(System.getProperty("user.dir") + File.separator + "target").exists();
     }
 }

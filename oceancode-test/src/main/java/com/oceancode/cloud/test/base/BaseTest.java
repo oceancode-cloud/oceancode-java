@@ -1,9 +1,10 @@
 package com.oceancode.cloud.test.base;
 
 import com.oceancode.cloud.common.config.CommonConfig;
-import com.oceancode.cloud.common.config.Config;
 import com.oceancode.cloud.test.reporter.ReporterTestExecutionListener;
 import jakarta.annotation.Resource;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -23,7 +24,7 @@ public class BaseTest extends AbstractTestNGSpringContextTests {
     private Integer port;
 
     @Resource
-    private CommonConfig commonConfig;
+    protected CommonConfig commonConfig;
 
     private static final ThreadLocal<Map<String, Object>> CONTEXT = new ThreadLocal();
 
@@ -35,7 +36,7 @@ public class BaseTest extends AbstractTestNGSpringContextTests {
         if (Objects.isNull(CONTEXT.get())) {
             return null;
         }
-        Object token = CONTEXT.get().get("token");
+        Object token = CONTEXT.get().get("Authorization");
         if (Objects.isNull(token)) {
             return null;
         }
@@ -44,12 +45,14 @@ public class BaseTest extends AbstractTestNGSpringContextTests {
 
 
     @BeforeClass
-    public void initContext() {
+    @BeforeAll
+    public static void initContext() {
         CONTEXT.set(new HashMap<>());
     }
 
     @AfterClass
-    public void removeContext() {
+    @AfterAll
+    public static void removeContext() {
         CONTEXT.remove();
     }
 
