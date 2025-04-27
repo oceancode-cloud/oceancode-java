@@ -1,5 +1,6 @@
 package com.oceancode.cloud.test.util;
 
+import cn.hutool.core.thread.ThreadUtil;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -33,6 +35,35 @@ public final class TestUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestUtil.class);
 
     private TestUtil() {
+    }
+
+    public static void performance(String caseId, int warmUpCount, List<Integer> countList, Runnable supplier) {
+        if (ValueUtil.isEmpty(countList)) {
+            return;
+        }
+        List<Integer> list = countList.stream().distinct().sorted().toList();
+        TestResult result = TestReporter.getByCaseId(caseId);
+        for (int i = 0; i < warmUpCount && warmUpCount > 0; i++) {
+            supplier.run();
+        }
+
+        for (Integer count : list) {
+            Long starTime = System.nanoTime();
+            TestResult testResult = new TestResult();
+            testResult.setGroup("thread");
+            ThreadUtil.concurrencyTest(count, () -> {
+                supplier.run();
+            });
+            testResult.setCaseId(caseId);
+            testResult.setId(UUID.randomUUID().toString().replace("-", ""));
+            testResult.setThreadId(Thread.currentThread().getId());
+            testResult.setStartTime(starTime);
+            testResult.setEndTime(System.nanoTime());
+            testResult.setTotalTime(testResult.getEndTime() - testResult.getStartTime());
+            testResult.setSaved(true);
+            testResult.setParentId(result.getId());
+            TestReporter.addResult(testResult);
+        }
     }
 
     public static <T> T test(String caseId, Supplier<T> supplier) {
@@ -56,12 +87,15 @@ public final class TestUtil {
     }
 
     public static <T, E> T test(String caseId, E data, Function<E, T> supplier, boolean throwEx) {
-        TestResult testResult = TestReporter.getResultById(caseId);
-        if (Objects.isNull(testResult)) {
+        TestResult testResult = new TestResult();
+        if (!TestReporter.exists(caseId)) {
             throw new RuntimeException(caseId + " is not same as the value of @CaseId,");
         }
         testResult.setStartTime(System.nanoTime());
         testResult.setSuccess(true);
+        testResult.setCaseId(caseId);
+        testResult.setId(UUID.randomUUID().toString().replace("-", ""));
+        testResult.setParentId(TestReporter.getByCaseId(caseId).getId());
         testResult.setInputs(data);
 
         T resulst = null;
@@ -69,6 +103,7 @@ public final class TestUtil {
             resulst = supplier.apply(data);
             testResult.setEndTime(System.nanoTime());
             testResult.setResponse(resulst);
+            testResult.setSuccess(true);
         } catch (Throwable throwable) {
             testResult.setEndTime(System.nanoTime());
             testResult.setThrowable(throwable);
@@ -81,6 +116,9 @@ public final class TestUtil {
 
         } finally {
             testResult.setTotalTime(testResult.getEndTime() - testResult.getStartTime());
+            testResult.setSaved(true);
+            testResult.setGroup("detail");
+            testResult.setThreadId(Thread.currentThread().getId());
         }
 
         return resulst;

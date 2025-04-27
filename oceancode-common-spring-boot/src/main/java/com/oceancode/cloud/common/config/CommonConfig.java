@@ -76,7 +76,7 @@ public class CommonConfig {
     public String getValue(String key, boolean mustExists) {
         String value = getValue(key);
         if (mustExists && value == null) {
-            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "the " + key + "of config not found.");
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "the " + key + " of config not found.");
         }
         return value;
     }

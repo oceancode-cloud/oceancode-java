@@ -14,6 +14,14 @@ public class TestResult {
     private Object response;
     private String errorCode;
     private Object inputs;
+    private String caseId;
+    private String parentId;
+    private Integer lineNumber;
+    private String group;
+    private boolean saved;
+    private Object expected;
+    private Object actual;
+    private Long threadId;
 
     public Long getStartTime() {
         return startTime;
@@ -117,6 +125,70 @@ public class TestResult {
 
     public void setInputs(Object inputs) {
         this.inputs = inputs;
+    }
+
+    public String getCaseId() {
+        return caseId;
+    }
+
+    public void setCaseId(String caseId) {
+        this.caseId = caseId;
+    }
+
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
+
+    public Integer getLineNumber() {
+        return lineNumber;
+    }
+
+    public void setLineNumber(Integer lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    public boolean isSaved() {
+        return saved;
+    }
+
+    public void setSaved(boolean saved) {
+        this.saved = saved;
+    }
+
+    public Object getExpected() {
+        return expected;
+    }
+
+    public void setExpected(Object expected) {
+        this.expected = expected;
+    }
+
+    public Object getActual() {
+        return actual;
+    }
+
+    public void setActual(Object actual) {
+        this.actual = actual;
+    }
+
+    public Long getThreadId() {
+        return threadId;
+    }
+
+    public void setThreadId(Long threadId) {
+        this.threadId = threadId;
     }
 
     @Override

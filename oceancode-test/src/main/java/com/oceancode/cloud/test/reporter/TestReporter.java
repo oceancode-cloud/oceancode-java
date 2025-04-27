@@ -1,26 +1,31 @@
 package com.oceancode.cloud.test.reporter;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class TestReporter {
-    private final static Map<String, TestResult> results = new ConcurrentHashMap<>();
+    private final static List<TestResult> results = Collections.synchronizedList(new ArrayList<>());
+    private final static Set<String> ids = Collections.synchronizedSet(new HashSet<>());
 
 
     public static void addResult(TestResult testResult) {
-        if (Objects.nonNull(results.get(testResult.getId()))) {
-            throw new RuntimeException(testResult.getId() + " case already exists.");
-        }
-        results.put(testResult.getId(), testResult);
+        ids.add(testResult.getCaseId());
+        results.add(testResult);
     }
 
-    public static TestResult getResultById(String caseId) {
-        return results.get(caseId);
+    public static boolean exists(String caseId) {
+        return ids.contains(caseId);
     }
 
-    public static Collection<TestResult> getResults() {
-        return results.values();
+    public static List<TestResult> getResults() {
+        return results;
+    }
+
+    public static TestResult getByCaseId(String caseId) {
+        return getResults().stream().filter(e -> e.getId().equals(caseId) && "method".equals(e.getGroup()))
+                .findFirst().orElse(null);
     }
 }

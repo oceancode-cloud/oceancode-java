@@ -12,6 +12,7 @@ public class BaseFunctionTest extends BaseTest {
     @BeforeClass
     @BeforeAll
     public static void init() {
+        BaseTest.initContext();
         TestHttpServletRequest request = new TestHttpServletRequest();
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     }
@@ -20,5 +21,7 @@ public class BaseFunctionTest extends BaseTest {
     @AfterAll
     public static void destroy() {
         RequestContextHolder.resetRequestAttributes();
+        BaseTest.removeContext();
+        ;
     }
 }

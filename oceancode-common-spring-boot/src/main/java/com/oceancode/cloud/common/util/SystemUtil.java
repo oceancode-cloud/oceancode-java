@@ -31,6 +31,16 @@ public final class SystemUtil {
         return dataDir;
     }
 
+    public static String outputDir() {
+        Environment environment = ComponentUtil.getBean(Environment.class);
+        String dataDir = environment.getProperty("oc.system.output.dir");
+        if (ValueUtil.isEmpty(dataDir)) {
+            dataDir = System.getProperty("user.dir") + "/output";
+        }
+
+        return dataDir;
+    }
+
     public static String tempDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
         String tempDir = environment.getProperty("oc.tmp.dir", "../data/tmp");

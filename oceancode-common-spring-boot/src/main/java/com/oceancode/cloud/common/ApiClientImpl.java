@@ -28,7 +28,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.HttpCookie;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -37,11 +36,10 @@ import java.util.Objects;
 
 public class ApiClientImpl implements ApiClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiClientImpl.class);
-    private CommonConfig commonConfig;
+    private final CommonConfig commonConfig;
 
-    private WebClient.Builder webClientBuilder;
+    private final WebClient.Builder webClientBuilder;
     private WebClient.Builder webServiceClientBuilder;
-    private final static String CONFIG_PREFIX = "::";
 
     public ApiClientImpl() {
         commonConfig = ComponentUtil.getBean(CommonConfig.class);
@@ -49,11 +47,11 @@ public class ApiClientImpl implements ApiClient {
         try {
             webServiceClientBuilder = ComponentUtil.getBean(ApiClient.SERVICE_CLIENT_NAME, WebClient.Builder.class);
         } catch (Exception e) {
-
+            // ignore
         }
     }
 
-    private String getUrl(String url) {
+    protected String getUrl(String url) {
         if (url.startsWith("http:/") || url.startsWith("https:/")) {
             return url;
         }
@@ -125,7 +123,7 @@ public class ApiClientImpl implements ApiClient {
         processCommon(spec, uri);
 
         Mono<ClientResponse> result = spec.exchange();
-        ClientResultData<T> resultData = new ClientResultData<>();
+        ClientResultData<T> resultData = this.createResultData();
         try {
             T responseData = result.flatMap(response -> {
                 resultData.setHeaders(response.headers().asHttpHeaders());
@@ -140,6 +138,10 @@ public class ApiClientImpl implements ApiClient {
         return resultData;
     }
 
+    protected <T> ClientResultData<T> createResultData() {
+        return new ClientResultData<>();
+    }
+
     @Override
     public <T> ClientResult<T> queryFor(List<QueryMethod> methods, Class<T> dataTypeClass) {
         return queryFor(getQueryApi(), methods, dataTypeClass);
@@ -147,7 +149,7 @@ public class ApiClientImpl implements ApiClient {
 
     @Override
     public <T extends Result<E>, E> ClientResult<List<E>> queryForList(String uri, QueryMethod method, Class<T> returnTypeClass, Class<E> dataTypeClass) {
-        return processQueryForList(uri, Arrays.asList(method), returnTypeClass, dataTypeClass);
+        return processQueryForList(uri, Collections.singletonList(method), returnTypeClass, dataTypeClass);
     }
 
     @Override
@@ -169,11 +171,9 @@ public class ApiClientImpl implements ApiClient {
 
         TypeFactory typeFactory = JsonUtil.getObjectMapper().getTypeFactory();
         JavaType inner = typeFactory.constructParametricType(List.class, dataTypeClass);
-        JavaType javaType = typeFactory.constructParametricType(returnTypeClass, inner);
-        ParameterizedTypeReference<Object> reference = ParameterizedTypeReference.forType(javaType);
 
         Mono<ClientResponse> result = spec.exchange();
-        ClientResultData<List<E>> resultData = new ClientResultData<>();
+        ClientResultData<List<E>> resultData = this.createResultData();
         try {
             Object responseData = result.flatMap(response -> {
                 resultData.setHeaders(response.headers().asHttpHeaders());
@@ -272,7 +272,7 @@ public class ApiClientImpl implements ApiClient {
         return processResult(result, dataTypeClass, reference);
     }
 
-    private void processError(ClientResultData clientResultData, ClientResponse response) {
+    protected void processError(ClientResultData clientResultData, ClientResponse response) {
         if (HttpStatus.OK.equals(response.statusCode())) {
             clientResultData.setCode(CommonErrorCode.SUCCESS.getCode());
             return;
@@ -291,7 +291,7 @@ public class ApiClientImpl implements ApiClient {
     }
 
     private <T2> ClientResult<List<T2>> processResultList(Mono<ClientResponse> result, Class<T2> dataTypeClass, ParameterizedTypeReference<Object> reference) {
-        ClientResultData<List<T2>> resultData = new ClientResultData<>();
+        ClientResultData<List<T2>> resultData = this.createResultData();
 
         try {
             Result<List<T2>> r = (Result<List<T2>>) result.flatMap(response -> {
@@ -313,7 +313,7 @@ public class ApiClientImpl implements ApiClient {
     }
 
     private <T2> ClientResult<T2> processResult(Mono<ClientResponse> result, Class<T2> dataTypeClass, ParameterizedTypeReference<Object> reference) {
-        ClientResultData<T2> resultData = new ClientResultData<>();
+        ClientResultData<T2> resultData = this.createResultData();
 
         try {
             Object responseData = result.flatMap(response -> {
@@ -329,7 +329,9 @@ public class ApiClientImpl implements ApiClient {
                 resultData.setHeaders(response.headers().asHttpHeaders());
                 return body;
             }).block(Duration.ofSeconds(5L));
-            if (responseData instanceof Result) {
+            if (responseData instanceof ClientResult<?>) {
+                return (ClientResult<T2>) responseData;
+            } else if (responseData instanceof Result) {
                 Result<T2> r = (Result<T2>) responseData;
                 resultData.setResults(r.getResults());
                 resultData.setCode(r.getCode());
