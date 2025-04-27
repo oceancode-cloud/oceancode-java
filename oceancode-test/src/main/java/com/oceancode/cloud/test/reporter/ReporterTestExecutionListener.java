@@ -40,8 +40,7 @@ public class ReporterTestExecutionListener extends TestReporter implements Befor
         if (Objects.isNull(caseId)) {
             return;
         }
-        TestResult testResult = getResults().stream().filter(e -> e.getId().equals(caseId.value()) && "method".equals(e.getGroup()))
-                .findFirst().orElse(null);
+        TestResult testResult = getByCaseId(caseId.value());
         if (Objects.isNull(testResult)) {
             return;
         }
@@ -60,8 +59,7 @@ public class ReporterTestExecutionListener extends TestReporter implements Befor
             return;
         }
 
-        TestResult testResult = getResults().stream().filter(e -> e.getId().equals(caseId.value()) && "method".equals(e.getGroup()))
-                .findFirst().orElse(null);
+        TestResult testResult = getByCaseId(caseId.value());
         if (Objects.isNull(testResult)) {
             return;
         }

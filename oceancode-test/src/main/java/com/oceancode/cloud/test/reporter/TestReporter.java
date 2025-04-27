@@ -25,7 +25,7 @@ public class TestReporter {
     }
 
     public static TestResult getByCaseId(String caseId) {
-        return getResults().stream().filter(e -> e.getId().equals(caseId) && "method".equals(e.getGroup()))
+        return getResults().stream().filter(e -> e.getCaseId().equals(caseId) && "method".equals(e.getGroup()))
                 .findFirst().orElse(null);
     }
 }

@@ -429,6 +429,11 @@ public class MockData {
         return list;
     }
 
+    public static String cname(){
+        return mockNormalString(2,6);
+    }
+
+
     public static Map<String, Object> mockNormalMap(int size) {
         Map<String, Object> map = new HashMap<>();
         if (size == 0) {

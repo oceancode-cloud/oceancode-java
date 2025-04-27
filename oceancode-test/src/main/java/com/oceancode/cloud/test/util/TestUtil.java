@@ -70,6 +70,28 @@ public final class TestUtil {
         return test(caseId, null, data -> supplier.get(), true);
     }
 
+    public static <T> T test(String caseId, Runnable supplier, boolean throwEx) {
+        return test(caseId, null, data -> {
+            supplier.run();
+            return null;
+        }, throwEx);
+    }
+
+    public static <T, E> T test(String caseId, E data, Runnable supplier) {
+        return test(caseId, data, (param) -> {
+            supplier.run();
+            return null;
+        }, true);
+    }
+
+    public static <T, E> T test(String caseId, E data, Runnable runnable, boolean throwEx) {
+        return test(caseId, data, (e) -> {
+            runnable.run();
+            return null;
+        }, throwEx);
+    }
+
+
     public static <T, E> T test(String caseId, E data, Function<E, T> supplier) {
         return test(caseId, data, supplier, true);
     }
