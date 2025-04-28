@@ -42,6 +42,29 @@ public class ArthasResult extends ClientResultData implements ClientResult {
 
     @Override
     public boolean isSuccess() {
-        return "SUCCEEDED".equals(state);
+        return "SUCCEEDED".equals(getCode());
+    }
+
+    @Override
+    public String getCode() {
+        return state;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    @Override
+    public String toString() {
+        return "ArthasResult{" +
+                "body=" + body +
+                ", consumerId='" + consumerId + '\'' +
+                ", sessionId='" + sessionId + '\'' +
+                ", state='" + state + '\'' +
+                '}';
     }
 }

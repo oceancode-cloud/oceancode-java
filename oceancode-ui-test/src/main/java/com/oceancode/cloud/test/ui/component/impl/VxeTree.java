@@ -1,5 +1,6 @@
 package com.oceancode.cloud.test.ui.component.impl;
 
+import com.microsoft.playwright.Locator;
 import com.oceancode.cloud.test.ui.component.GroupTree;
 import com.oceancode.cloud.test.ui.component.Tree;
 import com.oceancode.cloud.test.ui.container.Dropdown;
@@ -33,7 +34,15 @@ public class VxeTree extends Tree {
         if (isExpand()) {
             return;
         }
-        container().container(".vxe-icon-square-plus-fill").click();
+        expandIcon().click();
+    }
+
+    private Locator expandIcon() {
+        Locator it = container().locator("i");
+        if (it.count() == 1) {
+            return it;
+        }
+        return container().locator().locator(".vxe-icon-square-plus-fill");
     }
 
     @Override
@@ -41,12 +50,12 @@ public class VxeTree extends Tree {
         if (!isExpand()) {
             return;
         }
-        container().container(".vxe-icon-square-minus-fill").click();
+        expandIcon().click();
     }
 
     @Override
     public boolean isExpand() {
-        return container().container(".vxe-icon-square-minus-fill").exists();
+        return expandIcon().count() > 0;
     }
 
     @Override

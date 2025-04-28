@@ -2,8 +2,12 @@ package com.oceancode.cloud.test.ui.container;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.options.MouseButton;
 import com.oceancode.cloud.common.util.ValueUtil;
+import com.oceancode.cloud.test.ui.component.impl.VxeTree;
+
+import java.util.Arrays;
 
 public class UIContainer {
     private Page page;
@@ -46,7 +50,7 @@ public class UIContainer {
     }
 
     public Form form() {
-        return new Form( this, locator().locator("form"));
+        return new Form(this, locator().locator("form"));
     }
 
     protected String getClassName(String className) {
@@ -57,12 +61,20 @@ public class UIContainer {
         return new UIContainer(this, locator.locator("button").filter(new Locator.FilterOptions().setHasText(label)));
     }
 
+    public UIContainer button() {
+        return new UIContainer(this, locator.locator("button"));
+    }
+
+    public int count() {
+        return locator().count();
+    }
+
     public void click() {
         locator.click();
     }
 
     public UIContainer findByText(String text) {
-        return new UIContainer(this, locator.filter(new Locator.FilterOptions().setHasText(text)));
+        return new UIContainer(this, locator.getByText(text));
     }
 
     public UIContainer findByTitle(String text) {
@@ -77,6 +89,9 @@ public class UIContainer {
         Locator loc = page.locator("div[role=dialog]");
         if (ValueUtil.isNotEmpty(title)) {
             loc = loc.filter(new Locator.FilterOptions().setHasText(title));
+        }
+        if (loc.count() > 1) {
+            loc = loc.all().stream().filter(e -> e.isVisible()).findFirst().orElse(null);
         }
         return new Dialog(this, loc);
     }
@@ -96,4 +111,48 @@ public class UIContainer {
     public boolean exists() {
         return locator.count() != 0;
     }
+
+    public Message message() {
+        return new Message(this, parent().locator("div[class$=-message"));
+    }
+
+    public Input input(String selector) {
+        return new Input(this, locator(selector).first());
+    }
+
+    public Menu menu() {
+        Locator it = locator().getByRole(AriaRole.MENU);
+        if (it.count() == 1) {
+            return new Menu(this, it);
+        }
+        it = locator.getByRole(AriaRole.MENUITEM).first();
+        if (it.count() == 1) {
+            String className = it.getAttribute("class");
+            String menuClass = Arrays.stream(className.split(" ")).filter(e -> e.contains("menu-item"))
+                    .findFirst().orElse(null);
+            if (ValueUtil.isNotEmpty(menuClass)) {
+                String menuClassName = menuClass.substring(0, menuClass.lastIndexOf("-"));
+                return new Menu(this, locator(menuClassName));
+            }
+        }
+        return new Menu(this, locator());
+    }
+
+    public List list() {
+        return new List(this, locator().locator("*[class$=-list]"));
+    }
+
+    public SliderBar sliderBar() {
+        Locator sliderBar = locator().locator(".slider-bar");
+        if (sliderBar.count() == 0) {
+            sliderBar = locator().locator("*[class$=-slider-bar]");
+        }
+        return new SliderBar(this, sliderBar);
+    }
+
+    public VxeTree vxeTree() {
+        return new VxeTree(this, this);
+    }
+
+
 }

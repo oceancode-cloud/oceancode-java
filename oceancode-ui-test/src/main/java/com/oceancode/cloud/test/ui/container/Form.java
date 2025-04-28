@@ -2,8 +2,10 @@ package com.oceancode.cloud.test.ui.container;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.oceancode.cloud.common.util.ValueUtil;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Form extends UIContainer {
@@ -23,8 +25,23 @@ public class Form extends UIContainer {
         return new FormItem(this, loc);
     }
 
+    public FormItem item() {
+        return items().stream().filter(it -> it.locator("input[type=text]").count() == 1).findFirst()
+                .orElse(null);
+    }
+
+    public FormItem password() {
+        return items().stream().filter(it -> it.locator("input[type=password]").count() == 1).findFirst()
+                .orElse(null);
+    }
+
+
+    public FormItem username() {
+        return item();
+    }
+
     public List<FormItem> items() {
-        return locator().locator(getClassName("form-item")).all()
+        return locator().locator("*[class*=-form-item]").all()
                 .stream().map(e -> new FormItem(this, e))
                 .collect(Collectors.toList());
 
@@ -46,5 +63,42 @@ public class Form extends UIContainer {
 
     public Form fillPassword(String password) {
         return fillByField("password", password);
+    }
+
+    public void submit() {
+        if (parent() instanceof Dialog) {
+            ((Dialog) parent()).submit();
+            return;
+        }
+
+        if (Objects.nonNull(parent())) {
+            if (parent().container("button").count() == 1) {
+                parent().container("button").click();
+                return;
+            }
+        } else if (page().locator("button").count() == 1) {
+            page().locator("button").click();
+            return;
+        }
+
+        submit(null);
+    }
+
+    public void submit(String selector) {
+        if (ValueUtil.isEmpty(selector)) {
+            container(selector).click();
+            return;
+        }
+        if (button().count() == 1) {
+            button().click();
+            return;
+        }
+        if (button().count() == 0) {
+            if (Objects.nonNull(parent())) {
+                if (parent().button().count() == 1) {
+                    parent().button().click();
+                }
+            }
+        }
     }
 }

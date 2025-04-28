@@ -74,4 +74,18 @@ public class Metrics {
     public void setEndTime(Long endTime) {
         this.endTime = endTime;
     }
+
+    @Override
+    public String toString() {
+        return "Metrics{" +
+                "name='" + name + '\'' +
+                ", path='" + path + '\'' +
+                ", id='" + id + '\'' +
+                ", parentId='" + parentId + '\'' +
+                ", codeLineNumber=" + codeLineNumber +
+                ", totalCost=" + totalCost +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                '}';
+    }
 }

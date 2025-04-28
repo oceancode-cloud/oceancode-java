@@ -9,4 +9,14 @@ public class Dialog extends UIContainer {
     }
 
 
+    public void submit() {
+        Locator it = locator().locator("*[class$=__footer]");
+        if (it.count() == 1) {
+            Locator button = it.locator("button");
+            if (button.count() == 1) {
+                button.click();
+            }
+        }
+    }
+
 }

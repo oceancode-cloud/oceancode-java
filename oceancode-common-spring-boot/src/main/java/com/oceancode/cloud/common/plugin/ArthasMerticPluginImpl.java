@@ -111,8 +111,8 @@ public class ArthasMerticPluginImpl implements ApiMetricsPlugin {
         List<Metrics> list2 = new ArrayList<>();
         list2.addAll(resultList);
         ids.addAll(resultList.stream().map(e -> e.getId()).toList());
-        filterData(list2, list2, resultList, ids, true);
-        filterData(list2, list2, resultList, ids, false);
+        filterData(list, list2, resultList, ids, true);
+        filterData(list, list2, resultList, ids, false);
         return list2;
     }
 
