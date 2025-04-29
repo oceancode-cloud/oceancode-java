@@ -66,6 +66,10 @@ public final class UiUtil {
         return page;
     }
 
+    public static String containClass(String name) {
+        return "//*[contains(@class,'" + name + "')]";
+    }
+
     public static Properties getProperties() {
         return properties;
     }

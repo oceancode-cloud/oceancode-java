@@ -39,7 +39,6 @@ import java.util.List;
 public class WebConfig implements WebMvcConfigurer {
     private final static Logger LOGGER = LoggerFactory.getLogger(WebConfig.class);
 
-    @Resource
     private CommonConfig commonConfig;
 
     @Bean
@@ -55,8 +54,11 @@ public class WebConfig implements WebMvcConfigurer {
         return new ApiClientImpl();
     }
 
+    public WebConfig(CommonConfig commonConfig) {
+        this.commonConfig = commonConfig;
+    }
 
-//    @Bean
+    //    @Bean
 //    @ConditionalOnExpression(value = "'${oc.web.enable}'=='true'")
 //    public CustomErrorController customErrorController() {
 //        return new CustomErrorController();

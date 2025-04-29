@@ -24,6 +24,7 @@ import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
 import java.net.HttpCookie;
@@ -133,6 +134,7 @@ public class ApiClientImpl implements ApiClient {
             resultData.setResults(responseData);
         } catch (Throwable throwable) {
             LOGGER.error("call failed", throwable);
+            processException(resultData, throwable);
         }
 
         return resultData;
@@ -190,6 +192,7 @@ public class ApiClientImpl implements ApiClient {
             }
         } catch (Throwable throwable) {
             LOGGER.error("call failed", throwable);
+            processException(resultData, throwable);
         }
         return resultData;
     }
@@ -308,8 +311,19 @@ public class ApiClientImpl implements ApiClient {
             resultData.setMessage(r.getMessage());
         } catch (Exception e) {
             LOGGER.error("call failed", e);
+            processException(resultData, e);
         }
         return resultData;
+    }
+
+    private void processException(ClientResultData resultData, Throwable e) {
+        resultData.setMessage(e.getMessage());
+        if (e instanceof WebClientRequestException) {
+            String message = e.getMessage();
+            if (Objects.nonNull(message) && message.contains("Connection refused")) {
+                resultData.setCode(CommonErrorCode.API_REQUEST_FAILED.getCode());
+            }
+        }
     }
 
     private <T2> ClientResult<T2> processResult(Mono<ClientResponse> result, Class<T2> dataTypeClass, ParameterizedTypeReference<Object> reference) {
@@ -341,6 +355,7 @@ public class ApiClientImpl implements ApiClient {
             }
         } catch (Exception e) {
             LOGGER.error("call failed", e);
+            processException(resultData, e);
         }
         return resultData;
     }

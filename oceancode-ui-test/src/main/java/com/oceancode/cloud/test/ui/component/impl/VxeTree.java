@@ -30,11 +30,12 @@ public class VxeTree extends Tree {
     }
 
     @Override
-    public void expand() {
+    public VxeTree expand() {
         if (isExpand()) {
-            return;
+            return this;
         }
         expandIcon().click();
+        return this;
     }
 
     private Locator expandIcon() {
@@ -46,16 +47,18 @@ public class VxeTree extends Tree {
     }
 
     @Override
-    public void collapse() {
+    public VxeTree collapse() {
         if (!isExpand()) {
-            return;
+            return this;
         }
         expandIcon().click();
+        return this;
     }
 
     @Override
     public boolean isExpand() {
-        return expandIcon().count() > 0;
+        String className = ".row--level-" + this.level + 1;
+        return root().locator().locator(className).count() > 0;
     }
 
     @Override

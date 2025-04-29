@@ -4,6 +4,7 @@ import com.oceancode.cloud.api.ApiClient;
 import com.oceancode.cloud.api.ClientResult;
 import com.oceancode.cloud.api.plugin.ApiMetricsPlugin;
 import com.oceancode.cloud.api.plugin.Metrics;
+import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
 import com.oceancode.cloud.common.util.ValueUtil;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
@@ -32,7 +33,11 @@ public class ArthasMerticPluginImpl implements ApiMetricsPlugin {
     public ArthasResult init(String url) {
         Map<String, Object> params = new HashMap<>();
         params.put("action", "init_session");
-        return (ArthasResult) apiClient.postFor(getApi(url), params, ArthasResult.class);
+        ClientResult<ArthasResult> clientResult = apiClient.postFor(getApi(url), params, ArthasResult.class);
+        if (clientResult instanceof ArthasResult) {
+            return (ArthasResult) clientResult;
+        }
+        throw new ErrorCodeRuntimeException(clientResult.getCode(), clientResult.getMessage());
     }
 
 
@@ -78,7 +83,7 @@ public class ArthasMerticPluginImpl implements ApiMetricsPlugin {
     private Collection<? extends Metrics> processPullResult(ArthasResult arthasResult, String url, String methodName) {
         ArthasResult result = null;
         int count = 0;
-        while (count < 10) {
+        while (count < 3) {
             ArthasResult temp = pullResult(arthasResult, url);
 
             if (Objects.nonNull(temp) && Objects.nonNull(temp.getBody()) && ValueUtil.isNotEmpty(temp.getBody().getResults())) {

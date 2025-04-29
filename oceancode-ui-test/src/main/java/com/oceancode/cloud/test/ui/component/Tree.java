@@ -42,11 +42,12 @@ public class Tree extends BaseComponent {
         return 0;
     }
 
-    public void collapse() {
-
+    public Tree collapse() {
+        return null;
     }
 
-    public void expand() {
+    public Tree expand() {
+        return null;
     }
 
     public boolean isExpand() {

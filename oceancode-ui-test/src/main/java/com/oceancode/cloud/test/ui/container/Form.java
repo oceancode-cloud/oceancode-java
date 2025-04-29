@@ -101,4 +101,20 @@ public class Form extends UIContainer {
             }
         }
     }
+
+    @Override
+    public UIContainer button(String label) {
+        if (super.button(label).exists()) {
+            return super.button(label);
+        }
+
+        if (parent() instanceof Dialog) {
+            UIContainer button = parent().button(label);
+            if (button.exists()) {
+                return button;
+            }
+        }
+
+        return super.button(label);
+    }
 }

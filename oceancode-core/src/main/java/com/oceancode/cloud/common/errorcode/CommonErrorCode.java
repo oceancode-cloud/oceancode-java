@@ -109,6 +109,7 @@ public enum CommonErrorCode implements ErrorCode {
     ACCESS_DENIED(CommonConst.CLIENT_ERROR_CODE_PREFIX + "access.denied", "Access Denied"),
     PERMISSION_DENIED(CommonConst.CLIENT_ERROR_CODE_PREFIX + "permission.denied", "Permission Denied"),
     GROUP_CONTENT_NOT_EMPTY(CommonConst.CLIENT_ERROR_CODE_PREFIX + "group.content.not_empty", "Group Not Empty"),
+    API_REQUEST_FAILED(CommonConst.SERVER_ERROR_CODE_PREFIX + "api.request.failed", "Api request failed."),
     ;
     /**
      * errorCode

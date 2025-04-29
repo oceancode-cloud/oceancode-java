@@ -19,4 +19,22 @@ public class Dialog extends UIContainer {
         }
     }
 
+    private Locator getHeader() {
+        return locator().locator("header").first();
+    }
+
+    public void close() {
+        if (getHeader().count() == 0) {
+            return;
+        }
+
+        Locator locator = locator().locator(UiUtil.containClass("__close"));
+        if (locator.count() == 1) {
+            locator.click();
+        }
+    }
+
+    public String title() {
+        return locator().getAttribute("aria-label");
+    }
 }
