@@ -7,7 +7,6 @@ import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.SystemUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
-import com.oceancode.cloud.test.data.Data;
 import com.oceancode.cloud.test.data.TestData;
 import com.oceancode.cloud.test.reporter.TestReporter;
 import com.oceancode.cloud.test.reporter.TestResult;
@@ -167,26 +166,6 @@ public final class TestUtil {
 
     public static void fuzz(Runnable runnable) {
         fuzz(100000, runnable);
-    }
-
-    public static void withData(Data data, Runnable runnable, boolean ignoreBusinesses) {
-        try {
-            runnable.run();
-        } catch (Throwable throwable) {
-            if (data.isPositive()) {
-                if (!(ignoreBusinesses && throwable instanceof ErrorCodeRuntimeException)) {
-                    throw throwable;
-                }
-            }
-        }
-    }
-
-    public static void smokeWithData(Data data, Runnable runnable) {
-        if (!data.isPositive()) {
-            return;
-        }
-        runnable.run();
-        data.release();
     }
 
     public static <T> List<TestData<T>> loadDatasets(String filePath, Class<T> returnType) {

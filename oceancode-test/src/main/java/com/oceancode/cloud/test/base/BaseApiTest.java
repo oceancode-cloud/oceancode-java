@@ -8,8 +8,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BaseApiTest extends BaseTest {
@@ -20,7 +18,6 @@ public class BaseApiTest extends BaseTest {
         return apiClient;
     }
 
-    @BeforeClass
     @BeforeAll
     public static void init() {
         BaseTest.initContext();
@@ -28,7 +25,6 @@ public class BaseApiTest extends BaseTest {
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     }
 
-    @AfterClass
     @AfterAll
     public static void destroy() {
         RequestContextHolder.resetRequestAttributes();

@@ -9,10 +9,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +16,7 @@ import java.util.Objects;
 
 @ExtendWith(ReporterTestExecutionListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class BaseTest extends AbstractTestNGSpringContextTests {
+public class BaseTest {
 
 
     @Resource
@@ -44,13 +40,11 @@ public class BaseTest extends AbstractTestNGSpringContextTests {
     }
 
 
-    @BeforeClass
     @BeforeAll
     public static void initContext() {
         CONTEXT.set(new HashMap<>());
     }
 
-    @AfterClass
     @AfterAll
     public static void removeContext() {
         CONTEXT.remove();

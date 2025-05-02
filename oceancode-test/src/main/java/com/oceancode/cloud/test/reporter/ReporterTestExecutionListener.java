@@ -15,7 +15,6 @@ import org.opentest4j.AssertionFailedError;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
@@ -25,8 +24,7 @@ public class ReporterTestExecutionListener extends TestReporter implements Befor
     @Override
     public void afterAll(ExtensionContext extensionContext) throws Exception {
         Collection<TestResult> results = getResults();
-        LocalDateTime now = LocalDateTime.now();
-        String filename = String.format("result.%s-%s-%s %s.%s.%s.json", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond());
+        String filename = extensionContext.getTestClass().get().getName() + "." + System.currentTimeMillis() + ".json";
         FileUtil.writeStringToFile(new File(SystemUtil.outputDir() + "/" + filename), JsonUtil.toJson(results));
     }
 
