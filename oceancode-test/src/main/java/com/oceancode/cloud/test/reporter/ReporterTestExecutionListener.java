@@ -105,6 +105,9 @@ public class ReporterTestExecutionListener extends TestReporter implements Befor
         if (ValueUtil.isEmpty(caseId.value())) {
             throw new RuntimeException("caseId is required.");
         }
+        if (exists(caseId.value())) {
+            throw new RuntimeException("caseId[" + caseId.value() + " already exsists.");
+        }
         TestResult testResult = new TestResult();
         testResult.setCaseId(caseId.value());
         testResult.setId(UUID.randomUUID().toString().replace("-", ""));
