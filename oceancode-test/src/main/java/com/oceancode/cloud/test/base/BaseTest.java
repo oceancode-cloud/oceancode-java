@@ -1,6 +1,8 @@
 package com.oceancode.cloud.test.base;
 
 import com.oceancode.cloud.common.config.CommonConfig;
+import com.oceancode.cloud.common.util.ComponentUtil;
+import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.test.reporter.ReporterTestExecutionListener;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.AfterAll;
@@ -20,8 +22,6 @@ import java.util.Objects;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BaseTest extends AbstractTestNGSpringContextTests {
 
-    @LocalServerPort
-    private Integer port;
 
     @Resource
     protected CommonConfig commonConfig;
@@ -64,7 +64,7 @@ public class BaseTest extends AbstractTestNGSpringContextTests {
         return CONTEXT.get().get(key);
     }
 
-    protected String getBaseUrl() {
+    public static String getBaseUrl() {
         return "http://127.0.0.1:" + getPort();
     }
 
@@ -76,7 +76,8 @@ public class BaseTest extends AbstractTestNGSpringContextTests {
     }
 
 
-    protected Integer getPort() {
-        return port;
+    public static Integer getPort() {
+        String port = ComponentUtil.getBean(CommonConfig.class).getValue("local.server.port");
+        return ValueUtil.isNotEmpty(port) ? Integer.parseInt(port) : null;
     }
 }

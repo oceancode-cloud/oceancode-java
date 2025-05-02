@@ -22,7 +22,7 @@ public class TestResult {
     private Object expected;
     private Object actual;
     private Long threadId;
-    private boolean positive;
+    private Boolean positive;
 
     public Long getStartTime() {
         return startTime;
@@ -192,11 +192,11 @@ public class TestResult {
         this.threadId = threadId;
     }
 
-    public boolean isPositive() {
+    public Boolean getPositive() {
         return positive;
     }
 
-    public void setPositive(boolean positive) {
+    public void setPositive(Boolean positive) {
         this.positive = positive;
     }
 
