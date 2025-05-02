@@ -14,12 +14,15 @@ import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.SessionUtil;
+import com.oceancode.cloud.common.util.ValueUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
@@ -27,6 +30,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
+import java.awt.*;
 import java.net.HttpCookie;
 import java.time.Duration;
 import java.util.Collections;
@@ -252,7 +256,44 @@ public class ApiClientImpl implements ApiClient {
         WebClient webClient = client(uri).build();
         WebClient.RequestHeadersSpec<?> spec = webClient.post()
                 .uri(getUrl(uri))
-                .contentType(MediaType.APPLICATION_JSON).bodyValue(params);
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED).bodyValue(params);
+
+        processCommon(spec, uri);
+
+        return postFor(uri, params, returnTypeClass, MediaType.APPLICATION_JSON_VALUE);
+    }
+
+    @Override
+    public <T> ClientResult<T> postFor(String uri, Object params, Class<T> returnTypeClass, String mediaType) {
+        WebClient webClient = client(uri).build();
+        WebClient.RequestHeadersSpec<?> spec;
+
+        if (MediaType.APPLICATION_FORM_URLENCODED_VALUE.equals(mediaType)) {
+            Map<String, Object> map = (Map<String, Object>) params;
+            BodyInserters.FormInserter<String> formInserter = null;
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                Object value = entry.getValue();
+                if (Objects.isNull(value)) {
+                    continue;
+                }
+                if (Objects.isNull(formInserter)) {
+                    formInserter = BodyInserters.fromFormData(entry.getKey(), value + "");
+                } else {
+                    formInserter.with(entry.getKey(), value + "");
+                }
+            }
+
+            spec = webClient.post()
+                    .uri(getUrl(uri))
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON)
+//                    .contentType(MediaType.valueOf(mediaType))
+                    .body(formInserter);
+        } else {
+            spec = webClient.post()
+                    .uri(getUrl(uri)).contentType(MediaType.valueOf(mediaType)).bodyValue(params);
+        }
+
 
         processCommon(spec, uri);
         return processResult(spec.exchange(), returnTypeClass, null);
@@ -342,7 +383,7 @@ public class ApiClientImpl implements ApiClient {
 
                 resultData.setHeaders(response.headers().asHttpHeaders());
                 return body;
-            }).block(Duration.ofSeconds(5L));
+            }).block(Duration.ofSeconds(10L));
             if (responseData instanceof ClientResult<?>) {
                 return (ClientResult<T2>) responseData;
             } else if (responseData instanceof Result) {

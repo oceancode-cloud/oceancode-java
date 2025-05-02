@@ -2,6 +2,7 @@ package com.oceancode.cloud.api;
 
 import com.oceancode.cloud.api.query.QueryMethod;
 
+import java.awt.*;
 import java.util.List;
 
 public interface ApiClient {
@@ -24,6 +25,8 @@ public interface ApiClient {
     <T extends Result<E>, E> ClientResult<List<E>> postForList(String uri, Object params, Class<T> returnTypeClass, Class<E> dataTypeClass);
 
     <T> ClientResult<T> postFor(String uri, Object params, Class<T> returnTypeClass);
+
+    <T> ClientResult<T> postFor(String uri, Object params, Class<T> returnTypeClass, String mediaType);
 
     <T extends Result<T2>, T2> ClientResult<T2> postFor(String uri, Object params, Class<T> returnTypeClass, Class<T2> dataTypeClass);
 

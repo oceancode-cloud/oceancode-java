@@ -9,6 +9,7 @@ import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.*;
+import org.checkerframework.checker.units.qual.K;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,6 +21,8 @@ public final class KeyParam implements CacheKey {
     private String key;
     private String sourceKey;
     private boolean isExpress;
+    private Boolean isKeyPattern;
+    private Long expireIn;
 
     private static CommonConfig commonConfig;
 
@@ -33,12 +36,33 @@ public final class KeyParam implements CacheKey {
         if (ValueUtil.isEmpty(key)) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "cache key is required.");
         }
+        this.isKeyPattern = true;
         sourceKey();
     }
 
+    private KeyParam(String key, Long expireIn) {
+        this.key = key;
+        this.resultKey = key;
+        this.isExpress = false;
+        this.isKeyPattern = false;
+        this.expireIn = expireIn;
+    }
+
     public static CacheKey of(String key) {
+        return of(key, true, null);
+    }
+
+    public static CacheKey of(String key, boolean isPatternKey) {
+        return of(key, isPatternKey, null);
+    }
+
+    public static CacheKey of(String key, boolean isPatternKey, Long expireIn) {
+        if (!isPatternKey) {
+            return new KeyParam(key, expireIn);
+        }
         return new KeyParam(key, new HashMap<>(16));
     }
+
 
     public CacheKey addParam(String argKey, String argVal) {
         return putVal(argKey, argVal);
@@ -107,6 +131,9 @@ public final class KeyParam implements CacheKey {
     }
 
     public String parseKey() {
+        if (!isKeyPattern) {
+            return resultKey;
+        }
         if (!isExpress) {
             checkKey(key);
             return wrapperKey(key);
@@ -137,6 +164,9 @@ public final class KeyParam implements CacheKey {
     }
 
     private String wrapperKey(String key) {
+        if (!isKeyPattern) {
+            return key;
+        }
         String resultKey = "";
         if (enabledUserId()) {
             resultKey = "_user:" + SessionUtil.userId() + ":";
@@ -159,28 +189,37 @@ public final class KeyParam implements CacheKey {
     }
 
     public Long expire(boolean originalValue) {
+        if (!isKeyPattern) {
+            return expireIn;
+        }
         Long val = Long.parseLong(commonConfig.getValue("oc.cache." + key + ".expire", "3600000"));
         return originalValue ? val : val + CacheUtil.randomExpire(key);
     }
 
 
     public boolean hasExpire(String keyId) {
+        if (!isKeyPattern) {
+            return Objects.nonNull(expireIn);
+        }
         return CacheUtil.isHotKey(keyId) && expire(true) == -1;
     }
 
     public boolean enabledProjectId() {
-        return Boolean.parseBoolean(commonConfig.getValue("oc.cache." + key + ".project-id.enabled", "false"));
+        return isKeyPattern && Boolean.parseBoolean(commonConfig.getValue("oc.cache." + key + ".project-id.enabled", "false"));
     }
 
     public boolean enabledTenantId() {
-        return Boolean.parseBoolean(commonConfig.getValue("oc.cache." + key + ".tenant-id.enabled", "false"));
+        return isKeyPattern && Boolean.parseBoolean(commonConfig.getValue("oc.cache." + key + ".tenant-id.enabled", "false"));
     }
 
     public boolean enabledUserId() {
-        return Boolean.parseBoolean(commonConfig.getValue("oc.cache." + key + ".user-id.enabled", "false"));
+        return isKeyPattern && Boolean.parseBoolean(commonConfig.getValue("oc.cache." + key + ".user-id.enabled", "false"));
     }
 
     public String sourceKey() {
+        if (!isKeyPattern) {
+            return key;
+        }
         if (Objects.nonNull(this.sourceKey)) {
             return this.sourceKey;
         }
