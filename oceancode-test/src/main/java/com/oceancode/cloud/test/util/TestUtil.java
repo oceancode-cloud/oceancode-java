@@ -113,12 +113,19 @@ public final class TestUtil {
         if (!TestReporter.exists(caseId)) {
             throw new RuntimeException(caseId + " is not same as the value of @CaseId,");
         }
+        TestReporter.addResult(testResult);
         testResult.setStartTime(System.nanoTime());
         testResult.setSuccess(true);
         testResult.setCaseId(caseId);
         testResult.setId(UUID.randomUUID().toString().replace("-", ""));
         testResult.setParentId(TestReporter.getByCaseId(caseId).getId());
         testResult.setInputs(data);
+        if (data instanceof TestData) {
+            testResult.setDescription(((TestData<?>) data).getDescription());
+            testResult.setPositive(((TestData<?>) data).isPositive());
+            testResult.setInputs(((TestData<?>) data).getData());
+        }
+
 
         T resulst = null;
         try {
