@@ -293,4 +293,8 @@ public class UIContainer {
     public void load() {
 
     }
+
+    public boolean isVisible() {
+        return locator().isVisible();
+    }
 }
