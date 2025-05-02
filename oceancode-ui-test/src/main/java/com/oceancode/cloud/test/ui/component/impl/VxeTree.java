@@ -5,6 +5,7 @@ import com.oceancode.cloud.test.ui.component.GroupTree;
 import com.oceancode.cloud.test.ui.component.Tree;
 import com.oceancode.cloud.test.ui.container.Dropdown;
 import com.oceancode.cloud.test.ui.container.UIContainer;
+import com.oceancode.cloud.test.ui.container.UiUtil;
 
 public class VxeTree extends Tree {
     private int level = 0;
@@ -19,7 +20,7 @@ public class VxeTree extends Tree {
     }
 
     @Override
-    public Tree tree(String nodeName) {
+    public VxeTree tree(String nodeName) {
         String className = ".row--level-" + this.level;
         return new VxeTree(root(), root().container(className, nodeName), this, level + 1);
     }
@@ -35,6 +36,7 @@ public class VxeTree extends Tree {
             return this;
         }
         expandIcon().click();
+        load();
         return this;
     }
 
@@ -52,6 +54,7 @@ public class VxeTree extends Tree {
             return this;
         }
         expandIcon().click();
+        load();
         return this;
     }
 
@@ -65,5 +68,13 @@ public class VxeTree extends Tree {
     public Dropdown menu() {
         container().contextmenu();
         return new Dropdown(root(), root().locator(".vue-contextmenu-listWrapper"));
+    }
+
+    private void load() {
+        UiUtil.waitForLoading(() -> {
+            String className = ".vxe-table-icon-spinner";
+            Locator it = container().locator().locator(className);
+            return it.count() == 0 || !it.isVisible();
+        });
     }
 }

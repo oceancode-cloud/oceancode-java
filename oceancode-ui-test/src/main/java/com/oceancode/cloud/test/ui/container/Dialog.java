@@ -6,6 +6,7 @@ import com.microsoft.playwright.Page;
 public class Dialog extends UIContainer {
     public Dialog(UIContainer parent, Locator locator) {
         super(parent, locator);
+        UiUtil.waitForLoading(() -> locator().count() != 0 || !locator().isVisible());
     }
 
 

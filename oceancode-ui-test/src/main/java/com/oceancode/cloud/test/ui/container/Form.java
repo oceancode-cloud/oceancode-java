@@ -78,6 +78,13 @@ public class Form extends UIContainer {
             }
         } else if (page().locator("button").count() == 1) {
             page().locator("button").click();
+            load();
+            return;
+        }
+        Locator it = locator().locator(UiUtil.containClass("-login-button"));
+        if(it.count()==1){
+            it.click();
+            load();
             return;
         }
 

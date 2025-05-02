@@ -73,6 +73,7 @@ public class UIContainer {
 
     public void click() {
         locator.click();
+        load();
     }
 
     public UIContainer findByText(String text) {
@@ -84,6 +85,9 @@ public class UIContainer {
     }
 
     public UIContainer findByAttr(String attr, String value) {
+        if (value instanceof String) {
+            value = "\"" + value + "\"";
+        }
         return new UIContainer(this, locator.locator("*[" + attr + "=" + value + "]"));
     }
 
@@ -167,7 +171,7 @@ public class UIContainer {
     }
 
     public Select select() {
-        return null;
+        return new Select(this, locator().locator(UiUtil.containClass("-select")).first());
     }
 
 
@@ -184,7 +188,8 @@ public class UIContainer {
     }
 
     public Popover popover() {
-        return new Popover(this, locator().locator(UiUtil.containClass("__popper")));
+        String className = UiUtil.containClass("__popper");
+        return new Popover(this, UiUtil.findLocator(this, loc -> loc.locator(className)));
     }
 
     public UIContainer header() {
@@ -248,10 +253,14 @@ public class UIContainer {
 
     public void dragIn(UIContainer container) {
         Random random = new Random();
-        double x = random.nextDouble() % x();
-        double y = random.nextDouble() % y();
+        double x = random.nextDouble(x(), x() + width() - container.width());
+        double y = random.nextDouble(y(), y() + height() - container.height());
 
-        dragIn(x + width(), y + height(), container);
+        dragIn(x, y, container);
+    }
+
+    public Graph graph() {
+        return new Graph(this, locator().locator(UiUtil.containClass("-graph-svg")).first());
     }
 
     public void mouseDown() {
@@ -279,5 +288,9 @@ public class UIContainer {
             }).findFirst().orElse(null);
         }
         return new Card(this, it);
+    }
+
+    public void load() {
+
     }
 }

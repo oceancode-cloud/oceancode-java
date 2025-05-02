@@ -2,17 +2,22 @@ package com.oceancode.cloud.test.ui.container;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.util.ComponentUtil;
+import com.oceancode.cloud.common.util.ValueUtil;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class UiUtil {
     private static Browser browser;
@@ -62,6 +67,36 @@ public final class UiUtil {
         }
     }
 
+    public static void waitForLoading(Supplier<Boolean> supplier) {
+        waitForLoading(supplier, 10);
+    }
+
+    public static void waitForLoading(Supplier<Boolean> supplier, int maxSeconds) {
+        long startTime = System.currentTimeMillis();
+        int exceptionCount = 0;
+        try {
+            while (true) {
+                Thread.sleep(100);
+                if (exceptionCount > 100) {
+                    break;
+                }
+                if (System.currentTimeMillis() - startTime > maxSeconds * 1000L) {
+                    break;
+                }
+                try {
+                    if (ValueUtil.isTrue(supplier.get())) {
+                        break;
+                    }
+                } catch (Throwable throwable) {
+                    exceptionCount++;
+                }
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     public static Page getPage() {
         return page;
     }
@@ -76,5 +111,21 @@ public final class UiUtil {
 
     public static UIContainer rootContainer() {
         return new UIContainer(null, getPage().locator("html"));
+    }
+
+    public static Locator findLocator(UIContainer container, Function<Locator, Locator> function) {
+        Locator it = function.apply(container.locator());
+        if (Objects.isNull(it) || it.count() == 0 || !it.isVisible()) {
+            if (Objects.nonNull(container.parent())) {
+                it = function.apply(container.parent().locator());
+            }
+        }
+        if (Objects.isNull(it) || it.count() == 0 || !it.isVisible()) {
+            it = function.apply(UiUtil.rootContainer().locator());
+        }
+        if (Objects.isNull(it)) {
+            return null;
+        }
+        return it.all().stream().filter(e -> e.isVisible()).findFirst().orElse(null);
     }
 }
