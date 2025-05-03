@@ -18,6 +18,7 @@ import com.oceancode.cloud.common.util.ValueUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -30,7 +31,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
-import java.awt.*;
 import java.net.HttpCookie;
 import java.time.Duration;
 import java.util.Collections;
@@ -41,12 +41,19 @@ import java.util.Objects;
 
 public class ApiClientImpl implements ApiClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiClientImpl.class);
-    private final CommonConfig commonConfig;
+    private CommonConfig commonConfig;
 
-    private final WebClient.Builder webClientBuilder;
+    private WebClient.Builder webClientBuilder;
     private WebClient.Builder webServiceClientBuilder;
 
-    public ApiClientImpl() {
+    public ApiClientImpl(ApplicationContext applicationContext) {
+        if (Objects.nonNull(applicationContext)) {
+            ComponentUtil.setApplicationContext(applicationContext);
+        }
+        init();
+    }
+
+    protected void init() {
         commonConfig = ComponentUtil.getBean(CommonConfig.class);
         webClientBuilder = ComponentUtil.getBean(WebClient.Builder.class);
         try {

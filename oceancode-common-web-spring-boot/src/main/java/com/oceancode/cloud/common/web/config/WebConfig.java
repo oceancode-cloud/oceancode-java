@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -50,8 +51,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Bean
     @ConditionalOnMissingBean({ApiClient.class})
-    public ApiClient apiClient() {
-        return new ApiClientImpl();
+    public ApiClient apiClient(ApplicationContext applicationContext) {
+        return new ApiClientImpl(applicationContext);
     }
 
     public WebConfig(CommonConfig commonConfig) {
