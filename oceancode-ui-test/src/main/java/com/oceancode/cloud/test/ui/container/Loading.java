@@ -2,11 +2,14 @@ package com.oceancode.cloud.test.ui.container;
 
 import com.microsoft.playwright.Locator;
 
-public class Loading extends UIContainer {
-    public Loading(UIContainer parent, Locator locator) {
-        super(parent, locator);
-    }
+import java.util.function.Supplier;
 
+public class Loading extends UIContainer {
+
+
+    public Loading(UIContainer parent, Supplier<Locator> getFunction) {
+        super(parent, getFunction);
+    }
 
     @Override
     public void load() {

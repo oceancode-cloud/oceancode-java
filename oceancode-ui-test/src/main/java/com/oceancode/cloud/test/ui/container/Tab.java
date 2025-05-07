@@ -3,9 +3,12 @@ package com.oceancode.cloud.test.ui.container;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 
+import java.util.function.Supplier;
+
 public class Tab extends UIContainer {
-    public Tab(UIContainer parent, Locator locator) {
-        super(parent, locator);
+
+    public Tab(UIContainer parent, Supplier<Locator> getFunction) {
+        super(parent, getFunction);
     }
 
     private Locator tabContent() {
@@ -25,12 +28,12 @@ public class Tab extends UIContainer {
 
     @Override
     public UIContainer container(String selector) {
-        return new UIContainer(this, activeContent());
+        return new UIContainer(this, () -> activeContent());
     }
 
     @Override
     public UIContainer container(String selector, String label) {
-        return new UIContainer(this, activeContent()).container(selector, label);
+        return new UIContainer(this, () -> activeContent()).container(selector, label);
     }
 
 

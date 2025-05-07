@@ -5,14 +5,12 @@ import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
-import com.oceancode.cloud.common.config.CommonConfig;
-import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -110,14 +108,21 @@ public final class UiUtil {
     }
 
     public static UIContainer rootContainer() {
-        return new UIContainer(null, getPage().locator("html"));
+        return new UIContainer(null, () -> getPage().locator("html"));
     }
 
     public static Locator findLocator(UIContainer container, Function<Locator, Locator> function) {
         Locator it = function.apply(container.locator());
-        if (Objects.isNull(it) || it.count() == 0 || !it.isVisible()) {
+        if (Objects.isNull(it) || it.count() == 0) {
             if (Objects.nonNull(container.parent())) {
                 it = function.apply(container.parent().locator());
+            }
+        }
+        if (Objects.nonNull(it) && it.count() > 1) {
+            List<Locator> list = it.all().stream().filter(e -> e.isVisible()).toList();
+            if (list.size() == 1) {
+                it = list.get(0);
+                return it;
             }
         }
         if (Objects.isNull(it) || it.count() == 0 || !it.isVisible()) {

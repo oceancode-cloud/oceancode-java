@@ -2,9 +2,12 @@ package com.oceancode.cloud.test.ui.container;
 
 import com.microsoft.playwright.Locator;
 
+import java.util.function.Supplier;
+
 public class FormItem extends UIContainer {
-    public FormItem(UIContainer parent, Locator locator) {
-        super(parent, locator);
+
+    public FormItem(UIContainer parent, Supplier<Locator> getFunction) {
+        super(parent, getFunction);
     }
 
     public FormItem fill(String value) {
@@ -25,6 +28,18 @@ public class FormItem extends UIContainer {
 
     private Locator error() {
         return locator().locator(UiUtil.containClass("__error"));
+    }
+
+    public boolean isInput() {
+        return input().exists();
+    }
+
+    public boolean isRadioGroup() {
+        return radioGroup().exists();
+    }
+
+    public boolean isSelect() {
+        return select().exists();
     }
 
 }

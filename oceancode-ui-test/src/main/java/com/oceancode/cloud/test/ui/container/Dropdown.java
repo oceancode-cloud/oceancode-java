@@ -4,10 +4,13 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public class Dropdown extends UIContainer {
-    public Dropdown(UIContainer parent, Locator locator) {
-        super(parent, locator);
+
+
+    public Dropdown(UIContainer parent, Supplier<Locator> getFunction) {
+        super(parent, getFunction);
     }
 
     public Dropdown select(String name) {

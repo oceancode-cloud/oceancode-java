@@ -2,8 +2,11 @@ package com.oceancode.cloud.test.ui.container;
 
 import com.microsoft.playwright.Locator;
 
+import java.util.function.Supplier;
+
 public class GraphNodePort extends UIContainer{
-    public GraphNodePort(UIContainer parent, Locator locator) {
-        super(parent, locator);
+
+    public GraphNodePort(UIContainer parent, Supplier<Locator> getFunction) {
+        super(parent, getFunction);
     }
 }

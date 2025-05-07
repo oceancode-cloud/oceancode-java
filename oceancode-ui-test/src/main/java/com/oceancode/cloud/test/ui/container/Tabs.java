@@ -3,15 +3,20 @@ package com.oceancode.cloud.test.ui.container;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 
+import java.util.function.Supplier;
+
 public class Tabs extends UIContainer {
-    public Tabs(UIContainer parent, Locator locator) {
-        super(parent, locator);
+
+    public Tabs(UIContainer parent, Supplier<Locator> getFunction) {
+        super(parent, getFunction);
     }
 
     public Tab tab(String label) {
-        Locator it = tabHeader().getByRole(AriaRole.TAB, new Locator.GetByRoleOptions().setName(label));
-        it.click();
-        return new Tab(this, it);
+        return new Tab(this, () -> {
+            Locator it = tabHeader().getByRole(AriaRole.TAB, new Locator.GetByRoleOptions().setName(label));
+            it.click();
+            return it;
+        });
     }
 
     private Locator tabHeader() {

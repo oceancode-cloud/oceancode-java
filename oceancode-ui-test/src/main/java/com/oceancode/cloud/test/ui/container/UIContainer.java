@@ -8,18 +8,18 @@ import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.test.ui.component.impl.VxeTree;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Random;
+import java.util.function.Supplier;
 
 public class UIContainer {
     private Page page;
     private UIContainer parent;
-    private Locator locator;
+    private Supplier<Locator> getFunction;
 
-    public UIContainer(UIContainer parent, Locator locator) {
+    public UIContainer(UIContainer parent, Supplier<Locator> getFunction) {
         this.page = UiUtil.getPage();
         this.parent = parent;
-        this.locator = locator;
+        this.getFunction = getFunction;
     }
 
     public Page page() {
@@ -31,20 +31,23 @@ public class UIContainer {
     }
 
     public Locator locator() {
-        return this.locator;
+        return this.getFunction.get();
     }
 
     public Locator locator(String selector) {
-        return this.locator.locator(selector);
+        return this.locator().locator(selector);
     }
 
     public UIContainer container(String selector, String label) {
-        Locator loc = this.locator(selector);
-        if (ValueUtil.isNotEmpty(label)) {
-            loc = loc.filter(new Locator.FilterOptions().setHasText(label));
-        }
+        Supplier<Locator> supplier = () -> {
+            Locator loc = this.locator(selector);
+            if (ValueUtil.isNotEmpty(label)) {
+                loc = loc.filter(new Locator.FilterOptions().setHasText(label));
+            }
+            return loc;
+        };
 
-        return new UIContainer(this, loc);
+        return new UIContainer(this, supplier);
     }
 
     public UIContainer container(String selector) {
@@ -52,7 +55,7 @@ public class UIContainer {
     }
 
     public Form form() {
-        return new Form(this, locator().locator("form"));
+        return new Form(this, () -> locator().locator("form"));
     }
 
     protected String getClassName(String className) {
@@ -60,11 +63,11 @@ public class UIContainer {
     }
 
     public UIContainer button(String label) {
-        return new UIContainer(this, locator.locator("button").filter(new Locator.FilterOptions().setHasText(label)));
+        return new UIContainer(this, () -> locator().locator("button").filter(new Locator.FilterOptions().setHasText(label)));
     }
 
     public UIContainer button() {
-        return new UIContainer(this, locator.locator("button"));
+        return new UIContainer(this, () -> locator().locator("button"));
     }
 
     public int count() {
@@ -72,12 +75,12 @@ public class UIContainer {
     }
 
     public void click() {
-        locator.click();
+        locator().click();
         load();
     }
 
     public UIContainer findByText(String text) {
-        return new UIContainer(this, locator.getByText(text));
+        return new UIContainer(this, () -> locator().getByText(text));
     }
 
     public UIContainer findByTitle(String text) {
@@ -88,18 +91,21 @@ public class UIContainer {
         if (value instanceof String) {
             value = "\"" + value + "\"";
         }
-        return new UIContainer(this, locator.locator("*[" + attr + "=" + value + "]"));
+        String finalValue = value;
+        return new UIContainer(this, () -> locator().locator("*[" + attr + "=" + finalValue + "]"));
     }
 
     public Dialog dialog(String title) {
-        Locator loc = page.locator("div[role=dialog]");
-        if (ValueUtil.isNotEmpty(title)) {
-            loc = loc.filter(new Locator.FilterOptions().setHasText(title));
-        }
-        if (loc.count() > 1) {
-            loc = loc.all().stream().filter(e -> e.isVisible()).findFirst().orElse(null);
-        }
-        return new Dialog(this, loc);
+        return new Dialog(this, () -> {
+            Locator loc = page.locator("div[role=dialog]");
+            if (ValueUtil.isNotEmpty(title)) {
+                loc = loc.filter(new Locator.FilterOptions().setHasText(title));
+            }
+            if (loc.count() > 1) {
+                loc = loc.all().stream().filter(e -> e.isVisible()).findFirst().orElse(null);
+            }
+            return loc;
+        });
     }
 
     public Dialog dialog() {
@@ -107,23 +113,23 @@ public class UIContainer {
     }
 
     public String getText() {
-        return locator.innerText();
+        return locator().innerText();
     }
 
     public void contextmenu() {
-        locator.click(new Locator.ClickOptions().setButton(MouseButton.RIGHT));
+        locator().click(new Locator.ClickOptions().setButton(MouseButton.RIGHT));
     }
 
     public boolean exists() {
-        return locator.count() != 0;
+        return locator().count() != 0;
     }
 
     public Message message() {
-        return new Message(this, parent().locator("div[class$=-message"));
+        return new Message(this, () -> parent().locator("div[class$=-message"));
     }
 
     public Input input(String selector) {
-        return new Input(this, locator(selector).first());
+        return new Input(this, () -> locator(selector).first());
     }
 
     public Input input() {
@@ -131,39 +137,46 @@ public class UIContainer {
     }
 
     public Menu menu() {
-        Locator it = locator().getByRole(AriaRole.MENU);
-        if (it.count() == 1) {
-            return new Menu(this, it);
-        }
-        it = locator.getByRole(AriaRole.MENUITEM).first();
-        if (it.count() == 1) {
-            String className = it.getAttribute("class");
-            String menuClass = Arrays.stream(className.split(" ")).filter(e -> e.contains("menu-item")).findFirst().orElse(null);
-            if (ValueUtil.isNotEmpty(menuClass)) {
-                String menuClassName = menuClass.substring(0, menuClass.lastIndexOf("-"));
-                return new Menu(this, locator("." + menuClassName));
+        Supplier<Locator> supplier = () -> {
+            Locator it = locator().getByRole(AriaRole.MENU);
+            if (it.count() == 1) {
+                return it;
             }
-        }
-        return new Menu(this, locator());
+            it = locator().getByRole(AriaRole.MENUITEM).first();
+            if (it.count() == 1) {
+                String className = it.getAttribute("class");
+                String menuClass = Arrays.stream(className.split(" ")).filter(e -> e.contains("menu-item")).findFirst().orElse(null);
+                if (ValueUtil.isNotEmpty(menuClass)) {
+                    String menuClassName = menuClass.substring(0, menuClass.lastIndexOf("-"));
+                    return locator("." + menuClassName);
+                }
+            }
+            return locator();
+        };
+
+        return new Menu(this, supplier);
     }
 
     public List list() {
-        return new List(this, locator().locator("*[class$=-list]"));
+        return new List(this, () -> locator().locator("*[class$=-list]"));
     }
 
     public SliderBar sliderBar() {
-        Locator sliderBar = locator().locator("aside");
-        if (sliderBar.count() != 1) {
-            sliderBar = locator().locator(".slider-bar");
-        }
-        if (sliderBar.count() == 0) {
-            sliderBar = locator().locator("*[class$=-slider-bar]");
-        }
-        return new SliderBar(this, sliderBar);
+
+        return new SliderBar(this, () -> {
+            Locator sliderBar = locator().locator("aside");
+            if (sliderBar.count() != 1) {
+                sliderBar = locator().locator(".slider-bar");
+            }
+            if (sliderBar.count() == 0) {
+                sliderBar = locator().locator("*[class$=-slider-bar]");
+            }
+            return sliderBar;
+        });
     }
 
     public SliderBar sliderBar(String selector) {
-        return new SliderBar(this, locator().locator(selector));
+        return new SliderBar(this, () -> locator().locator(selector));
     }
 
     public VxeTree vxeTree() {
@@ -171,57 +184,61 @@ public class UIContainer {
     }
 
     public Select select() {
-        return new Select(this, locator().locator(UiUtil.containClass("-select")).first());
+        return new Select(this, () -> locator().locator(UiUtil.containClass("-select")).first());
     }
 
 
     public Dropdown dropdown() {
-        return new Dropdown(this, locator().locator(UiUtil.containClass("dropdown")));
+        return new Dropdown(this, () -> locator().locator(UiUtil.containClass("dropdown")));
     }
 
     public Dropdown dropdown(String text) {
-        return new Dropdown(this, locator().locator(UiUtil.containClass("dropdown"), new Locator.LocatorOptions().setHasText(text)));
+        return new Dropdown(this, () -> locator().locator(UiUtil.containClass("dropdown"), new Locator.LocatorOptions().setHasText(text)));
     }
 
     public Image image() {
-        return new Image(this, locator().locator("img"));
+        return new Image(this, () -> locator().locator("img"));
     }
 
     public Popover popover() {
         String className = UiUtil.containClass("__popper");
-        return new Popover(this, UiUtil.findLocator(this, loc -> loc.locator(className)));
+        return new Popover(this, () -> UiUtil.findLocator(this, loc -> loc.locator(className)));
     }
 
     public UIContainer header() {
-        Locator it = locator().locator("header");
-        if (it.count() == 0) {
-            it = locator().locator(UiUtil.containClass("-header")).first();
-        }
-        return new UIContainer(this, it);
+        return new UIContainer(this, () -> {
+            Locator it = locator().locator("header");
+            if (it.count() == 0) {
+                it = locator().locator(UiUtil.containClass("-header")).first();
+            }
+            return it;
+        });
     }
 
     public Tabs tabs() {
-        return new Tabs(this, locator().locator(UiUtil.containClass("-tabs")));
+        return new Tabs(this, () -> locator().locator(UiUtil.containClass("-tabs")));
     }
 
     public Collapse collapse() {
-        return new Collapse(this, locator().locator(UiUtil.containClass("-collapse")));
+        return new Collapse(this, () -> locator().locator(UiUtil.containClass("-collapse")));
     }
 
     public RadioGroup radioGroup() {
-        return new RadioGroup(this, locator().locator(UiUtil.containClass("-radio-group")));
+        return new RadioGroup(this, () -> locator().locator(UiUtil.containClass("-radio-group")));
     }
 
     public Table table() {
-        Locator it = locator.locator(UiUtil.containClass("-table")).first();
-        if (it.count() == 0) {
-            it = locator("table");
-        }
-        return new Table(this, it);
+        return new Table(this, () -> {
+            Locator it = locator().locator(UiUtil.containClass("-table")).first();
+            if (it.count() == 0) {
+                it = locator("table");
+            }
+            return it;
+        });
     }
 
     public Checkbox checkbox() {
-        return new Checkbox(this, locator().locator(UiUtil.containClass("-checkbox")));
+        return new Checkbox(this, () -> locator().locator(UiUtil.containClass("-checkbox")));
     }
 
     public double width() {
@@ -260,7 +277,7 @@ public class UIContainer {
     }
 
     public Graph graph() {
-        return new Graph(this, locator().locator(UiUtil.containClass("-graph-svg")).first());
+        return new Graph(this, () -> locator().locator(UiUtil.containClass("-graph-svg")).first());
     }
 
     public void mouseDown() {
@@ -277,17 +294,19 @@ public class UIContainer {
     }
 
     public Card card(String title) {
-        Locator it = locator().locator(UiUtil.containClass("-card"));
-        if (ValueUtil.isNotEmpty(title)) {
-            it = it.all().stream().filter(e -> {
-                Locator temp = e.locator(UiUtil.containClass("-card-head"));
-                if (temp.count() == 1) {
-                    return temp.getByText(title).count() > 0;
-                }
-                return e.getByText(title).count() > 0;
-            }).findFirst().orElse(null);
-        }
-        return new Card(this, it);
+        return new Card(this, () -> {
+            Locator it = locator().locator(UiUtil.containClass("-card"));
+            if (ValueUtil.isNotEmpty(title)) {
+                it = it.all().stream().filter(e -> {
+                    Locator temp = e.locator(UiUtil.containClass("-card-head"));
+                    if (temp.count() == 1) {
+                        return temp.getByText(title).count() > 0;
+                    }
+                    return e.getByText(title).count() > 0;
+                }).findFirst().orElse(null);
+            }
+            return it;
+        });
     }
 
     public void load() {
@@ -296,5 +315,25 @@ public class UIContainer {
 
     public boolean isVisible() {
         return locator().isVisible();
+    }
+
+    public void waitFor() {
+        waitFor(() -> locator().isVisible());
+    }
+
+    public void waitFor(int seconds) {
+        UiUtil.waitForLoading(seconds);
+    }
+
+    public void waitFor(UIContainer container) {
+        UiUtil.waitForLoading(() -> container.isVisible());
+    }
+
+    public void waitFor(Supplier<Boolean> supplier) {
+        UiUtil.waitForLoading(supplier);
+    }
+
+    public UIContainer first() {
+        return new UIContainer(this, () -> locator().first());
     }
 }

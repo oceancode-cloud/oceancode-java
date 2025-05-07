@@ -3,19 +3,27 @@ package com.oceancode.cloud.test.ui.container;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 
+import java.util.function.Supplier;
+
 public class Dialog extends UIContainer {
-    public Dialog(UIContainer parent, Locator locator) {
-        super(parent, locator);
+    public Dialog(UIContainer parent, Supplier<Locator> getFunction) {
+        super(parent, getFunction);
         UiUtil.waitForLoading(() -> locator().count() != 0 || !locator().isVisible());
     }
 
-
     public void submit() {
+        waitFor();
         Locator it = locator().locator("*[class$=__footer]");
         if (it.count() == 1) {
             Locator button = it.locator("button");
             if (button.count() == 1) {
                 button.click();
+                UiUtil.waitForLoading(()->{
+                    if(locator().isVisible()){
+                        it.locator("button").click();
+                    }
+                    return !locator().isVisible();
+                });
             }
         }
     }

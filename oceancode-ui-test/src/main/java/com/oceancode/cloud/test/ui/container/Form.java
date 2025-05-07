@@ -6,23 +6,27 @@ import com.oceancode.cloud.common.util.ValueUtil;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class Form extends UIContainer {
-    public Form(UIContainer parent, Locator locator) {
-        super(parent, locator);
+
+
+    public Form(UIContainer parent, Supplier<Locator> getFunction) {
+        super(parent, getFunction);
     }
 
-
     public FormItem item(String label) {
-        Locator locator = locator().locator(getClassName("form-item"));
-        locator = locator.filter(new Locator.FilterOptions().setHasText(label));
-        return new FormItem(this, locator);
+
+        return new FormItem(this, () -> {
+            Locator locator = locator().locator(getClassName("form-item"));
+            locator = locator.filter(new Locator.FilterOptions().setHasText(label));
+            return locator;
+        });
     }
 
     public FormItem item(int index) {
-        Locator loc = locator().locator(getClassName("form-item")).all().get(index);
-        return new FormItem(this, loc);
+        return new FormItem(this, () -> locator().locator(getClassName("form-item")).all().get(index));
     }
 
     public FormItem item() {
@@ -42,7 +46,7 @@ public class Form extends UIContainer {
 
     public List<FormItem> items() {
         return locator().locator("*[class*=-form-item]").all()
-                .stream().map(e -> new FormItem(this, e))
+                .stream().map(e -> new FormItem(this, () -> e))
                 .collect(Collectors.toList());
 
     }
@@ -82,7 +86,7 @@ public class Form extends UIContainer {
             return;
         }
         Locator it = locator().locator(UiUtil.containClass("-login-button"));
-        if(it.count()==1){
+        if (it.count() == 1) {
             it.click();
             load();
             return;

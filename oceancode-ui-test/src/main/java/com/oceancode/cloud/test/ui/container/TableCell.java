@@ -3,13 +3,16 @@ package com.oceancode.cloud.test.ui.container;
 import com.microsoft.playwright.Locator;
 import com.oceancode.cloud.common.util.ValueUtil;
 
+import java.util.function.Supplier;
+
 public class TableCell extends UIContainer {
     private int index;
 
-    public TableCell(int index, UIContainer parent, Locator locator) {
-        super(parent, locator);
+    public TableCell(int index,UIContainer parent, Supplier<Locator> getFunction) {
+        super(parent, getFunction);
         this.index = index;
     }
+
 
     public int getIndex() {
         return this.index;

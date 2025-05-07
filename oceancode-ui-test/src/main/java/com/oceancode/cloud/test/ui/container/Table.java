@@ -7,10 +7,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.function.Supplier;
 
 public class Table extends UIContainer {
-    public Table(UIContainer parent, Locator locator) {
-        super(parent, locator);
+
+    public Table(UIContainer parent, Supplier<Locator> getFunction) {
+        super(parent, getFunction);
     }
 
     public List<TableCell> columns() {
@@ -22,7 +24,8 @@ public class Table extends UIContainer {
                 .all();
         List<TableCell> cells = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
-            cells.add(new TableCell(i, this, list.get(i)));
+            int finalI = i;
+            cells.add(new TableCell(i, this, () -> list.get(finalI)));
         }
         return cells;
     }
@@ -54,7 +57,8 @@ public class Table extends UIContainer {
             List<TableCell> rowList = new ArrayList<>();
             List<Locator> tds = tr.locator("td").all();
             for (int i = 0; i < tds.size(); i++) {
-                rowList.add(new TableCell(i, this, tds.get(i)));
+                int finalI = i;
+                rowList.add(new TableCell(i, this, ()->tds.get(finalI)));
             }
 
             dataList.add(rowList);

@@ -31,7 +31,7 @@ public class TableColumnDataContainer extends UIContainer {
     @Override
     public UIContainer findByText(String text) {
         TableCell cell = findCell(it -> it.getByText(text).count() > 0);
-        return Objects.nonNull(cell) ? new UIContainer(this, cell.locator().getByText(text)) : null;
+        return Objects.nonNull(cell) ? new UIContainer(this, () -> cell.locator().getByText(text)) : null;
     }
 
 }

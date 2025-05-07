@@ -16,7 +16,7 @@ public class PageView extends BaseView {
     }
 
     public PageView(String url) {
-        super(new UIContainer(null, UiUtil.getPage().locator("html")));
+        super(new UIContainer(null, () -> UiUtil.getPage().locator("html")));
         this.url = url;
     }
 
@@ -29,7 +29,10 @@ public class PageView extends BaseView {
             UiUtil.getPage().navigate(url);
 
             UiUtil.waitForLoading(() -> {
-                String currentUrl = (String) UiUtil.getPage().evaluate("window.location.href");
+                String currentUrl = UiUtil.getPage().evaluate("window.location.href") + "";
+                if (currentUrl.contains("?")) {
+                    currentUrl = currentUrl.substring(0, currentUrl.indexOf("?"));
+                }
                 boolean ret = this.url.startsWith(currentUrl);
 
                 Object state = UiUtil.getPage().evaluate("document.readyState");
@@ -43,10 +46,14 @@ public class PageView extends BaseView {
     }
 
     public Loading loading() {
-        return new Loading(null, container().locator());
+        return new Loading(null, () -> container().locator());
     }
 
     public void load() {
         load(null);
+    }
+
+    public String getUrl() {
+        return UiUtil.getPage().evaluate("window.location.href") + "";
     }
 }
