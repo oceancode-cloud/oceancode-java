@@ -40,7 +40,9 @@ public final class UiUtil {
         map.put("PLAYWRIGHT_BROWSERS_PATH", getProperties().getProperty("PLAYWRIGHT_BROWSERS_PATH"));
         Playwright playwright = Playwright.create(new Playwright.CreateOptions().setEnv(map));
         BrowserType chromium = playwright.chromium();
-        browser = chromium.launch(new BrowserType.LaunchOptions().setHeadless(false).setArgs(Arrays.asList("--start-maximized"))
+        String property = getProperties().getProperty("oc.test.ui.headless.args", "--start-maximized");
+        List<String> list = Arrays.stream(property.split(",")).toList();
+        browser = chromium.launch(new BrowserType.LaunchOptions().setHeadless(false).setArgs(list)
                 .setChannel(getProperties().getProperty("oc.test.ui.channel", "chrome")));
         page = browser.newPage();
     }
@@ -74,6 +76,14 @@ public final class UiUtil {
         int exceptionCount = 0;
         try {
             while (true) {
+                try {
+                    if (ValueUtil.isTrue(supplier.get())) {
+                        break;
+                    }
+                } catch (Throwable throwable) {
+                    exceptionCount++;
+                    System.err.println(throwable);
+                }
                 Thread.sleep(100);
                 if (exceptionCount > 100) {
                     break;
@@ -87,6 +97,7 @@ public final class UiUtil {
                     }
                 } catch (Throwable throwable) {
                     exceptionCount++;
+                    System.err.println(throwable);
                 }
             }
         } catch (InterruptedException e) {
@@ -132,5 +143,10 @@ public final class UiUtil {
             return null;
         }
         return it.all().stream().filter(e -> e.isVisible()).findFirst().orElse(null);
+    }
+
+    public static <T extends UIContainer> T get(Supplier<T> supplier) {
+        UiUtil.waitForLoading(() -> supplier.get().count() > 1 || (supplier.get().count() == 1 && supplier.get().isVisible()));
+        return supplier.get();
     }
 }

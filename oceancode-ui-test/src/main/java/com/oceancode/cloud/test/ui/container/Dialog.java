@@ -17,12 +17,11 @@ public class Dialog extends UIContainer {
         if (it.count() == 1) {
             Locator button = it.locator("button");
             if (button.count() == 1) {
-                button.click();
-                UiUtil.waitForLoading(()->{
-                    if(locator().isVisible()){
-                        it.locator("button").click();
+                UiUtil.waitForLoading(() -> {
+                    if (button.isVisible()) {
+                        button.click();
                     }
-                    return !locator().isVisible();
+                    return button.count() == 0 || !button.isVisible();
                 });
             }
         }

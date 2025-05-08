@@ -2,6 +2,7 @@ package com.oceancode.cloud.test.ui.component;
 
 import com.oceancode.cloud.test.ui.container.Dropdown;
 import com.oceancode.cloud.test.ui.container.UIContainer;
+import com.oceancode.cloud.test.ui.container.UiUtil;
 
 import java.util.Objects;
 
@@ -28,6 +29,24 @@ public class Tree extends BaseComponent {
 
     public Tree tree(String nodeName) {
         return null;
+    }
+
+    public Tree tress(String... childrenNodes) {
+        Tree tree = Objects.nonNull(parent()) ? this : null;
+        if (Objects.nonNull(childrenNodes)) {
+            for (int i = 0; i < childrenNodes.length; i++) {
+                if (Objects.isNull(tree)) {
+                    tree = this.tree(childrenNodes[i]);
+                    UiUtil.waitForLoading(() -> container().isVisible());
+                    continue;
+                }
+                tree.expand();
+                tree = tree.tree(childrenNodes[i]);
+                UiUtil.waitForLoading(() -> container().isVisible());
+            }
+        }
+
+        return tree;
     }
 
     public Tree parent() {

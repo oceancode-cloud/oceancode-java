@@ -24,10 +24,9 @@ public class RadioGroup extends UIContainer {
     }
 
     public List<Radio> items() {
-        return locator().locator(UiUtil.containClass("-radio")).all()
+        return locator().locator("label").all()
                 .stream().filter(e -> e.isVisible())
-                .filter(e -> e.locator(UiUtil.containClass("-checked")).count() == 1)
-                .map(e -> new Radio(this, ()->e))
+                .map(e -> new Radio(this, () -> e))
                 .toList();
     }
 }

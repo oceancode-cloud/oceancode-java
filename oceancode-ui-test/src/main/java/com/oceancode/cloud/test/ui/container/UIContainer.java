@@ -336,4 +336,8 @@ public class UIContainer {
     public UIContainer first() {
         return new UIContainer(this, () -> locator().first());
     }
+
+    public boolean isDisabled() {
+        return locator().isDisabled();
+    }
 }

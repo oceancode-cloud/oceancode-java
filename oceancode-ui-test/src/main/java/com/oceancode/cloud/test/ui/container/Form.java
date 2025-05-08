@@ -1,7 +1,6 @@
 package com.oceancode.cloud.test.ui.container;
 
 import com.microsoft.playwright.Locator;
-import com.microsoft.playwright.Page;
 import com.oceancode.cloud.common.util.ValueUtil;
 
 import java.util.List;
@@ -121,11 +120,18 @@ public class Form extends UIContainer {
 
         if (parent() instanceof Dialog) {
             UIContainer button = parent().button(label);
-            if (button.exists()) {
+            if (button.isVisible()) {
                 return button;
             }
         }
 
-        return super.button(label);
+        if (super.button(label).isVisible()) {
+            return super.button(label);
+        }
+        if (parent().button(label).isVisible()) {
+            return parent().button(label);
+        }
+
+        return null;
     }
 }
