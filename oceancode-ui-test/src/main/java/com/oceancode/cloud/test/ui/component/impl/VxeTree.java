@@ -86,11 +86,11 @@ public class VxeTree extends Tree {
     }
 
     @Override
-    public VxeTree tress(String... childrenNodes) {
+    public VxeTree trees(String... childrenNodes) {
         UiUtil.waitForLoading(() -> {
             Locator locator = expandIcon();
             return Objects.nonNull(locator) && locator.isVisible();
         });
-        return (VxeTree) super.tress(childrenNodes);
+        return (VxeTree) super.trees(childrenNodes);
     }
 }

@@ -5,13 +5,14 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.options.MouseButton;
 import com.oceancode.cloud.common.util.ValueUtil;
+import com.oceancode.cloud.test.ui.UiElement;
 import com.oceancode.cloud.test.ui.component.impl.VxeTree;
 
 import java.util.Arrays;
 import java.util.Random;
 import java.util.function.Supplier;
 
-public class UIContainer {
+public class UIContainer extends UiElement {
     private Page page;
     private UIContainer parent;
     private Supplier<Locator> getFunction;

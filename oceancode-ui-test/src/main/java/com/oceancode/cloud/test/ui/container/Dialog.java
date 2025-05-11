@@ -12,19 +12,21 @@ public class Dialog extends UIContainer {
     }
 
     public void submit() {
-        waitFor();
-        Locator it = locator().locator("*[class$=__footer]");
-        if (it.count() == 1) {
-            Locator button = it.locator("button");
-            if (button.count() == 1) {
-                UiUtil.waitForLoading(() -> {
-                    if (button.isVisible()) {
-                        button.click();
-                    }
-                    return button.count() == 0 || !button.isVisible();
-                });
+        UiUtil.waitForLoading(() -> {
+            Locator it = locator().locator("*[class$=__footer]");
+            if (it.count() == 1) {
+                Locator button = it.locator("button");
+                if (button.count() == 1) {
+                    UiUtil.waitForLoading(() -> {
+                        if (button.isVisible()) {
+                            button.click();
+                        }
+                        return button.count() == 0 || !button.isVisible();
+                    });
+                }
             }
-        }
+            return false;
+        });
     }
 
     private Locator getHeader() {

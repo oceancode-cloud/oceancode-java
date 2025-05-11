@@ -31,7 +31,7 @@ public class Tree extends BaseComponent {
         return null;
     }
 
-    public Tree tress(String... childrenNodes) {
+    public Tree trees(String... childrenNodes) {
         Tree tree = Objects.nonNull(parent()) ? this : null;
         if (Objects.nonNull(childrenNodes)) {
             for (int i = 0; i < childrenNodes.length; i++) {

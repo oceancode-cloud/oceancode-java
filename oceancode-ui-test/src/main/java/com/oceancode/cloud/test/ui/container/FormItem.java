@@ -2,6 +2,7 @@ package com.oceancode.cloud.test.ui.container;
 
 import com.microsoft.playwright.Locator;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class FormItem extends UIContainer {
@@ -11,6 +12,9 @@ public class FormItem extends UIContainer {
     }
 
     public FormItem fill(String value) {
+        if (Objects.isNull(value)) {
+            return this;
+        }
         locator().locator("input,textarea").locator("visible=true").fill(value);
         return this;
     }

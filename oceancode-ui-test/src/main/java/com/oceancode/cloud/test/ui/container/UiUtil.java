@@ -6,6 +6,7 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.oceancode.cloud.common.util.ValueUtil;
+import com.oceancode.cloud.test.ui.UiElement;
 
 import java.io.FileInputStream;
 import java.util.Arrays;
@@ -82,7 +83,6 @@ public final class UiUtil {
                     }
                 } catch (Throwable throwable) {
                     exceptionCount++;
-                    System.err.println(throwable);
                 }
                 Thread.sleep(100);
                 if (exceptionCount > 100) {
@@ -97,7 +97,6 @@ public final class UiUtil {
                     }
                 } catch (Throwable throwable) {
                     exceptionCount++;
-                    System.err.println(throwable);
                 }
             }
         } catch (InterruptedException e) {
@@ -145,8 +144,29 @@ public final class UiUtil {
         return it.all().stream().filter(e -> e.isVisible()).findFirst().orElse(null);
     }
 
-    public static <T extends UIContainer> T get(Supplier<T> supplier) {
+    public static <T extends UiElement> T get(Supplier<T> supplier) {
+        supplier.get();
         UiUtil.waitForLoading(() -> supplier.get().count() > 1 || (supplier.get().count() == 1 && supplier.get().isVisible()));
+        return supplier.get();
+    }
+
+    public static <T extends UiElement> T get(Runnable runnable, Supplier<T> supplier) {
+        runnable.run();
+        supplier.get();
+        UiUtil.waitForLoading(() -> {
+            try {
+                T t = supplier.get();
+                boolean ret = t.count() > 0 || (t.count() == 1 && t.isVisible());
+                if (!ret) {
+                    runnable.run();
+                }
+                return ret;
+            } catch (Throwable throwable) {
+                runnable.run();
+                supplier.get();
+            }
+            return false;
+        });
         return supplier.get();
     }
 }
