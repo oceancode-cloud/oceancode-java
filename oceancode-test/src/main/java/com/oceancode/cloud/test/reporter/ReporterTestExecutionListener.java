@@ -25,7 +25,11 @@ public class ReporterTestExecutionListener extends TestReporter implements Befor
     public void afterAll(ExtensionContext extensionContext) throws Exception {
         Collection<TestResult> results = getResults();
         String filename = extensionContext.getTestClass().get().getName() + "." + System.currentTimeMillis() + ".json";
-        FileUtil.writeStringToFile(new File(SystemUtil.outputDir() + "/" + filename), JsonUtil.toJson(results));
+        FileUtil.writeStringToFile(new File(getOutputPath() + "/" + filename), JsonUtil.toJson(results));
+    }
+
+    protected String getOutputPath() {
+        return SystemUtil.outputDir();
     }
 
     @Override
@@ -61,6 +65,7 @@ public class ReporterTestExecutionListener extends TestReporter implements Befor
         if (Objects.isNull(testResult)) {
             return;
         }
+        testResult.setSuccess(true);
         if (extensionContext.getExecutionException().isPresent()) {
             testResult.setSuccess(false);
             testResult.setMessage(extensionContext.getExecutionException().get().getMessage());
@@ -75,7 +80,7 @@ public class ReporterTestExecutionListener extends TestReporter implements Befor
 
         testResult.setEndTime(System.nanoTime());
         testResult.setTotalTime(testResult.getEndTime() - testResult.getStartTime());
-
+        testResult.setSaved(true);
         processTestResult(testResult);
     }
 

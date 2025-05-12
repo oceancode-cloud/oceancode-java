@@ -9,6 +9,8 @@ import org.springframework.core.env.Environment;
 import java.io.File;
 
 public final class SystemUtil {
+    public static final String OUTPUT_DIR_CONFIG_KEY = "oc.system.output.dir";
+
     public static void init() {
         File dataDirFile = new File(dataDir());
         if (!dataDirFile.exists()) {
@@ -33,7 +35,7 @@ public final class SystemUtil {
 
     public static String outputDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        String dataDir = environment.getProperty("oc.system.output.dir");
+        String dataDir = environment.getProperty(OUTPUT_DIR_CONFIG_KEY);
         if (ValueUtil.isEmpty(dataDir)) {
             dataDir = System.getProperty("user.dir") + "/output";
         }

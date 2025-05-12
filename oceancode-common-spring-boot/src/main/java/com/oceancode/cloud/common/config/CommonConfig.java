@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 @Configuration
 public class CommonConfig {
     @Resource
-    private Environment environment;
+    protected Environment environment;
 
     @Value("${server.port-http:80}")
     private Integer port;

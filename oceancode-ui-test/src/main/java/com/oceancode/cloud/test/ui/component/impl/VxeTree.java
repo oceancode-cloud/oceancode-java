@@ -64,11 +64,10 @@ public class VxeTree extends Tree {
 
     @Override
     public boolean isExpand() {
-        Locator it = container().locator("i").all().stream().filter(e -> {
+        return container().locator("i").all().stream().anyMatch(e -> {
             String classNames = e.getAttribute("class");
             return classNames.contains("-caret-right") && classNames.contains("rotate90");
-        }).findFirst().orElseGet(null);
-        return Objects.nonNull(it);
+        });
     }
 
     @Override
