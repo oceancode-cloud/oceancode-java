@@ -92,4 +92,9 @@ public class VxeTree extends Tree {
         });
         return (VxeTree) super.trees(childrenNodes);
     }
+
+    @Override
+    public VxeTree expandAll() {
+        return (VxeTree) super.expandAll();
+    }
 }

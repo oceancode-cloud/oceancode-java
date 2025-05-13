@@ -30,7 +30,7 @@ public class TestApiClientImpl extends ApiClientImpl {
     @Override
     protected String getUrl(String url) {
         String result = super.getUrl(url);
-        if (!result.startsWith("http:/") || !result.startsWith("https:/")) {
+        if (!result.startsWith("http:/") && !result.startsWith("https:/")) {
             if (!result.startsWith("/")) {
                 result = "/" + result;
             }

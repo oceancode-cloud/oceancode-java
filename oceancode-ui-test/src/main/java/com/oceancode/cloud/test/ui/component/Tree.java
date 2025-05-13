@@ -69,6 +69,13 @@ public class Tree extends BaseComponent {
         return null;
     }
 
+    public Tree expandAll() {
+        if (hasParent()) {
+            UiUtil.get(() -> parent().expand());
+        }
+        return expand();
+    }
+
     public boolean isExpand() {
         return false;
     }

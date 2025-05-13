@@ -11,7 +11,7 @@ import org.springframework.test.context.DynamicPropertySource;
 
 @ExtendWith(UiReporterTestExecutionListener.class)
 public class BaseUiTest {
-    private static final ThreadLocal<TestContextManager> CONTEXT = new ThreadLocal<>();
+    private static final ThreadLocal<UiTestContextManager> CONTEXT = new ThreadLocal<>();
     protected static CommonConfig commonConfig = new UiCommonConfig(null);
 
     public BaseUiTest() {
@@ -19,7 +19,7 @@ public class BaseUiTest {
 
     @BeforeAll
     public static void setup() {
-        CONTEXT.set(new TestContextManager());
+        CONTEXT.set(new UiTestContextManager());
     }
 
     @AfterAll
