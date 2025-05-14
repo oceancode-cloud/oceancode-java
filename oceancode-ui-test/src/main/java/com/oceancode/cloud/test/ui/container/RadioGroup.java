@@ -29,4 +29,12 @@ public class RadioGroup extends UIContainer {
                 .map(e -> new Radio(this, () -> e))
                 .toList();
     }
+
+    public Radio item(String label) {
+        return items().stream().filter(e -> e.getText().equals(label)).findFirst().orElse(null);
+    }
+
+    public Radio item() {
+        return getCheckedItem();
+    }
 }

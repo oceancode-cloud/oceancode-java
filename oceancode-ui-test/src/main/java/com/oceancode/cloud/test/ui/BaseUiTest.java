@@ -28,7 +28,7 @@ public class BaseUiTest {
         UiUtil.getPage().close();
     }
 
-    public TestContextManager getContext() {
+    public static TestContextManager getContext() {
         return CONTEXT.get();
     }
 //
