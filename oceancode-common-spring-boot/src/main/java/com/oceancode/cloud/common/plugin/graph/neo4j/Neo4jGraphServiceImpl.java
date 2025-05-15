@@ -8,15 +8,15 @@ import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ValueUtil;
 import jakarta.annotation.Resource;
-import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
-import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.internal.value.MapValue;
 import org.neo4j.driver.internal.value.NodeValue;
 import org.neo4j.driver.internal.value.RelationshipValue;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,86 +25,108 @@ import java.util.function.Function;
 
 public class Neo4jGraphServiceImpl implements GraphService {
     @Resource
-    private Driver driver;
+    private GraphRunner graphRunner;
+
+    private void checkGraphCell(GraphCell cell) {
+        if (cell.isNode()) {
+            if (ValueUtil.isEmpty(cell.getId())) {
+                throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, "id is required.");
+            }
+        } else if (cell instanceof GraphEdge) {
+            GraphEdge graphEdge = (GraphEdge) cell;
+            if (ValueUtil.isEmpty(graphEdge.getType())) {
+                throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, "type is required.");
+            }
+            if (ValueUtil.isEmpty(graphEdge.getSourceId())) {
+                throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, "sourceId is required.");
+            }
+            if (ValueUtil.isEmpty(graphEdge.getTargetId())) {
+                throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, "targetId is required.");
+            }
+        }
+    }
 
     @Override
-    public GraphNode findById(String id) {
+    public GraphNode findById(GraphCell cell, boolean throwEx) {
+        checkGraphCell(cell);
         String cql = "MATCH(n:Node) WHERE n.id=$id return n";
         Map<String, Object> params = new HashMap<>();
-        params.put("id", id);
-        return run(cql, params, result -> {
+        params.put("id", cell.getId());
+        GraphNode ret = run(cql, params, result -> {
             GraphNode graphNode = null;
             if (result.hasNext()) {
                 graphNode = (GraphNode) convert2GraphCell(result.next());
             }
             return graphNode;
         });
+        if (Objects.isNull(ret) && throwEx) {
+            throw new BusinessRuntimeException(CommonErrorCode.NOT_FOUND);
+        }
+        return ret;
     }
 
     private GraphCell convert2GraphCell(Record record) {
-        List<Value> values = record.values();
-        if (values.size() == 1) {
-            Value value = values.get(0);
-            if (Objects.isNull(value)) {
-                return null;
-            }
-            Map<String, Object> valuMap = value.asMap();
-            if (ValueUtil.isEmpty(valuMap)) {
-                return null;
-            }
+        List<GraphCell> list = convert2GraphCells(record);
+        return list.isEmpty() ? null : list.get(0);
+    }
 
-            Map<String, Object> map = new HashMap<>(valuMap);
-            GraphCell cell = null;
-            if (value instanceof NodeValue) {
-                GraphNode node = new GraphNode();
-                cell = node;
-                cell.setId(map.getOrDefault("id", "") + "");
-            } else if (value instanceof RelationshipValue) {
-                GraphEdge edge = new GraphEdge();
-                cell = edge;
-                edge.setSourceId(map.getOrDefault("sourceId", "") + "");
-                edge.setTargetId(map.getOrDefault("targetId", "") + "");
-                map.remove("sourceId");
-                map.remove("targetId");
-            } else {
-                return null;
-            }
-            cell.setName(map.getOrDefault("name", "") + "");
-            cell.setType(map.getOrDefault("type", "") + "");
-            map.remove("id");
-            map.remove("name");
-            map.remove("type");
-            cell.setProperties(map);
-            return cell;
+    private GraphCell convertValue(Value value) {
+        if (Objects.isNull(value)) {
+            return null;
         }
-        return null;
+        boolean ret = value instanceof NodeValue ||
+                value instanceof RelationshipValue ||
+                value instanceof MapValue;
+
+        if (!ret) {
+            throw new BusinessRuntimeException(CommonErrorCode.ERROR, "unsupported type:" + value.getClass());
+        }
+        Map<String, Object> valuMap = value.asMap();
+        if (ValueUtil.isEmpty(valuMap)) {
+            return null;
+        }
+
+        Map<String, Object> map = new HashMap<>(valuMap);
+        GraphCell cell = null;
+        if (value instanceof NodeValue) {
+            GraphNode node = GraphNode.of("");
+            cell = node;
+            cell.setId(map.getOrDefault("id", "") + "");
+        } else if (value instanceof RelationshipValue) {
+            GraphEdge edge = GraphEdge.of("");
+            cell = edge;
+            edge.setSourceId(map.getOrDefault("sourceId", "") + "");
+            edge.setTargetId(map.getOrDefault("targetId", "") + "");
+            map.remove("sourceId");
+            map.remove("targetId");
+        } else if (value instanceof MapValue) {
+            cell = new GraphCell();
+            cell.setProperties(map);
+        }
+        cell.setName(map.getOrDefault("name", "") + "");
+        cell.setType(map.getOrDefault("type", "") + "");
+        map.remove("id");
+        map.remove("name");
+        map.remove("type");
+        cell.setProperties(map);
+        return cell;
+    }
+
+    private List<GraphCell> convert2GraphCells(Record record) {
+        List<Value> values = record.values();
+        return values.stream().map(this::convertValue).filter(Objects::nonNull).toList();
     }
 
     private <T> T doWithTransaction(Function<Transaction, T> function) {
-        try (Session session = driver.session()) {
-            Transaction transaction = session.beginTransaction();
-            try {
-                T apply = function.apply(transaction);
-                transaction.commit();
-                return apply;
-            } catch (Throwable throwable) {
-                transaction.rollback();
-                throw throwable;
-            } finally {
-                transaction.close();
-            }
-        }
+        return graphRunner.doWithTransaction(function);
     }
 
     private <T> T run(String sql, Map<String, Object> params, Function<Result, T> function) {
-        try (Session session = driver.session()) {
-            Result result = session.run(sql, params);
-            return function.apply(result);
-        }
+        return graphRunner.run(sql, params, function);
     }
 
     private Result run(Transaction transaction, String sql, Map<String, Object> params) {
-        return transaction.run(sql, params);
+        return graphRunner.run(transaction, sql, params);
     }
 
     private StringBuilder convertParams(Map<String, Object> params) {
@@ -153,7 +175,7 @@ public class Neo4jGraphServiceImpl implements GraphService {
             if (ValueUtil.isEmpty(cell.getId())) {
                 throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, "id is required.");
             }
-            GraphNode node = findById(cell.getId());
+            GraphNode node = findById(cell, false);
             if (Objects.nonNull(node)) {
                 if (!throwEx) {
                     return false;
@@ -167,7 +189,7 @@ public class Neo4jGraphServiceImpl implements GraphService {
                 Result result = transaction.run(sql, params);
                 return result.hasNext();
             }
-            return run(sql, params, result -> result.hasNext());
+            return run(sql, params, Result::hasNext);
         } else if (cell instanceof GraphEdge) {
             GraphEdge graphEdge = (GraphEdge) cell;
             if (ValueUtil.isEmpty(cell.getType())) {
@@ -195,7 +217,7 @@ public class Neo4jGraphServiceImpl implements GraphService {
                 Result result = transaction.run(sql, params);
                 return result.hasNext();
             }
-            return run(sql, params, result -> result.hasNext());
+            return run(sql, params, Result::hasNext);
         }
         return false;
     }
@@ -218,10 +240,10 @@ public class Neo4jGraphServiceImpl implements GraphService {
     }
 
     @Override
-    public boolean deleteById(String id, boolean throwEx) {
+    public boolean deleteById(GraphCell cell, boolean throwEx) {
         String sql = "MATCH(n:Node{id:$id}) DETACH DELETE n RETURN n";
         Map<String, Object> params = new HashMap<>();
-        params.put("id", id);
+        params.put("id", cell.getId());
         return run(sql, params, result -> result.hasNext());
     }
 
@@ -229,8 +251,48 @@ public class Neo4jGraphServiceImpl implements GraphService {
     public boolean deleteOne(GraphCell cell, boolean throwEx) {
         if (cell.isNode()) {
             if (ValueUtil.isNotEmpty(cell.getId())) {
-                return deleteById(cell.getId(), throwEx);
+                return deleteById(cell, throwEx);
             }
+            Map<String, Object> params = new HashMap<>();
+            if (Objects.nonNull(cell.getProperties())) {
+                params.putAll(cell.getProperties());
+            }
+            params.put("type", cell.getType());
+            params.put("name", cell.getName());
+            StringBuilder stringBuilder = convertParams(params);
+            if (stringBuilder.isEmpty()) {
+                return false;
+            }
+            String sql = "MATCH(n:" + GraphCell.NODE_NAME + "{" + stringBuilder + "}) DELETE n RETURN n LIMIT 2";
+            boolean ret = doWithTransaction(transaction -> {
+                Result result = run(transaction, sql, params);
+                if (result.hasNext()) {
+                    result.next();
+
+                    if (result.hasNext()) {
+                        throw new BusinessRuntimeException(CommonErrorCode.ERROR);
+                    }
+                }
+                return true;
+            });
+            if (!ret && throwEx) {
+                throw new BusinessRuntimeException(CommonErrorCode.ERROR, "delete failed.");
+            }
+            return ret;
+        } else if (cell instanceof GraphEdge) {
+            GraphEdge graphEdge = (GraphEdge) cell;
+            checkGraphCell(graphEdge);
+
+            String sql = "MATCH(n:" + GraphCell.NODE_NAME + "{id:$sourceId})-[" + GraphCell.EDGE_NAME + "]->(n1:" + GraphCell.NODE_NAME + "{id:$targetId}) WHERE r.type=$type DELETE r RETURN r";
+            Map<String, Object> params = new HashMap<>();
+            params.put("sourceId", graphEdge.getSourceId());
+            params.put("targetId", graphEdge.getTargetId());
+            params.put("type", graphEdge.getType());
+            boolean ret = run(sql, params, Result::hasNext);
+            if (!ret && throwEx) {
+                throw new BusinessRuntimeException(CommonErrorCode.ERROR, "delete failed");
+            }
+            return ret;
         }
         return false;
     }
@@ -260,10 +322,7 @@ public class Neo4jGraphServiceImpl implements GraphService {
             params.put("id", cell.getId());
             StringBuilder paramBuilder = convertParams("n.", "=", params);
             String sql = "MATCH(n:Node{id:$id}) SET " + paramBuilder + " RETURN n";
-            doWithTransaction(session -> {
-                Result run = run(session, sql, params);
-                return null;
-            });
+            return run(sql, params, Result::hasNext);
         } else if (cell instanceof GraphEdge) {
             GraphEdge graphEdge = (GraphEdge) cell;
             params.put("type", cell.getType());
@@ -271,10 +330,7 @@ public class Neo4jGraphServiceImpl implements GraphService {
             params.put("targetId", graphEdge.getTargetId());
             StringBuilder paramBuilder = convertParams("n.", "=", params);
             String sql = "MATCH(n:Node{id:$sourceId})-[r]->(n1:Node{id:$targetId}) WHERE r.type=$type SET " + paramBuilder + " RETURN r";
-            doWithTransaction(session -> {
-                Result run = run(session, sql, params);
-                return null;
-            });
+            return run(sql, params, Result::hasNext);
         }
         return false;
     }
@@ -288,16 +344,19 @@ public class Neo4jGraphServiceImpl implements GraphService {
                 params.putAll(cell.getProperties());
             }
             params.put("name", cell.getName());
-            GraphNode node = null;
+            GraphNode node;
             if (ValueUtil.isNotEmpty(cell.getId())) {
-                node = findById(cell.getId());
+                node = findById(cell, throwEx);
             } else {
-                String cql = "MATCH(n:Node{" + convertParams(params) + "}) LIMIT 2 return n";
+                String cql = "MATCH(n:Node{" + convertParams(params) + "}) return n LIMIT 2";
                 node = run(cql, params, result -> {
                     GraphNode graphNode = null;
                     if (result.hasNext()) {
                         Record next = result.next();
                         if (result.hasNext()) {
+                            if (!throwEx) {
+                                return null;
+                            }
                             throw new BusinessRuntimeException(CommonErrorCode.ERROR, "too many,expected:1,actual:2");
                         }
                         graphNode = (GraphNode) convert2GraphCell(next);
@@ -327,11 +386,19 @@ public class Neo4jGraphServiceImpl implements GraphService {
             params.put("type", cell.getType());
             params.put("sourceId", graphEdge.getSourceId());
             params.put("targetId", graphEdge.getTargetId());
-            String sql = "MATCH(n:Node{id:$sourceId})-[r]->(n1:Node{id:$targetId}) WHERE r.type=$type LIMIT 1 RETURN r";
+            String sql = "MATCH(n:Node{id:$sourceId})-[r]->(n1:Node{id:$targetId}) WHERE r.type=$type RETURN r LIMIT 1";
             GraphEdge edge = run(sql, params, result -> {
                 GraphEdge graphNode = null;
                 if (result.hasNext()) {
                     graphNode = (GraphEdge) convert2GraphCell(result.next());
+
+                    if (result.hasNext()) {
+                        if (throwEx) {
+                            throw new BusinessRuntimeException(CommonErrorCode.ERROR, "too many.");
+                        } else {
+                            return null;
+                        }
+                    }
                 }
                 return graphNode;
             });
@@ -343,5 +410,125 @@ public class Neo4jGraphServiceImpl implements GraphService {
             return edge;
         }
         return null;
+    }
+
+    @Override
+    public boolean save(GraphCell cell, boolean throwEx) {
+        if (cell instanceof GraphNode) {
+            GraphNode node = findById(cell, false);
+            if (Objects.isNull(node)) {
+                return addOne(cell, throwEx);
+            }
+            return updateById(cell, throwEx);
+        } else if (cell instanceof GraphNode) {
+            GraphCell edge = findOne(cell, false);
+            if (Objects.isNull(edge)) {
+                return addOne(cell, throwEx);
+            }
+            return updateById(cell, throwEx);
+        }
+
+        return false;
+    }
+
+    @Override
+    public List<GraphNode> findAllById(GraphCell cell) {
+        String sql = "MATCH(n1:" + GraphCell.NODE_NAME + "{id:$id})-[" + GraphCell.EDGE_NAME + "]->(n) RETURN n";
+        Map<String, Object> params = new HashMap<>();
+        if (ValueUtil.isEmpty(cell.getId())) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, "id is required.");
+        }
+        params.put("id", cell.getId());
+        return run(sql, params, result -> {
+            List<GraphNode> list = new ArrayList<>();
+            while (result.hasNext()) {
+                Record next = result.next();
+                GraphCell graphCell = convert2GraphCell(next);
+                if (Objects.nonNull(graphCell)) {
+                    list.add((GraphNode) graphCell);
+                }
+            }
+            return list;
+        });
+    }
+
+    @Override
+    public boolean updateProperty(GraphCell cell, Map<String, Object> property, boolean throwEx) {
+        if (property.isEmpty()) {
+            return false;
+        }
+        checkGraphCell(cell);
+        StringBuilder removeFieldBuilder = new StringBuilder();
+        StringBuilder updatedFieldBuilder = new StringBuilder();
+        if (cell instanceof GraphNode) {
+            property.put("id", cell.getId());
+        } else if (cell instanceof GraphEdge) {
+            GraphEdge graphEdge = (GraphEdge) cell;
+            property.put("sourceId", graphEdge.getSourceId());
+            property.put("targetId", graphEdge.getTargetId());
+            property.put("type", graphEdge.getType());
+        }
+        for (Map.Entry<String, Object> entry : property.entrySet()) {
+            Object value = entry.getValue();
+            if (Objects.isNull(value)) {
+                if (!removeFieldBuilder.isEmpty()) {
+                    removeFieldBuilder.append(",");
+                }
+                removeFieldBuilder.append(cell.isNode() ? "n." : "r.").append(entry.getKey());
+            } else {
+                if (!updatedFieldBuilder.isEmpty()) {
+                    updatedFieldBuilder.append(",");
+                }
+                updatedFieldBuilder.append(cell.isNode() ? "n." : "r.").append(entry.getKey()).append("=$").append(entry.getKey());
+            }
+        }
+
+        String removeSql;
+        String updateSql;
+        if (cell.isNode()) {
+            removeSql = "MATCH(n:Node{id:$id}) REMOVE " + removeFieldBuilder + " RETURN n";
+            updateSql = "MATCH(n:Node{id:$id}) SET " + updatedFieldBuilder + " RETURN n";
+        } else {
+            removeSql = "MATCH(n:Node{id:$sourceId})-[r]->(n1:Node{id:$targetId}) WHERE r.type=$type REMOVE " + removeFieldBuilder + " RETURN r";
+            updateSql = "MATCH(n:Node{id:$sourceId})-[r]->(n1:Node{id:$targetId}) WHERE r.type=$type SET " + updatedFieldBuilder + " RETURN r";
+        }
+
+        boolean ret = doWithTransaction(transaction -> {
+            if (!removeFieldBuilder.isEmpty()) {
+                Result run = run(transaction, removeSql, property);
+                if (!run.hasNext()) {
+                    if (updatedFieldBuilder.isEmpty()) {
+                        return false;
+                    }
+                    throw new BusinessRuntimeException(CommonErrorCode.ERROR, "remove fields error.");
+                }
+            }
+            if (!updatedFieldBuilder.isEmpty()) {
+                Result run = run(transaction, updateSql, property);
+                return run.hasNext();
+            }
+            return false;
+        });
+
+        if (!ret && throwEx) {
+            throw new BusinessRuntimeException(CommonErrorCode.ERROR, "update property failed.");
+        }
+        return ret;
+    }
+
+    @Override
+    public List<List<GraphCell>> query(String sql, Map<String, Object> params) {
+        List<List<GraphCell>> list = new ArrayList<>();
+        graphRunner.run(sql, params, result -> {
+            while (result.hasNext()) {
+                Record next = result.next();
+                List<GraphCell> cells = convert2GraphCells(next);
+                if (!cells.isEmpty()) {
+                    list.add(cells);
+                }
+            }
+            return null;
+        });
+        return list;
     }
 }

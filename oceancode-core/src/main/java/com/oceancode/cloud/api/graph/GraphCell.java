@@ -1,15 +1,21 @@
 package com.oceancode.cloud.api.graph;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class GraphCell {
+    public static final String NODE_NAME = "Node";
+    public static final String EDGE_NAME = "r";
     private String id;
     private String name;
     private String type;
     private Map<String, Object> properties;
+
+    public GraphCell(String id) {
+        this.id = id;
+    }
+
+    public GraphCell() {
+    }
 
     public boolean isNode() {
         return false;

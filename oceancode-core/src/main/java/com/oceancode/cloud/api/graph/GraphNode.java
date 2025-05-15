@@ -4,12 +4,17 @@ import java.util.HashMap;
 
 public class GraphNode extends GraphCell {
 
-    public GraphNode() {
+    private GraphNode() {
         setProperties(new HashMap<>());
     }
 
     public static GraphNode of(String id) {
         return new GraphNode().id(id);
+    }
+
+    public GraphNode type(String type) {
+        this.setType(type);
+        return this;
     }
 
     public GraphNode id(String id) {

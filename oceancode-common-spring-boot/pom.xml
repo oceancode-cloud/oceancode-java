@@ -149,6 +149,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-neo4j</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

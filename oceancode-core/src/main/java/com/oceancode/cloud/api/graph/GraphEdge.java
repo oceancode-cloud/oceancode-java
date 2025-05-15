@@ -1,5 +1,7 @@
 package com.oceancode.cloud.api.graph;
 
+import java.util.HashMap;
+
 public class GraphEdge extends GraphCell {
 
     private String sourceId;
@@ -8,6 +10,15 @@ public class GraphEdge extends GraphCell {
     @Override
     public boolean isEdge() {
         return true;
+    }
+
+    private GraphEdge(){
+        this.setProperties(new HashMap<>());
+    }
+
+    public GraphEdge type(String type){
+        this.setType(type);
+        return this;
     }
 
     public static GraphEdge of(String type) {

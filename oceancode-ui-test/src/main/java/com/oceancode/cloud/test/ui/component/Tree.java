@@ -83,4 +83,13 @@ public class Tree extends BaseComponent {
     public Dropdown menu() {
         return null;
     }
+
+    public void contextmenu() {
+        container().contextmenu();
+    }
+
+    public void click() {
+        container().click();
+    }
+
 }
