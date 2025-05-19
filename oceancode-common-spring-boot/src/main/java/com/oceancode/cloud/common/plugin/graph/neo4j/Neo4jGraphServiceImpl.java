@@ -92,6 +92,10 @@ public class Neo4jGraphServiceImpl implements GraphService {
             GraphNode node = GraphNode.of("");
             cell = node;
             cell.setId(map.getOrDefault("id", "") + "");
+            if (map.containsKey("group")) {
+                node.setGroup(map.get("group") + "");
+                map.remove("group");
+            }
         } else if (value instanceof RelationshipValue) {
             GraphEdge edge = GraphEdge.of("");
             cell = edge;
@@ -174,6 +178,10 @@ public class Neo4jGraphServiceImpl implements GraphService {
         if (cell instanceof GraphNode) {
             if (ValueUtil.isEmpty(cell.getId())) {
                 throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, "id is required.");
+            }
+            GraphNode graphNode = (GraphNode) cell;
+            if (ValueUtil.isNotEmpty(graphNode.getGroup())) {
+                params.put("group", graphNode);
             }
             GraphNode node = findById(cell, false);
             if (Objects.nonNull(node)) {
@@ -321,7 +329,13 @@ public class Neo4jGraphServiceImpl implements GraphService {
         if (cell instanceof GraphNode) {
             params.put("id", cell.getId());
             StringBuilder paramBuilder = convertParams("n.", "=", params);
-            String sql = "MATCH(n:Node{id:$id}) SET " + paramBuilder + " RETURN n";
+            String where = "";
+            GraphNode graphNode = (GraphNode) cell;
+            if (ValueUtil.isNotEmpty(graphNode.getGroup())) {
+                params.put("group", graphNode.getGroup());
+                where = " WHERE n.group=$group ";
+            }
+            String sql = "MATCH(n:Node{id:$id})" + where + "SET " + paramBuilder + " RETURN n";
             return run(sql, params, Result::hasNext);
         } else if (cell instanceof GraphEdge) {
             GraphEdge graphEdge = (GraphEdge) cell;
@@ -348,6 +362,10 @@ public class Neo4jGraphServiceImpl implements GraphService {
             if (ValueUtil.isNotEmpty(cell.getId())) {
                 node = findById(cell, throwEx);
             } else {
+                GraphNode paramNode = (GraphNode) cell;
+                if (ValueUtil.isNotEmpty(paramNode.getGroup())) {
+                    params.put("group", paramNode.getGroup());
+                }
                 String cql = "MATCH(n:Node{" + convertParams(params) + "}) return n LIMIT 2";
                 node = run(cql, params, result -> {
                     GraphNode graphNode = null;
