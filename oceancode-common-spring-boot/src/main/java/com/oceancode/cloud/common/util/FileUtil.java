@@ -132,4 +132,12 @@ public final class FileUtil {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
         }
     }
+
+    public static String readFileToString(File file) {
+        try {
+            return FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
+        }
+    }
 }
