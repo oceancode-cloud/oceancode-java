@@ -7,6 +7,7 @@ package com.oceancode.cloud.common.util;
 import com.oceancode.cloud.api.Notifier;
 import com.oceancode.cloud.api.TypeEnum;
 import com.oceancode.cloud.api.strategy.StrategyAdaptor;
+import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.function.BaseFunction;
@@ -108,10 +109,36 @@ public final class ComponentUtil {
         applicationContext = ctx;
     }
 
-
     public static ApplicationContext getApplicationContext() {
         return applicationContext;
     }
+
+    public static <T> T getLocalFunction(Class<T> typeClass, List<T> functions) {
+        T testFunction = null;
+        T localFunction = null;
+        boolean isTest = ComponentUtil.getBean(CommonConfig.class).isTest();
+        for (T function : functions) {
+            Class<?>[] interfaces = function.getClass().getInterfaces();
+            if (Objects.isNull(interfaces)) {
+                continue;
+            }
+
+            for (Class<?> it : interfaces) {
+                if ("com.oceancode.cloud.test.TestFunction".equals(it.getName())) {
+                    testFunction = function;
+                } else if (it.equals(typeClass)) {
+                    localFunction = function;
+                }
+            }
+        }
+
+        if (isTest) {
+            return Objects.nonNull(testFunction) ? testFunction : localFunction;
+        }
+
+        return localFunction;
+    }
+
 
     public static <T> T getLocalFunction(Class<T> functionClass) {
         return getLocalFunction(functionClass, true);

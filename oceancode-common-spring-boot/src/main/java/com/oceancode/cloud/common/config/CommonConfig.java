@@ -39,6 +39,9 @@ public class CommonConfig {
     @Value("${spring.application.name:ocean-app}")
     private String applicationName;
 
+    @Value("${spring.profiles.active:prod}")
+    private String activeProfile;
+
     private String instanceName;
 
     @Resource
@@ -214,5 +217,9 @@ public class CommonConfig {
             throw new RuntimeException(e);
         }
         return this.instanceName;
+    }
+
+    public boolean isTest() {
+        return "test".equals(activeProfile);
     }
 }
