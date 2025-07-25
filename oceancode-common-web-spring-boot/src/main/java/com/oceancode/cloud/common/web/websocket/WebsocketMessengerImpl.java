@@ -56,7 +56,7 @@ public class WebsocketMessengerImpl implements Messenger {
                 msg.setData(message);
                 msg.setId(UUID.randomUUID().toString().replace("-", ""));
                 msg.setKey(ChartMessage.CHART_MESSAGE_KEY);
-                msg.setSuffix(String.valueOf(userId));
+                msg.setUserId(userId);
                 producer.sendWithBusiness(msg);
             }
         }
