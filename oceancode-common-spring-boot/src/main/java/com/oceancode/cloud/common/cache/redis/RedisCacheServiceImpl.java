@@ -12,6 +12,7 @@ import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.CacheUtil;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
+import com.oceancode.cloud.common.util.RedisUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Primary;
@@ -34,7 +35,7 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     private static final int MAX_MAP_ELEMENTS_COUNT = 30;
 
     private static RedisTemplate<String, Object> redisTemplate(String sourceKey) {
-        return ComponentUtil.getBean(sourceKey + "RedisTemplate", RedisTemplate.class);
+        return RedisUtil.getTemplate(sourceKey);
     }
 
     @Override

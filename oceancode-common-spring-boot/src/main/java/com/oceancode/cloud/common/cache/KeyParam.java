@@ -126,6 +126,11 @@ public final class KeyParam implements CacheKey {
 
     public String pattern() {
         String val = commonConfig.getValue("oc.cache." + key + ".key-pattern");
+        if (DEFAULT_KEY.equals(this.key)) {
+            if (ValueUtil.isEmpty(val)) {
+                val = this.key;
+            }
+        }
         if (ValueUtil.isEmpty(val)) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "key-pattern is required.key:" + key);
         }

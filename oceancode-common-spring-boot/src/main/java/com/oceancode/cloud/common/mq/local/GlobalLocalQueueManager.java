@@ -34,7 +34,11 @@ public class GlobalLocalQueueManager {
         if (ValueUtil.isEmpty(message.getKey())) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "message key should not be null empty.");
         }
-        get(message.getKey()).getBlockingQueue().put(message);
+        QueueEntry queueEntry = get(message.getKey());
+        if (Objects.isNull(queueEntry)) {
+            queueEntry = get("default");
+        }
+        queueEntry.getBlockingQueue().put(message);
     }
 
     public static void close() {

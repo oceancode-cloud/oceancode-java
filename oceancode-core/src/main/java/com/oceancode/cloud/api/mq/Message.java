@@ -14,7 +14,7 @@ public class Message<T> {
 
     private String username;
 
-    private String suffix;
+    private String group;
 
     private transient MessageType messageType = MessageType.MESSAGE;
 
@@ -92,12 +92,12 @@ public class Message<T> {
         this.traceId = traceId;
     }
 
-    public String getSuffix() {
-        return suffix;
+    public String getGroup() {
+        return group;
     }
 
-    public void setSuffix(String suffix) {
-        this.suffix = suffix;
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     @Override
@@ -108,7 +108,7 @@ public class Message<T> {
                 ", userId=" + userId +
                 ", projectId=" + projectId +
                 ", tenantId=" + tenantId +
-                ", suffix='" + suffix + '\'' +
+                ", group='" + group + '\'' +
                 ", messageType=" + messageType +
                 ", traceId='" + traceId + '\'' +
                 ", username='" + username + '\'' +

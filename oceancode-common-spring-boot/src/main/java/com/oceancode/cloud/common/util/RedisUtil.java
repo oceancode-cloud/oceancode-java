@@ -23,4 +23,9 @@ public final class RedisUtil {
         redisTemplate.afterPropertiesSet();
         return redisTemplate;
     }
+
+    public static RedisTemplate<String, Object> getTemplate(String sourceKey) {
+        return ComponentUtil.getBean(sourceKey + "RedisTemplate", RedisTemplate.class);
+    }
+
 }
