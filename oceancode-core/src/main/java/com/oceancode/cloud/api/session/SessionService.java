@@ -30,6 +30,8 @@ public interface SessionService {
 
     UserBaseInfo getUserInfoById(Long userId);
 
+    String getUsername(Long userId);
+
     boolean setUserProperties(Long userId, Map<String, Object> map);
 
     boolean setUserProperty(Long userId, String key, Object value);

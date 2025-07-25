@@ -94,6 +94,11 @@ public class RedisSessionServiceImpl implements SessionService {
     }
 
     @Override
+    public String getUsername(Long userId) {
+        return (String) getUserProperty(userId, "username");
+    }
+
+    @Override
     public boolean setUserProperties(Long userId, Map<String, Object> map) {
         if (Objects.isNull(userId) || ValueUtil.isEmpty(map)) {
             return false;
