@@ -55,6 +55,13 @@ public class RedisSessionServiceImpl implements SessionService {
     }
 
     @Override
+    public boolean isLogin(Long userId) {
+        CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:info:" + userId);
+        Map<String, Object> map = redisCacheService.getMap(cacheKey);
+        return ValueUtil.isNotEmpty(map);
+    }
+
+    @Override
     public UserBaseInfo getUserInfo(String token) {
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:" + token);
         String userId = redisCacheService.getString(cacheKey);

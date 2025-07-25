@@ -19,6 +19,8 @@ public interface SessionService {
      */
     boolean isLogin(String token);
 
+    boolean isLogin(Long userId);
+
     /**
      * get login user data info
      *
@@ -30,7 +32,7 @@ public interface SessionService {
 
     boolean setUserProperties(Long userId, Map<String, Object> map);
 
-    boolean setUserProperty(Long userId, String key,Object value);
+    boolean setUserProperty(Long userId, String key, Object value);
 
     /**
      * set user session info

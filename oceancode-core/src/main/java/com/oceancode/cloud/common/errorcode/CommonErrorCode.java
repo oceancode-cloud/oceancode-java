@@ -41,6 +41,7 @@ public enum CommonErrorCode implements ErrorCode {
      * some resource not exists.
      */
     NOT_FOUND(CommonConst.CLIENT_ERROR_CODE_PREFIX + "not_found", "not found."),
+    USER_NOT_ONLINE(CommonConst.CLIENT_ERROR_CODE_PREFIX + "not_online", "user not online."),
 
     /**
      * some resource already exists.

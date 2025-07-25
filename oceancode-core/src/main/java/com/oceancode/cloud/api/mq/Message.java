@@ -14,6 +14,8 @@ public class Message<T> {
 
     private String username;
 
+    private String suffix;
+
     private transient MessageType messageType = MessageType.MESSAGE;
 
     private String traceId;
@@ -88,5 +90,28 @@ public class Message<T> {
 
     public void setTraceId(String traceId) {
         this.traceId = traceId;
+    }
+
+    public String getSuffix() {
+        return suffix;
+    }
+
+    public void setSuffix(String suffix) {
+        this.suffix = suffix;
+    }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "id='" + id + '\'' +
+                ", key='" + key + '\'' +
+                ", userId=" + userId +
+                ", projectId=" + projectId +
+                ", tenantId=" + tenantId +
+                ", suffix='" + suffix + '\'' +
+                ", messageType=" + messageType +
+                ", traceId='" + traceId + '\'' +
+                ", username='" + username + '\'' +
+                '}';
     }
 }
