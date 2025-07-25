@@ -26,6 +26,12 @@ public interface SessionService {
      */
     UserBaseInfo getUserInfo(String token);
 
+    UserBaseInfo getUserInfoById(Long userId);
+
+    boolean setUserProperties(Long userId, Map<String, Object> map);
+
+    boolean setUserProperty(Long userId, String key,Object value);
+
     /**
      * set user session info
      *
@@ -38,5 +44,5 @@ public interface SessionService {
      */
     void logout(String token);
 
-    CacheKey getSessionKey(String token);
+    Object getUserProperty(Long userId, String property);
 }

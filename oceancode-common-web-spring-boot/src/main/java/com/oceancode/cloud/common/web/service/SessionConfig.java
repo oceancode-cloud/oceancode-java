@@ -16,24 +16,15 @@ import org.springframework.data.redis.core.RedisTemplate;
 public class SessionConfig {
 
     @Bean
-    @ConditionalOnMissingBean(SessionService.class)
     @ConditionalOnBean({RedisCacheService.class, RedisTemplate.class})
-    @ConditionalOnExpression(value = "'${oc.session.cache.type}'=='redis'")
-    public RedisSessionServiceImpl redisSessionService() {
-        return new RedisSessionServiceImpl();
-    }
-
-    @Bean
-    @ConditionalOnBean({LocalCacheService.class})
-    @ConditionalOnClass(name = "com.github.benmanes.caffeine.cache.Caffeine")
-    @ConditionalOnProperty(name = "oc.session.cache.type",havingValue = "caffeine", matchIfMissing = true)
-    public CaffeineSessionServiceImpl caffeineSessionService() {
-        return new CaffeineSessionServiceImpl();
+    public RedisSessionServiceImpl redisSessionService(RedisCacheService redisCacheService) {
+        return new RedisSessionServiceImpl(redisCacheService);
     }
 
     @Bean
     @ConditionalOnMissingBean(SessionService.class)
-    public WebSessionServiceImpl webSessionService() {
-        return new WebSessionServiceImpl();
+    @ConditionalOnBean({LocalCacheService.class})
+    public CaffeineSessionServiceImpl caffeineSessionService(LocalCacheService localCacheService) {
+        return new CaffeineSessionServiceImpl(localCacheService);
     }
 }

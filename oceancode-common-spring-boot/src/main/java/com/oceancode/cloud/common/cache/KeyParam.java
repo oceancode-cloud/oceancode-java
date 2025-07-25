@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public final class KeyParam implements CacheKey {
+    public static final String DEFAULT_KEY = "master";
     private Map<String, Object> params;
     private String key;
     private String sourceKey;
@@ -60,7 +61,7 @@ public final class KeyParam implements CacheKey {
         if (!isPatternKey) {
             return new KeyParam(key, expireIn);
         }
-        return new KeyParam(key, new HashMap<>(16));
+        return new KeyParam(key, new HashMap<>(16)).express(key);
     }
 
 
@@ -98,6 +99,7 @@ public final class KeyParam implements CacheKey {
     @Override
     public CacheKey express(String express) {
         this.resultKey = express;
+        this.isExpress = true;
         return this;
     }
 
@@ -223,7 +225,7 @@ public final class KeyParam implements CacheKey {
         if (Objects.nonNull(this.sourceKey)) {
             return this.sourceKey;
         }
-        this.sourceKey = commonConfig.getValue("oc.cache." + key + ".source.id");
+        this.sourceKey = commonConfig.getValue("oc.cache." + key + ".source.id", this.key);
         if (ValueUtil.isEmpty(this.sourceKey)) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "oc.cache." + key + ".source.id is required.");
         }

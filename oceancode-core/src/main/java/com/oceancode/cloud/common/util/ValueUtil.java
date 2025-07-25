@@ -41,7 +41,6 @@ public final class ValueUtil {
     public static boolean isEmpty(String str) {
         return !isNotEmpty(str);
     }
-
     public static boolean isEmpty(Integer value) {
         return value == null;
     }

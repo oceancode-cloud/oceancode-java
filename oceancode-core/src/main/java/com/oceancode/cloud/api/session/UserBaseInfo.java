@@ -8,7 +8,7 @@ public class UserBaseInfo {
     private Long userId;
     private String openid;
     private UserType userType;
-    private Map<String, Object> param;
+    private Map<String, Object> data;
 
 
     public Long getUserId() {
@@ -35,19 +35,19 @@ public class UserBaseInfo {
         this.userType = userType;
     }
 
-    public Map<String, Object> getParam() {
-        return param;
+    public Map<String, Object> getData() {
+        return data;
     }
 
-    public void setParam(Map<String, Object> param) {
-        this.param = param;
+    public void setData(Map<String, Object> data) {
+        this.data = data;
     }
 
     public UserBaseInfo addParam(String key, Object value) {
-        if (Objects.isNull(this.param)) {
-            this.param = new HashMap<>();
+        if (Objects.isNull(this.data)) {
+            this.data = new HashMap<>();
         }
-        this.param.put(key, value);
+        this.data.put(key, value);
         return this;
     }
 
@@ -76,6 +76,9 @@ public class UserBaseInfo {
     }
 
     private Object getValue(String key) {
-        return param.get(key);
+        if (Objects.isNull(data)) {
+            return null;
+        }
+        return data.get(key);
     }
 }
