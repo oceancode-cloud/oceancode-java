@@ -21,8 +21,10 @@ import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -32,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @ServerEndpoint(value = "/chart/{userId}")
+@ConditionalOnClass(ServerEndpointExporter.class)
 public class WebSocketServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketServer.class);
     public static final Map<Long, WsSession> SESSIONS = new ConcurrentHashMap<>();
@@ -50,14 +53,18 @@ public class WebSocketServer {
     @OnOpen
     public void onOpen(Session session, @PathParam("userId") Long userId) {
         WsSession wsSession = new WsSession(userId, session);
+        if(SESSIONS.containsKey(userId)){
+            SESSIONS.remove(userId);
+        }
         if (Objects.isNull(userId)) {
             wsSession.reply(ChartMessage.notifier().errorCode(CommonErrorCode.USER_NOT_FOUND));
+            wsSession.close();
             return;
         }
 
-        UserBaseInfo userBaseInfo = sessionService.getUserInfoById(userId);
-        if (Objects.isNull(userBaseInfo)) {
+        if (!sessionService.isLogin(userId)) {
             wsSession.reply(ChartMessage.notifier().errorCode(CommonErrorCode.ACCESS_DENIED));
+            wsSession.close();
             return;
         }
         SESSIONS.put(userId, wsSession);

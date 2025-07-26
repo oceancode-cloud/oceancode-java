@@ -6,6 +6,8 @@ import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.chart.ChartMessage;
 import com.oceancode.cloud.chart.ChartMessageType;
 import com.oceancode.cloud.chart.Messenger;
+import com.oceancode.cloud.common.cache.KeyParam;
+import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
@@ -22,6 +24,12 @@ import java.util.UUID;
 public class WebsocketMessengerImpl implements Messenger {
     @Resource
     private SessionService sessionService;
+
+    private static String msgKey;
+
+    public WebsocketMessengerImpl(CommonConfig commonConfig) {
+        msgKey = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".name", ChartMessage.CHART_MESSAGE_KEY);
+    }
 
     @Override
     public void sendTo(Long userId, ChartMessage message) {
@@ -55,8 +63,9 @@ public class WebsocketMessengerImpl implements Messenger {
                 Message<ChartMessage> msg = new Message<>();
                 msg.setData(message);
                 msg.setId(UUID.randomUUID().toString().replace("-", ""));
-                msg.setKey(ChartMessage.CHART_MESSAGE_KEY);
+                msg.setKey(msgKey);
                 msg.setUserId(userId);
+                producer.fillMessage(msg);
                 producer.sendWithBusiness(msg);
             }
         }
@@ -93,7 +102,15 @@ public class WebsocketMessengerImpl implements Messenger {
 
     @Override
     public boolean isOnline(Set<Long> userIds) {
-        return false;
+        if (ValueUtil.isEmpty(userIds)) {
+            return false;
+        }
+        for (Long userId : userIds) {
+            if (!isOnline(userId)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @PreDestroy

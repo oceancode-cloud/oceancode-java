@@ -15,4 +15,13 @@ public interface Consumer<T> {
     default void onException(Throwable throwable) {
         throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, throwable);
     }
+
+    default Class<T> getDataType() {
+        return null;
+    }
+
+    default String getKey() {
+        return null;
+    }
+
 }

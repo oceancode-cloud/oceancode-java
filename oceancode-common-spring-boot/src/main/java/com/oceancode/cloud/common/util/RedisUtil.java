@@ -1,5 +1,6 @@
 package com.oceancode.cloud.common.util;
 
+import com.oceancode.cloud.common.cache.KeyParam;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -26,6 +27,10 @@ public final class RedisUtil {
 
     public static RedisTemplate<String, Object> getTemplate(String sourceKey) {
         return ComponentUtil.getBean(sourceKey + "RedisTemplate", RedisTemplate.class);
+    }
+
+    public static RedisTemplate<String, Object> getDefaultTemplate() {
+        return getTemplate(KeyParam.DEFAULT_KEY);
     }
 
 }

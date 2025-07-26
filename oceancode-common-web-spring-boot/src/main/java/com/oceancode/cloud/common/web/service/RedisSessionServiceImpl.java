@@ -75,8 +75,8 @@ public class RedisSessionServiceImpl implements SessionService {
     public UserBaseInfo getUserInfoById(Long userId) {
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:info:" + userId);
         Map<String, Object> map = redisCacheService.getMap(cacheKey);
-        if (Objects.isNull(map)) {
-            map = new HashMap<>();
+        if (ValueUtil.isEmpty(map)) {
+            return null;
         }
         UserBaseInfo userBaseInfo = new UserBaseInfo();
         userBaseInfo.setUserId(userId);

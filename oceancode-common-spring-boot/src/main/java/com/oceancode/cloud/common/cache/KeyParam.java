@@ -49,6 +49,10 @@ public final class KeyParam implements CacheKey {
         this.expireIn = expireIn;
     }
 
+    public static CacheKey of() {
+        return of(DEFAULT_KEY);
+    }
+
     public static CacheKey of(String key) {
         return of(key, true, null);
     }

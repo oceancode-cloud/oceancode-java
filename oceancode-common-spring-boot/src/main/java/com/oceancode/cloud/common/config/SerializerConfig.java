@@ -1,6 +1,8 @@
 package com.oceancode.cloud.common.config;
 
+import com.oceancode.cloud.api.mq.MessageType;
 import com.oceancode.cloud.api.session.UserType;
+import com.oceancode.cloud.chart.ChartMessageType;
 import com.oceancode.cloud.common.util.JsonUtil;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.Configuration;
@@ -11,5 +13,7 @@ public class SerializerConfig {
     @PostConstruct
     public void init() {
         JsonUtil.registerTypeEnum(UserType.class);
+        JsonUtil.registerTypeEnum(MessageType.class);
+        JsonUtil.registerTypeEnum(ChartMessageType.class);
     }
 }

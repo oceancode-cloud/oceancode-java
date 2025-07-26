@@ -6,6 +6,8 @@ import com.oceancode.cloud.api.security.AesCryptoService;
 import com.oceancode.cloud.api.security.Rsa2CryptoService;
 import com.oceancode.cloud.common.mq.local.LocalConsumer;
 import com.oceancode.cloud.common.mq.local.LocalProducer;
+import com.oceancode.cloud.common.mq.redis.RedisConsumer;
+import com.oceancode.cloud.common.mq.redis.RedisProducer;
 import com.oceancode.cloud.common.security.AesCrypto;
 import com.oceancode.cloud.common.security.Rsa2Crypto;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -13,10 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Configuration
@@ -43,6 +42,22 @@ public class AutoConfigService {
 
     @Bean
     @ConditionalOnMissingBean(Producer.class)
+    @ConditionalOnClass(RedisTemplate.class)
+    @ConditionalOnBean(Consumer.class)
+    public RedisConsumer redisConsumer() {
+        return new RedisConsumer();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(Producer.class)
+    @ConditionalOnClass(RedisTemplate.class)
+    public RedisProducer redisProducer() {
+        return new RedisProducer();
+    }
+
+
+    @Bean
+    @ConditionalOnMissingBean(Producer.class)
     @ConditionalOnBean({Consumer.class})
     public LocalProducer localProducer() {
         return new LocalProducer();
@@ -53,6 +68,4 @@ public class AutoConfigService {
     public LocalConsumer localConsumer() {
         return new LocalConsumer();
     }
-
-
 }

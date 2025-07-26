@@ -3,7 +3,7 @@ package com.oceancode.cloud.chart;
 import com.oceancode.cloud.api.ErrorCode;
 
 public class ChartMessage {
-    public static final String CHART_MESSAGE_KEY = "_chart_message_";
+    public static final String CHART_MESSAGE_KEY = "_chart-message";
     private ChartMessageType type;
     private Object data;
     private Long fromUser;

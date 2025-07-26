@@ -4,6 +4,8 @@
 
 package com.oceancode.cloud.api.mq;
 
+import com.oceancode.cloud.chart.ChartMessage;
+
 public interface Producer {
     void send(Message<?> message, Callback callback);
 
@@ -17,5 +19,8 @@ public interface Producer {
     default RecordMeta sendWithBusiness(Message<?> message) {
         MessageUtil.initMessage(message);
         return send(message);
+    }
+
+    default void fillMessage(Message<ChartMessage> msg) {
     }
 }
