@@ -10,6 +10,8 @@ public class ChartMessage {
     private Long toUser;
     private String msgId;
     private ErrorCode errorCode;
+    private Long projectId;
+    private Long tenantId;
 
     private ChartMessage() {
     }
@@ -37,6 +39,7 @@ public class ChartMessage {
         } else if (ChartMessageType.MESSAGE.equals(source.getType())) {
             message.setType(ChartMessageType.NOTIFIER_MESSAGE);
             message.setMsgId(source.getMsgId());
+            message.setFromUser(source.getFromUser());
         }
 
         return message;
@@ -122,10 +125,28 @@ public class ChartMessage {
         return this;
     }
 
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
     @Override
     public String toString() {
         return "ChartMessage{" +
-                "errorCode=" + errorCode +
+                "tenantId=" + tenantId +
+                ", projectId=" + projectId +
+                ", errorCode=" + errorCode +
                 ", msgId='" + msgId + '\'' +
                 ", toUser=" + toUser +
                 ", fromUser=" + fromUser +

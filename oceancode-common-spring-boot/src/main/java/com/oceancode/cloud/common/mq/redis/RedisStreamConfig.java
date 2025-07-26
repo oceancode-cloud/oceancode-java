@@ -7,6 +7,7 @@ import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.RedisUtil;
 import com.oceancode.cloud.common.util.VersionUtil;
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -31,6 +32,7 @@ import org.springframework.util.Assert;
 
 import java.net.InetAddress;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Properties;
 
 @Configuration
@@ -44,11 +46,14 @@ public class RedisStreamConfig implements InitializingBean, DisposableBean {
 
     private final ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
+    @Resource
+    private com.oceancode.cloud.api.mq.Consumer consumer;
+
     public RedisStreamConfig(CommonConfig commonConfig, ThreadPoolTaskExecutor threadPoolTaskExecutor) {
         this.threadPoolTaskExecutor = threadPoolTaskExecutor;
         redisTemplate = RedisUtil.getTemplate(KeyParam.of().pattern());
-        streamName = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".name", ChartMessage.CHART_MESSAGE_KEY);
-        userEventGroup = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".group", "group");
+        streamName = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".name", ChartMessage.CHART_MESSAGE_KEY.replace("-", ":"));
+        userEventGroup = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".group", "user-event-stream");
     }
 
     /**
@@ -59,7 +64,7 @@ public class RedisStreamConfig implements InitializingBean, DisposableBean {
      * @return 返回 {@link StreamMessageListenerContainer}<{@link String}, {@link ObjectRecord}<{@link String}, {@link String}>> 类型的消息侦听器容器
      */
     @Bean
-    @ConditionalOnBean(Consumer.class)
+    @ConditionalOnBean(com.oceancode.cloud.api.mq.Consumer.class)
     public StreamMessageListenerContainer<String, ObjectRecord<String, String>> messageListenerContainer(RedisConnectionFactory connectionFactory, RedisConsumer redisConsumer) throws Exception {
         StreamMessageListenerContainer<String, ObjectRecord<String, String>> listenerContainer = streamContainer(streamName, connectionFactory, redisConsumer);
         listenerContainer.start();
@@ -146,6 +151,9 @@ public class RedisStreamConfig implements InitializingBean, DisposableBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        if (Objects.isNull(consumer)) {
+            return;
+        }
         checkRedisVersion();
         StreamOperations<String, Object, Object> streamOperations = redisTemplate.opsForStream();
         if (Boolean.FALSE.equals(redisTemplate.hasKey(streamName))) {

@@ -16,12 +16,16 @@ public interface Consumer<T> {
         throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, throwable);
     }
 
-    default Class<T> getDataType() {
+    default Class<T> getDataType(Message<T> message) {
         return null;
     }
 
     default String getKey() {
         return null;
+    }
+
+    default boolean support(Message<Object> message) {
+        return true;
     }
 
 }

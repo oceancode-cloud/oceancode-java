@@ -53,7 +53,7 @@ public class WebSocketServer {
     @OnOpen
     public void onOpen(Session session, @PathParam("userId") Long userId) {
         WsSession wsSession = new WsSession(userId, session);
-        if(SESSIONS.containsKey(userId)){
+        if (SESSIONS.containsKey(userId)) {
             SESSIONS.remove(userId);
         }
         if (Objects.isNull(userId)) {
@@ -73,10 +73,19 @@ public class WebSocketServer {
     @OnClose
     public void onClose(@PathParam("userId") Long userId) {
         SESSIONS.remove(userId);
+        SessionUtil.remove();
     }
 
     @OnMessage
     public void onMessage(String message, Session session, @PathParam("userId") Long userId) {
+        try {
+            processMessage(message, userId);
+        } finally {
+            SessionUtil.remove();
+        }
+    }
+
+    private void processMessage(String message, Long userId) {
         WsSession wsSession = SESSIONS.get(userId);
         if (ValueUtil.isEmpty(message)) {
             return;
@@ -92,6 +101,15 @@ public class WebSocketServer {
         if (Objects.isNull(chartMessage)) {
             return;
         }
+        if (Objects.nonNull(chartMessage.getProjectId())) {
+            SessionUtil.setProjectId(chartMessage.getProjectId());
+        }
+
+        if (Objects.nonNull(chartMessage.getTenantId())) {
+            SessionUtil.setTenantId(chartMessage.getTenantId());
+        }
+        SessionUtil.setUserId(userId);
+
         chartMessage.setFromUser(userId);
         if (ChartMessageType.MESSAGE.equals(chartMessage.getType())) {
             ChartMessageHandler messageHandler = ComponentUtil.getBean(ChartMessageHandler.class);

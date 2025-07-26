@@ -9,6 +9,7 @@ import com.oceancode.cloud.api.TypeEnum;
 public enum MessageType implements TypeEnum<String> {
     LOG("log", "Log", null),
     MESSAGE("message", "Message", null),
+    CHART_MESSAGE("chart_message", "Chart Message", null),
     DELAY_MESSAGE("delay_message", "Delay Message", null),
 
     ;

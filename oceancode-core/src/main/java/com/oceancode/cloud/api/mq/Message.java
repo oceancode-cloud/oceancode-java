@@ -16,6 +16,11 @@ public class Message<T> {
 
     private String group;
 
+    /**
+     * 业务自定义，可用于消费者做业务上的区分
+     */
+    private String sourceKey;
+
     private transient MessageType messageType = MessageType.MESSAGE;
 
     private String traceId;
@@ -98,6 +103,14 @@ public class Message<T> {
 
     public void setGroup(String group) {
         this.group = group;
+    }
+
+    public String getSourceKey() {
+        return sourceKey;
+    }
+
+    public void setSourceKey(String sourceKey) {
+        this.sourceKey = sourceKey;
     }
 
     @Override

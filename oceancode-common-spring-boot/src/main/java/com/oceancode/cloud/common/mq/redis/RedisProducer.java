@@ -26,7 +26,7 @@ public class RedisProducer implements Producer {
 
     @Override
     public RecordMeta send(Message<?> message) {
-        String streamKey = message.getKey();
+        String streamKey = message.getKey().replace("-", ":");
         RecordId recordId = RedisUtil.getDefaultTemplate()
                 .opsForStream().add(StreamRecords.newRecord()
                         .ofMap(Collections.singletonMap("data", message))

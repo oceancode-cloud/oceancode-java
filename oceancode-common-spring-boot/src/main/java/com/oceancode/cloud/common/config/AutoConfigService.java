@@ -1,9 +1,11 @@
 package com.oceancode.cloud.common.config;
 
+import com.oceancode.cloud.api.cache.CacheService;
 import com.oceancode.cloud.api.mq.Consumer;
 import com.oceancode.cloud.api.mq.Producer;
 import com.oceancode.cloud.api.security.AesCryptoService;
 import com.oceancode.cloud.api.security.Rsa2CryptoService;
+import com.oceancode.cloud.common.id.RedisIncrementIdGenerator;
 import com.oceancode.cloud.common.mq.local.LocalConsumer;
 import com.oceancode.cloud.common.mq.local.LocalProducer;
 import com.oceancode.cloud.common.mq.redis.RedisConsumer;
@@ -67,5 +69,13 @@ public class AutoConfigService {
     @ConditionalOnBean(LocalProducer.class)
     public LocalConsumer localConsumer() {
         return new LocalConsumer();
+    }
+
+    @Bean
+    @ConditionalOnClass({CacheService.class, RedisTemplate.class})
+    @ConditionalOnMissingBean
+    @ConditionalOnBean
+    public RedisIncrementIdGenerator redisIncrementIdGenerator() {
+        return new RedisIncrementIdGenerator();
     }
 }

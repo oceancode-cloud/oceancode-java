@@ -1,6 +1,7 @@
 package com.oceancode.cloud.common.web.websocket;
 
 import com.oceancode.cloud.api.mq.Message;
+import com.oceancode.cloud.api.mq.MessageType;
 import com.oceancode.cloud.api.mq.Producer;
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.chart.ChartMessage;
@@ -40,13 +41,17 @@ public class WebsocketMessengerImpl implements Messenger {
         boolean isRecordMessage = true;
         try {
             WsSession wsSession = WebSocketServer.SESSIONS.get(userId);
-            if (!isOnline(userId) && Objects.nonNull(wsSession)) {
-                wsSession.reply(ChartMessage.notifier().msgId(message.getMsgId())
+            WsSession fromSession = Objects.nonNull(message.getFromUser()) ?
+                    WebSocketServer.SESSIONS.get(message.getFromUser()) : null;
+            if (!isOnline(userId) && Objects.nonNull(fromSession)) {
+                fromSession.reply(ChartMessage.notifier().msgId(message.getMsgId())
                         .errorCode(CommonErrorCode.USER_NOT_ONLINE));
             } else {
                 if (Objects.nonNull(wsSession) && wsSession.isActive()) {
                     wsSession.send(message);
                     isRecordMessage = false;
+                    fromSession.reply(ChartMessage.notifier().msgId(message.getMsgId())
+                            .errorCode(CommonErrorCode.USER_NOT_ONLINE));
                 }
             }
 
@@ -65,6 +70,7 @@ public class WebsocketMessengerImpl implements Messenger {
                 msg.setId(UUID.randomUUID().toString().replace("-", ""));
                 msg.setKey(msgKey);
                 msg.setUserId(userId);
+                msg.setMessageType(MessageType.CHART_MESSAGE);
                 producer.fillMessage(msg);
                 producer.sendWithBusiness(msg);
             }
