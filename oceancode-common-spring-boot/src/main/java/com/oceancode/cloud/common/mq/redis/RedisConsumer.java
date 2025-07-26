@@ -15,11 +15,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class RedisConsumer implements StreamListener<String, ObjectRecord<String, String>> {
     private final static Logger LOGGER = LoggerFactory.getLogger(RedisConsumer.class);

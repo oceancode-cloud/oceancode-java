@@ -42,13 +42,6 @@ public class AutoConfigService {
     }
 
 
-    @Bean
-    @ConditionalOnMissingBean(Producer.class)
-    @ConditionalOnClass(RedisTemplate.class)
-    @ConditionalOnBean(Consumer.class)
-    public RedisConsumer redisConsumer() {
-        return new RedisConsumer();
-    }
 
     @Bean
     @ConditionalOnMissingBean(Producer.class)

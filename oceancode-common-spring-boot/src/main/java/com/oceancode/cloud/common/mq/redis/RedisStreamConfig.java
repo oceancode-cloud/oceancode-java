@@ -1,5 +1,6 @@
 package com.oceancode.cloud.common.mq.redis;
 
+import com.oceancode.cloud.api.mq.Producer;
 import com.oceancode.cloud.chart.ChartMessage;
 import com.oceancode.cloud.common.cache.KeyParam;
 import com.oceancode.cloud.common.config.CommonConfig;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -36,7 +38,7 @@ import java.util.Objects;
 import java.util.Properties;
 
 @Configuration
-@ConditionalOnClass(RedisTemplate.class)
+@ConditionalOnClass(StreamListener.class)
 public class RedisStreamConfig implements InitializingBean, DisposableBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisStreamConfig.class);
     private final RedisTemplate<String, Object> redisTemplate;
@@ -55,6 +57,15 @@ public class RedisStreamConfig implements InitializingBean, DisposableBean {
         streamName = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".name", ChartMessage.CHART_MESSAGE_KEY.replace("-", ":"));
         userEventGroup = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".group", "user-event-stream");
     }
+
+    @Bean
+    @ConditionalOnMissingBean(Producer.class)
+    @ConditionalOnClass(RedisTemplate.class)
+    @ConditionalOnBean(com.oceancode.cloud.api.mq.Consumer.class)
+    public RedisConsumer redisConsumer() {
+        return new RedisConsumer();
+    }
+
 
     /**
      * 消息侦听器容器，用于监听 Redis Stream 中的消息
