@@ -67,29 +67,14 @@ public class RedisStreamConfig implements InitializingBean, DisposableBean {
     }
 
 
-    /**
-     * 消息侦听器容器，用于监听 Redis Stream 中的消息
-     *
-     * @param connectionFactory Redis 连接工厂，用于创建 Redis 连接
-     * @param redisConsumer     消息消费者，用于处理接收到的消息
-     * @return 返回 {@link StreamMessageListenerContainer}<{@link String}, {@link ObjectRecord}<{@link String}, {@link String}>> 类型的消息侦听器容器
-     */
     @Bean
-    @ConditionalOnBean(com.oceancode.cloud.api.mq.Consumer.class)
+    @ConditionalOnBean({com.oceancode.cloud.api.mq.Consumer.class, RedisConsumer.class})
     public StreamMessageListenerContainer<String, ObjectRecord<String, String>> messageListenerContainer(RedisConnectionFactory connectionFactory, RedisConsumer redisConsumer) throws Exception {
         StreamMessageListenerContainer<String, ObjectRecord<String, String>> listenerContainer = streamContainer(streamName, connectionFactory, redisConsumer);
         listenerContainer.start();
         return listenerContainer;
     }
 
-    /**
-     * 创建一个流容器，用于监听 Redis Stream 中的数据
-     *
-     * @param streamName        Redis Stream 的名称
-     * @param connectionFactory Redis 连接工厂
-     * @param streamListener    绑定的监听类
-     * @return 返回 StreamMessageListenerContainer 对象
-     */
     private StreamMessageListenerContainer<String, ObjectRecord<String, String>> streamContainer(String streamName, RedisConnectionFactory connectionFactory, StreamListener<String, ObjectRecord<String, String>> streamListener) throws Exception {
         StreamMessageListenerContainer.StreamMessageListenerContainerOptions<String, ObjectRecord<String, String>> options =
                 StreamMessageListenerContainer.StreamMessageListenerContainerOptions
@@ -110,14 +95,6 @@ public class RedisStreamConfig implements InitializingBean, DisposableBean {
         return container;
     }
 
-    /**
-     * 生成流读取请求
-     *
-     * @param offset         偏移量，用于指定从 Redis Stream 中的哪个位置开始读取消息
-     * @param streamListener 流侦听器，用于处理接收到的消息
-     * @return 返回一个 StreamReadRequest 对象，表示一个流读取请求
-     * @throws Exception 当 streamListener 无法识别为 MessageConsumer 类型时，抛出异常
-     */
     private StreamMessageListenerContainer.StreamReadRequest<String> buildStreamReadRequest(StreamOffset<String> offset, StreamListener<String, ObjectRecord<String, String>> streamListener) throws Exception {
         Consumer consumer;
         if (streamListener instanceof RedisConsumer) {

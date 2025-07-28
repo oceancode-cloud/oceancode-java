@@ -1,14 +1,15 @@
 package com.oceancode.cloud.common.config;
 
 import com.oceancode.cloud.api.cache.CacheService;
+import com.oceancode.cloud.api.excel.FileService;
 import com.oceancode.cloud.api.mq.Consumer;
 import com.oceancode.cloud.api.mq.Producer;
 import com.oceancode.cloud.api.security.AesCryptoService;
 import com.oceancode.cloud.api.security.Rsa2CryptoService;
+import com.oceancode.cloud.common.excel.FileServiceImpl;
 import com.oceancode.cloud.common.id.RedisIncrementIdGenerator;
 import com.oceancode.cloud.common.mq.local.LocalConsumer;
 import com.oceancode.cloud.common.mq.local.LocalProducer;
-import com.oceancode.cloud.common.mq.redis.RedisConsumer;
 import com.oceancode.cloud.common.mq.redis.RedisProducer;
 import com.oceancode.cloud.common.security.AesCrypto;
 import com.oceancode.cloud.common.security.Rsa2Crypto;
@@ -42,7 +43,6 @@ public class AutoConfigService {
     }
 
 
-
     @Bean
     @ConditionalOnMissingBean(Producer.class)
     @ConditionalOnClass(RedisTemplate.class)
@@ -70,5 +70,11 @@ public class AutoConfigService {
     @ConditionalOnBean
     public RedisIncrementIdGenerator redisIncrementIdGenerator() {
         return new RedisIncrementIdGenerator();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(FileService.class)
+    public FileService fileService() {
+        return new FileServiceImpl();
     }
 }

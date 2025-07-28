@@ -69,16 +69,15 @@ public class PluginLoadingInitializer implements ApplicationContextInitializer<C
                     String className = jarEntry.getName().replace("/", ".");
                     className = className.substring(0, className.lastIndexOf("."));
                     Class<?> clazz = loader.loadClass(className);
-                    if (clazz.getInterfaces().length != 1) {
+                    if (clazz.getInterfaces().length == 0 || !Plugin.class.isAssignableFrom(clazz)) {
                         continue;
                     }
-                    Class<?> functionInterface = clazz.getInterfaces()[0];
-                    if (!Plugin.class.isAssignableFrom(functionInterface)) {
-                        continue;
+                    Class<?>[] interfaces = clazz.getInterfaces();
+                    for (Class<?> it : interfaces) {
+                        if (processRegisterBean(clazz, it, registry)) {
+                            LOGGER.info("load plugin[" + className + " - " + it.getName() + "] successful - " + path);
+                        }
                     }
-                    registry.registerBeanDefinition(functionInterface.getName(),
-                            BeanDefinitionBuilder.genericBeanDefinition(clazz).getBeanDefinition());
-                    LOGGER.info("load plugin[" + className + "] successful - " + path);
                 }
             }
         } catch (Exception e) {
@@ -87,4 +86,11 @@ public class PluginLoadingInitializer implements ApplicationContextInitializer<C
     }
 
 
+    private boolean processRegisterBean(Class<?> clazz, Class<?> func, BeanDefinitionRegistry registry) {
+        if (func.equals(Plugin.class)) {
+            return false;
+        }
+        registry.registerBeanDefinition(func.getName(), BeanDefinitionBuilder.genericBeanDefinition(clazz).getBeanDefinition());
+        return true;
+    }
 }

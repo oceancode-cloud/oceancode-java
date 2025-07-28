@@ -8,14 +8,10 @@ import com.oceancode.cloud.common.entity.PartFile;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import org.apache.commons.io.FileUtils;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Objects;
 
 /**
@@ -42,7 +38,7 @@ public final class FileUtil {
         partFile.setOriginalFilename(file.getOriginalFilename());
 
         if (ValueUtil.isNotEmpty(file.getOriginalFilename())) {
-            if (file.getOriginalFilename().contains(".")) {
+            if (Objects.requireNonNull(file.getOriginalFilename()).contains(".")) {
                 partFile.setSuffix(file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".")));
             }
         }
@@ -124,10 +120,13 @@ public final class FileUtil {
         }
     }
 
-
     public static void writeStringToFile(File file, String content) {
+        writeStringToFile(file, content, false);
+    }
+
+    public static void writeStringToFile(File file, String content, boolean append) {
         try {
-            FileUtils.writeStringToFile(file, content, Charset.forName(StandardCharsets.UTF_8.name()));
+            FileUtils.writeStringToFile(file, content, StandardCharsets.UTF_8, append);
         } catch (IOException e) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
         }
