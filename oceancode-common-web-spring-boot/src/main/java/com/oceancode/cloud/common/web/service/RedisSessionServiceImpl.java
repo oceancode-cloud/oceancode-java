@@ -45,7 +45,8 @@ public class RedisSessionServiceImpl implements SessionService {
 
     @Override
     public boolean isLogin(String token) {
-        CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:" + token);
+        TokenInfo tokenInfo = TokenUtil.parseToken(token);
+        CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
         String userId = redisCacheService.getString(cacheKey);
         if (ValueUtil.isEmpty(userId)) {
             return false;
@@ -63,7 +64,8 @@ public class RedisSessionServiceImpl implements SessionService {
 
     @Override
     public UserBaseInfo getUserInfo(String token) {
-        CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:" + token);
+        TokenInfo tokenInfo = TokenUtil.parseToken(token);
+        CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
         String userId = redisCacheService.getString(cacheKey);
         if (ValueUtil.isEmpty(userId)) {
             return null;
@@ -123,7 +125,8 @@ public class RedisSessionServiceImpl implements SessionService {
 
     @Override
     public void setUserInfo(String token, UserBaseInfo userInfo) {
-        CacheKey tokenKey = KeyParam.of(this.sessionKey()).express("_u:" + token);
+        TokenInfo tokenInfo = TokenUtil.parseToken(token);
+        CacheKey tokenKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:info:" + userInfo.getUserId());
 
         Map<String, Object> map = new HashMap<>();
@@ -147,7 +150,8 @@ public class RedisSessionServiceImpl implements SessionService {
 
     @Override
     public void logout(String token) {
-        CacheKey tokenKey = KeyParam.of(this.sessionKey()).express("_u:" + token);
+        TokenInfo tokenInfo = TokenUtil.parseToken(token);
+        CacheKey tokenKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
         String userId = redisCacheService.getString(tokenKey);
         if (ValueUtil.isNotEmpty(userId)) {
             CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:info:" + userId);
