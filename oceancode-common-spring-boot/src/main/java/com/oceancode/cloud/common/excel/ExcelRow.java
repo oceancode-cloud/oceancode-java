@@ -95,16 +95,27 @@ public class ExcelRow implements Row {
 
     @Override
     public Object getValue(int index) {
+        if (index >= 0 && index < getValues().size()) {
+            return getValues().get(index);
+        }
         return null;
     }
 
     @Override
     public Object getValue() {
-        return null;
+        return getValue(0);
     }
 
     @Override
     public String getText() {
-        return "";
+        return getValues().toString();
+    }
+
+    public Integer getPartIndex() {
+        return partIndex;
+    }
+
+    public org.apache.poi.ss.usermodel.Row getRow() {
+        return row;
     }
 }

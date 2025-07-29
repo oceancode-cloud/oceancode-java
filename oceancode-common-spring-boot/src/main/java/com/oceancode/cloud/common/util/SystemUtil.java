@@ -7,6 +7,8 @@ package com.oceancode.cloud.common.util;
 import org.springframework.core.env.Environment;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 
 public final class SystemUtil {
     public static final String OUTPUT_DIR_CONFIG_KEY = "oc.system.output.dir";
@@ -46,6 +48,20 @@ public final class SystemUtil {
     public static String tempDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
         String tempDir = environment.getProperty("oc.tmp.dir", "../data/tmp");
+        if (ValueUtil.isEmpty(tempDir)) {
+            try {
+                return Path.of(dataDir(), "../data/tmp").toFile().getCanonicalPath();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (tempDir.startsWith("../")) {
+            try {
+                return Path.of(dataDir(), tempDir).toFile().getCanonicalPath();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return tempDir;
     }
 

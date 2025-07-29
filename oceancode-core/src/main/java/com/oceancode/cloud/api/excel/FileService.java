@@ -1,14 +1,13 @@
 package com.oceancode.cloud.api.excel;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.File;
+import java.util.function.Consumer;
 
 public interface FileService {
-    void parse(String path, InputStream inputStream, ParseCallback callback);
+    <T extends ParseFileContext> void parse(T context, ParseCallback callback);
 
-    void parse(String path, ParseCallback callback);
+    <T extends ExportFileContext> void write(T context, WriteCallback callback);
 
-    void write(String templatePath, OutputStream outputStream, WritCallback callback);
+    void readTemplate(File templateFile, Consumer<TemplateInputStream> consumer);
 
-    void write(String templatePath, WritCallback callback);
 }

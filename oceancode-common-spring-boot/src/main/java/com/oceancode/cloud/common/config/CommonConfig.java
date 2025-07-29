@@ -9,6 +9,7 @@ import com.oceancode.cloud.common.enums.AppModeType;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
+import com.oceancode.cloud.common.util.SystemUtil;
 import com.oceancode.cloud.common.util.TypeUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import jakarta.annotation.Resource;
@@ -49,6 +50,7 @@ public class CommonConfig {
 
     public CommonConfig(ApplicationContext applicationContext) {
         ComponentUtil.setApplicationContext(applicationContext);
+        SystemUtil.init();
     }
 
     private static List<String> stripPrefixes;
