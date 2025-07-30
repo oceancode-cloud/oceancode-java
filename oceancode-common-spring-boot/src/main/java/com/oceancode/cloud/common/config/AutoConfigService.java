@@ -13,6 +13,7 @@ import com.oceancode.cloud.common.mq.local.LocalProducer;
 import com.oceancode.cloud.common.mq.redis.RedisProducer;
 import com.oceancode.cloud.common.security.AesCrypto;
 import com.oceancode.cloud.common.security.Rsa2Crypto;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -74,6 +75,7 @@ public class AutoConfigService {
 
     @Bean
     @ConditionalOnMissingBean(FileService.class)
+    @ConditionalOnClass(Workbook.class)
     public FileService fileService() {
         return new FileServiceImpl();
     }

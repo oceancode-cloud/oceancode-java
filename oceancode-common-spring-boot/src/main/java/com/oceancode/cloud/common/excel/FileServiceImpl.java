@@ -394,7 +394,7 @@ public class FileServiceImpl implements FileService {
 
         long total = 0L;
 
-        InnerFileContext innerFileContext = new InnerFileContext();
+        InnerFileContext innerFileContext = context;
         while (true) {
             if (total == Long.MAX_VALUE) {
                 break;
@@ -409,7 +409,7 @@ public class FileServiceImpl implements FileService {
                     continue;
                 }
                 if (Objects.nonNull(innerFileContext.getTemplateSheetRowMapping())) {
-                    if (!innerFileContext.getTemplateSheetMapping().containsKey(row.getPartIndex())) {
+                    if (!innerFileContext.getTemplateSheetRowMapping().containsKey(row.getPartIndex())) {
                         continue;
                     }
                 }
@@ -421,7 +421,7 @@ public class FileServiceImpl implements FileService {
                         name = ExpressUtil.parse(name, innerFileContext.getVariables(), String.class, true);
                     }
                     if (ValueUtil.isEmpty(name)) {
-                        name = row.getName();
+                        name = innerFileContext.getNames().get(row.getPartIndex());
                     }
                     Sheet sheet = workbook.getSheetAt(row.getPartIndex());
                     workbook.setSheetName(row.getPartIndex(), name);
