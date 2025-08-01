@@ -16,7 +16,6 @@ import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.CacheUtil;
 import com.oceancode.cloud.common.util.ComponentUtil;
-import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -72,9 +71,8 @@ public final class CaffeineServiceImpl implements LocalCacheService {
         putVal(keyParam, value);
         Object finalValue = value;
         long finalExpire = expire;
-        getCache(keyParam).policy().expireVariably().ifPresent(e -> {
-            e.put(keyParam.parseKey(), finalValue, finalExpire, TimeUnit.MILLISECONDS);
-        });
+        getCache(keyParam).policy().expireVariably().ifPresent(e ->
+                e.put(keyParam.parseKey(), finalValue, finalExpire, TimeUnit.MILLISECONDS));
 
         if (CacheUtil.enabledAb(keyParam.key())) {
             getCache(keyParam).asMap().remove(keyParam.parseBKey());
@@ -109,14 +107,17 @@ public final class CaffeineServiceImpl implements LocalCacheService {
 
     @Override
     public <T> List<T> getStringAsList(CacheKey keyParam, Class<T> returnClassType) {
-        String value = getString(keyParam);
-        if (null == value) {
-            return null;
+        Object value = getVal(keyParam);
+        if (null == value && CacheUtil.enabledAb(keyParam.key())) {
+            value = getCache(keyParam).getIfPresent(keyParam.parseBKey());
+        }
+        if (Objects.isNull(value)) {
+            return Collections.emptyList();
         }
         if (CacheUtil.isEmpty(keyParam.key(), value)) {
             return Collections.emptyList();
         }
-        return JsonUtil.toList(value, returnClassType);
+        return (List<T>) value;
     }
 
     @Override
