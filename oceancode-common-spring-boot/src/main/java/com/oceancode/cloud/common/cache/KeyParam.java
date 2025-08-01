@@ -18,7 +18,7 @@ import java.util.Objects;
 
 public final class KeyParam implements CacheKey {
     public static final String DEFAULT_KEY = "master";
-    private Map<String, Object> params;
+    private Map<String, Object> params = new HashMap<>();
     private String key;
     private String sourceKey;
     private boolean isExpress;
@@ -43,7 +43,6 @@ public final class KeyParam implements CacheKey {
 
     private KeyParam(String key, Long expireIn) {
         this.key = key;
-        this.resultKey = key;
         this.isExpress = false;
         this.isKeyPattern = false;
         this.expireIn = expireIn;
@@ -65,7 +64,7 @@ public final class KeyParam implements CacheKey {
         if (!isPatternKey) {
             return new KeyParam(key, expireIn);
         }
-        return new KeyParam(key, new HashMap<>(16)).express(key);
+        return new KeyParam(key, new HashMap<>(16));
     }
 
 
@@ -200,6 +199,10 @@ public final class KeyParam implements CacheKey {
     }
 
     public Long expire(boolean originalValue) {
+        if (Objects.nonNull(expireIn)) {
+            return expireIn + CacheUtil.randomExpire(key);
+        }
+        expireIn = 3600000L + CacheUtil.randomExpire(key);
         if (!isKeyPattern) {
             return expireIn;
         }
