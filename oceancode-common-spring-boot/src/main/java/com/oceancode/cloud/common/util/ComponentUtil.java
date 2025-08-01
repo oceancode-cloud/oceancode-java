@@ -4,7 +4,6 @@
 
 package com.oceancode.cloud.common.util;
 
-import com.oceancode.cloud.api.Notifier;
 import com.oceancode.cloud.api.TypeEnum;
 import com.oceancode.cloud.api.strategy.StrategyAdaptor;
 import com.oceancode.cloud.common.config.CommonConfig;
@@ -88,21 +87,6 @@ public final class ComponentUtil {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, typeClass.getName() + "[" + type + "] not found");
         }
         return bean;
-    }
-
-    public static List<Notifier> getNotifiers(String name) {
-        Map<String, Notifier> map = getBeans(Notifier.class);
-        if (map == null || map.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<Notifier> list = new ArrayList<>(map.size());
-        for (Notifier value : map.values()) {
-            if (value.getResourceId().equals(name)) {
-                list.add(value);
-            }
-        }
-
-        return list;
     }
 
     public static void setApplicationContext(ApplicationContext ctx) {
