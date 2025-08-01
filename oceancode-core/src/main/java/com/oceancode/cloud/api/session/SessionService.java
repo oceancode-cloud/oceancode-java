@@ -43,6 +43,8 @@ public interface SessionService {
      */
     void setUserInfo(String token, UserBaseInfo userInfo);
 
+    void setUserInfo(Long userId, UserBaseInfo userInfo);
+
     /**
      * logout
      */

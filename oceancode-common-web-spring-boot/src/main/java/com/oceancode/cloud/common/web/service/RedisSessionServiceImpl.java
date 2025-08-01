@@ -3,7 +3,6 @@ package com.oceancode.cloud.common.web.service;
 import com.oceancode.cloud.api.TypeEnum;
 import com.oceancode.cloud.api.cache.CacheKey;
 import com.oceancode.cloud.api.cache.CacheService;
-import com.oceancode.cloud.api.cache.RedisCacheService;
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.api.session.TokenInfo;
 import com.oceancode.cloud.api.session.UserBaseInfo;
@@ -13,17 +12,10 @@ import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.config.Config;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
-import com.oceancode.cloud.common.util.CacheUtil;
-import com.oceancode.cloud.common.util.ExpressUtil;
 import com.oceancode.cloud.common.util.SessionUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.common.web.util.*;
 import jakarta.annotation.Resource;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -125,9 +117,19 @@ public class RedisSessionServiceImpl implements SessionService {
 
     @Override
     public void setUserInfo(String token, UserBaseInfo userInfo) {
+        if (ValueUtil.isEmpty(userInfo.getUserId())) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "userId is required.");
+        }
         TokenInfo tokenInfo = TokenUtil.parseToken(token);
         CacheKey tokenKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:info:" + userInfo.getUserId());
+        CacheKey userTokenKey = KeyParam.of(this.sessionKey()).express("_u:id:" + userInfo.getUserId());
+
+        String oldToken = redisCacheService.getString(userTokenKey);
+        if (ValueUtil.isNotEmpty(oldToken)) {
+            CacheKey oldTokenKey = KeyParam.of(this.sessionKey()).express("_u:" + oldToken);
+            redisCacheService.delete(oldTokenKey);
+        }
 
         Map<String, Object> map = new HashMap<>();
         if (Objects.nonNull(userInfo.getData())) {
@@ -145,7 +147,30 @@ public class RedisSessionServiceImpl implements SessionService {
             map.remove("userType");
         }
         redisCacheService.setMap(cacheKey, map);
+        redisCacheService.setString(userTokenKey, tokenInfo.getSessionId());
         redisCacheService.setString(tokenKey, String.valueOf(userInfo.getUserId()));
+    }
+
+    @Override
+    public void setUserInfo(Long userId, UserBaseInfo userInfo) {
+        userInfo.setUserId(userId);
+        CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:info:" + userInfo.getUserId());
+        Map<String, Object> map = new HashMap<>();
+        if (Objects.nonNull(userInfo.getData())) {
+            map.putAll(userInfo.getData());
+        }
+        if (ValueUtil.isNotEmpty(userInfo.getOpenid())) {
+            map.put("openid", userInfo.getOpenid());
+        } else {
+            map.remove("openid");
+        }
+
+        if (Objects.nonNull(userInfo.getUserType())) {
+            map.put("userType", userInfo.getUserType().getValue());
+        } else {
+            map.remove("userType");
+        }
+        redisCacheService.setMap(cacheKey, map);
     }
 
     @Override
