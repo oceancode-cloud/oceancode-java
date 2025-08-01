@@ -144,6 +144,9 @@ public class GraphQlProvider {
             }
             String key = returnType.getName();
             GraphQLOutputType graphQLOutputType = typeMapping.get(key);
+            if (String.class.equals(returnType) || Long.class.equals(returnType)) {
+                graphQLOutputType = Scalars.GraphQLString;
+            }
             if (graphQLOutputType == null) {
                 typeMapping.put(key, graphQLOutputType);
                 List<Runnable> cbs = new ArrayList<>();

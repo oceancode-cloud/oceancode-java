@@ -13,10 +13,11 @@ public class DslConfig {
 
     @Autowired(required = false)
     private DataFetcherProvider dataFetcherProvider;
+
     @Bean
     @ConditionalOnBean(QueryFunction.class)
     public GraphQL provider(QueryFunction queryFunction, CommonConfig commonConfig) {
-        GraphQlProvider graphQlProvider = new GraphQlProvider(queryFunction,commonConfig,dataFetcherProvider);
+        GraphQlProvider graphQlProvider = new GraphQlProvider(queryFunction, commonConfig, dataFetcherProvider);
         return graphQlProvider.graphQL();
     }
 }

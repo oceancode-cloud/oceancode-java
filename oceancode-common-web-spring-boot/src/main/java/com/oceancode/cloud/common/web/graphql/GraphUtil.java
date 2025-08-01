@@ -10,6 +10,7 @@ import graphql.ExecutionResult;
 import graphql.GraphQLError;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 
 public final class GraphUtil {
@@ -29,6 +30,10 @@ public final class GraphUtil {
                         throw (BusinessRuntimeException) throwable;
                     } else if (throwable instanceof ErrorCodeRuntimeException) {
                         throw (ErrorCodeRuntimeException) throwable;
+                    } else if (throwable instanceof InvocationTargetException invocationTargetException) {
+                        if (invocationTargetException.getTargetException() instanceof ErrorCodeRuntimeException errorCodeRuntimeException) {
+                            throw errorCodeRuntimeException;
+                        }
                     }
                 }
 
