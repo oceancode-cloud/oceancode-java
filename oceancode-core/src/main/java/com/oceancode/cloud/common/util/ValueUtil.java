@@ -41,6 +41,7 @@ public final class ValueUtil {
     public static boolean isEmpty(String str) {
         return !isNotEmpty(str);
     }
+
     public static boolean isEmpty(Integer value) {
         return value == null;
     }
@@ -93,6 +94,13 @@ public final class ValueUtil {
         return null == value || value.length == 0;
     }
 
+    public static boolean isEmpty(byte[] value) {
+        return null == value || value.length == 0;
+    }
+
+    public static boolean isEmpty(char[] value) {
+        return null == value || value.length == 0;
+    }
 
     public static boolean isNotEmpty(String value) {
         boolean ret = value != null && !value.isEmpty();
@@ -151,6 +159,14 @@ public final class ValueUtil {
     }
 
     public static boolean isNotEmpty(String[] value) {
+        return null != value && value.length > 0;
+    }
+
+    public static boolean isNotEmpty(char[] value) {
+        return null != value && value.length > 0;
+    }
+
+    public static boolean isNotEmpty(byte[] value) {
         return null != value && value.length > 0;
     }
 
