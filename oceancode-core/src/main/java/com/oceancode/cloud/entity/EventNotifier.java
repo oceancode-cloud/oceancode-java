@@ -1,5 +1,7 @@
 package com.oceancode.cloud.entity;
 
+import com.oceancode.cloud.common.util.SessionUtil;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,7 +23,7 @@ public class EventNotifier {
     }
 
     public EventNotifier withAdd() {
-        return new EventNotifier().eventType(EventType.ADD);
+        return eventType(EventType.ADD);
     }
 
     public EventNotifier withAdd(Long id) {
@@ -29,7 +31,7 @@ public class EventNotifier {
     }
 
     public EventNotifier withDelete() {
-        return new EventNotifier().eventType(EventType.DELETE);
+        return eventType(EventType.DELETE);
     }
 
     public EventNotifier withDelete(Long id) {
@@ -38,7 +40,7 @@ public class EventNotifier {
 
 
     public EventNotifier withUpdate() {
-        return new EventNotifier().eventType(EventType.MODIFY);
+        return eventType(EventType.MODIFY);
     }
 
     public EventNotifier withUpdate(Long id) {
@@ -174,6 +176,7 @@ public class EventNotifier {
         EventNotifier eventNotifier = new EventNotifier();
         eventNotifier.addClassType(classType);
         eventNotifier.setEventType(EventType.ADD);
+        eventNotifier.userId(SessionUtil.userId(false));
         return eventNotifier;
     }
 
