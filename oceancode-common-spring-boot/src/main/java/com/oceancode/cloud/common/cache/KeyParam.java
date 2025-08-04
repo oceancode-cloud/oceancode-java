@@ -162,6 +162,9 @@ public final class KeyParam implements CacheKey {
             }
             tempMap.put(entry.getKey(), entry.getValue());
         }
+        tempMap.put("projectId", SessionUtil.projectId(false));
+        tempMap.put("userId", SessionUtil.userId(false));
+        tempMap.put("tenantId", SessionUtil.tenantId(false));
         resultKey = wrapperKey(ExpressUtil.parse(keyPattern, tempMap, String.class));
         checkKey(resultKey);
         return resultKey;
