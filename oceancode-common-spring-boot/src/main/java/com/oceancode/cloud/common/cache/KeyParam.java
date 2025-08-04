@@ -9,9 +9,7 @@ import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.*;
-import org.checkerframework.checker.units.qual.K;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -19,10 +17,10 @@ import java.util.Objects;
 public final class KeyParam implements CacheKey {
     public static final String DEFAULT_KEY = "master";
     private Map<String, Object> params = new HashMap<>();
-    private String key;
+    private final String key;
     private String sourceKey;
     private boolean isExpress;
-    private Boolean isKeyPattern;
+    private final Boolean isKeyPattern;
     private Long expireIn;
 
     private static CommonConfig commonConfig;
@@ -209,7 +207,7 @@ public final class KeyParam implements CacheKey {
         if (!isKeyPattern) {
             return expireIn;
         }
-        Long val = Long.parseLong(commonConfig.getValue("oc.cache." + key + ".expire", "3600000"));
+        long val = Long.parseLong(commonConfig.getValue("oc.cache." + key + ".expire", "3600000"));
         return originalValue ? val : val + CacheUtil.randomExpire(key);
     }
 
