@@ -1,11 +1,17 @@
 package com.oceancode.cloud.common.config;
 
 import com.oceancode.cloud.api.cache.CacheService;
+import com.oceancode.cloud.api.cache.LocalCacheService;
+import com.oceancode.cloud.api.cache.LockService;
+import com.oceancode.cloud.api.cache.RedisCacheService;
 import com.oceancode.cloud.api.excel.FileService;
 import com.oceancode.cloud.api.mq.Consumer;
 import com.oceancode.cloud.api.mq.Producer;
 import com.oceancode.cloud.api.security.AesCryptoService;
 import com.oceancode.cloud.api.security.Rsa2CryptoService;
+import com.oceancode.cloud.common.cache.LockServiceImpl;
+import com.oceancode.cloud.common.cache.caffeine.CaffeineLockServiceImpl;
+import com.oceancode.cloud.common.cache.redis.RedisLockServiceImpl;
 import com.oceancode.cloud.common.excel.FileServiceImpl;
 import com.oceancode.cloud.common.id.RedisIncrementIdGenerator;
 import com.oceancode.cloud.common.mq.local.LocalConsumer;
@@ -78,5 +84,24 @@ public class AutoConfigService {
     @ConditionalOnClass(Workbook.class)
     public FileService fileService() {
         return new FileServiceImpl();
+    }
+
+    @Bean
+    @ConditionalOnBean(RedisCacheService.class)
+    public LockService redisLock() {
+        return new RedisLockServiceImpl();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(LockService.class)
+    @ConditionalOnBean(LocalCacheService.class)
+    public LockService localLock() {
+        return new CaffeineLockServiceImpl();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(LockService.class)
+    public LockService lockService() {
+        return new LockServiceImpl();
     }
 }

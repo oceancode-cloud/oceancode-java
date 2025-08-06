@@ -14,8 +14,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-@Component
-@ConditionalOnBean(LockService.class)
 public class LockServiceImpl implements LockService {
     private static ConcurrentMap<String, ReentrantLock> LOCK_POOLS;
 

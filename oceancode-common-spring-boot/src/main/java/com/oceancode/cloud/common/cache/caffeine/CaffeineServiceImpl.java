@@ -112,7 +112,7 @@ public final class CaffeineServiceImpl implements LocalCacheService {
             value = getCache(keyParam).getIfPresent(keyParam.parseBKey());
         }
         if (Objects.isNull(value)) {
-            return Collections.emptyList();
+            return null;
         }
         if (CacheUtil.isEmpty(keyParam.key(), value)) {
             return Collections.emptyList();

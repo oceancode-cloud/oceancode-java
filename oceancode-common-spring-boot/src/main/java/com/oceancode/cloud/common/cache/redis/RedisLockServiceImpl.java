@@ -7,18 +7,11 @@ import com.oceancode.cloud.api.cache.RedisCacheService;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import jakarta.annotation.Resource;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.context.annotation.Primary;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@Component
-@Primary
-@ConditionalOnClass({RedisTemplate.class,})
 public class RedisLockServiceImpl implements LockService {
 
     @Resource

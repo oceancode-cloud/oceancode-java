@@ -200,6 +200,16 @@ public final class KeyParam implements CacheKey {
     }
 
     public Long expire(boolean originalValue) {
+        if (originalValue) {
+            if (Objects.nonNull(expireIn)) {
+                return expireIn;
+            }
+            String val = commonConfig.getValue("oc.cache." + key + ".expire");
+            if (ValueUtil.isNotEmpty(val)) {
+                expireIn = Long.parseLong(val);
+            }
+            return expireIn;
+        }
         if (Objects.nonNull(expireIn)) {
             return expireIn + CacheUtil.randomExpire(key);
         }

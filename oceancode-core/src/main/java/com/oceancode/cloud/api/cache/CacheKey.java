@@ -5,6 +5,8 @@ import java.util.Map;
 public interface CacheKey {
     Long expire();
 
+    Long expire(boolean originalValue);
+
     String parseKey();
 
     String parseBKey();
@@ -17,7 +19,9 @@ public interface CacheKey {
     String key();
 
     CacheKey addParam(String argKey, String argVal);
+
     CacheKey addParamNotEmpty(String argKey, String argVal);
+
     CacheKey addParamNotEmpty(String argKey, Long argVal);
 
     CacheKey addParams(Map<String, Object> params);

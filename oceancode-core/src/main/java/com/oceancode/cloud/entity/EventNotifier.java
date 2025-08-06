@@ -191,6 +191,18 @@ public class EventNotifier {
         return true;
     }
 
+    public Long getParamAsLong(String key) {
+        Object value = getParams().get(key);
+        if (value instanceof Long) {
+            return (Long) value;
+        } else if (value instanceof String str) {
+            return Long.parseLong(str);
+        } else if (value instanceof Integer v) {
+            return Long.valueOf(v);
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         return "EventNotifier{" +
