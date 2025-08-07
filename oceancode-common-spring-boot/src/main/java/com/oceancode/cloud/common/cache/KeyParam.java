@@ -163,7 +163,13 @@ public final class KeyParam implements CacheKey {
         tempMap.put("projectId", SessionUtil.projectId(false));
         tempMap.put("userId", SessionUtil.userId(false));
         tempMap.put("tenantId", SessionUtil.tenantId(false));
-        resultKey = wrapperKey(ExpressUtil.parse(keyPattern, tempMap, String.class));
+        resultKey = wrapperKey(ExpressUtil.parse(keyPattern, tempMap, String.class)).trim();
+        if (resultKey.endsWith(":")) {
+            resultKey = resultKey.substring(0, resultKey.lastIndexOf(":"));
+        }
+        if (resultKey.contains("::")) {
+            resultKey = resultKey.replace("::", ":");
+        }
         checkKey(resultKey);
         return resultKey;
     }

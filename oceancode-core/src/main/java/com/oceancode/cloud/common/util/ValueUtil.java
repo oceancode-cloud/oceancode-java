@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -325,5 +326,15 @@ public final class ValueUtil {
 
     public static Boolean isFalse(Boolean value) {
         return Objects.isNull(value) || !value;
+    }
+
+    public static <K, V> Map<K, V> putMapElements(Map<K, V> sourceMap, Map<K, V> dataMap) {
+        if (Objects.isNull(dataMap)) {
+            return sourceMap;
+        }
+        Map<K, V> map = sourceMap == null ? new HashMap<>() : sourceMap;
+        map.putAll(dataMap);
+
+        return map;
     }
 }
