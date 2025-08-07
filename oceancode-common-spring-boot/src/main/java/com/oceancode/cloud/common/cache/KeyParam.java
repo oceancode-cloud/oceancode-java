@@ -155,10 +155,14 @@ public final class KeyParam implements CacheKey {
         }
         Map<String, Object> tempMap = new HashMap<>();
         for (Map.Entry<String, Object> entry : params().entrySet()) {
-            if (Objects.isNull(entry.getValue())) {
+            Object value = entry.getValue();
+            if (Objects.isNull(value)) {
                 continue;
             }
-            tempMap.put(entry.getKey(), entry.getValue());
+            if (value instanceof String str) {
+                value = str.trim();
+            }
+            tempMap.put(entry.getKey(), value);
         }
         tempMap.put("projectId", SessionUtil.projectId(false));
         tempMap.put("userId", SessionUtil.userId(false));
