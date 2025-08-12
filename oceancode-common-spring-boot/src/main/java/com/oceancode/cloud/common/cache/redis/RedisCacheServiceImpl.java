@@ -232,6 +232,10 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     @Override
     public void setMapValue(CacheKey keyParam, String key, Object value) {
         RedisTemplate<String, Object> redisTemplate = redisTemplate(keyParam.sourceKey());
+        if (Objects.isNull(value)) {
+            redisTemplate.opsForHash().delete(keyParam.parseKey(), key);
+            return;
+        }
         redisTemplate.opsForHash().put(keyParam.parseKey(), key, value);
     }
 

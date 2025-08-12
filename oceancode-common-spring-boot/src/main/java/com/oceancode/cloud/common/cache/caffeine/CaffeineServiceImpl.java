@@ -169,10 +169,12 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     @Override
     public void setMapValue(CacheKey keyParam, String key, Object value) {
         Map<String, Object> map = getMap(keyParam);
-        if (Objects.isNull(map)) {
-            map = new HashMap<>();
+        if (Objects.isNull(value)) {
+            map.remove(key);
+        } else {
+            map.put(key, value);
         }
-        map.put(key, value);
+
         setMap(keyParam, map);
     }
 

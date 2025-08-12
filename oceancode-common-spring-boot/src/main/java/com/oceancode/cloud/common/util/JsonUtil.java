@@ -168,6 +168,14 @@ public final class JsonUtil {
         }
     }
 
+    public static Map<String, Object> beanToMap(Object obj) {
+        try {
+            return OBJECT_MAPPER.readValue(toJson(obj), Map.class);
+        } catch (JsonProcessingException e) {
+            throw new BusinessRuntimeException(CommonErrorCode.ERROR, e);
+        }
+    }
+
     public static class TypeEnumSerializer extends JsonSerializer<TypeEnum> {
 
         @Override
@@ -197,6 +205,12 @@ public final class JsonUtil {
     }
 
     public static <T> T mapToBean(Map map, Class<T> typeClass) {
+        if (Objects.isNull(typeClass)) {
+            return null;
+        }
+        if (ValueUtil.isEmpty(map)) {
+            return null;
+        }
         return OBJECT_MAPPER.convertValue(map, typeClass);
     }
 
