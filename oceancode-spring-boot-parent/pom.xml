@@ -48,6 +48,12 @@
 
             <dependency>
                 <groupId>com.oceancode-cloud</groupId>
+                <artifactId>oceancode-model</artifactId>
+                <version>1.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.oceancode-cloud</groupId>
                 <artifactId>oceancode-test</artifactId>
                 <version>${oceancode-cloud.version}</version>
             </dependency>
