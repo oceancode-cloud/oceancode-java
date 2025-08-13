@@ -7,9 +7,11 @@ package com.oceancode.cloud.common.cache.caffeine;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.oceancode.cloud.api.LockActionCallback;
+import com.oceancode.cloud.api.Result;
 import com.oceancode.cloud.api.cache.CacheKey;
 import com.oceancode.cloud.api.cache.LocalCacheService;
 import com.oceancode.cloud.api.cache.entity.SortedValue;
+import com.oceancode.cloud.common.cache.CacheResult;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.config.Config;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
@@ -86,7 +88,7 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
-    public String getString(CacheKey keyParam) {
+    public Result<String> getString(CacheKey keyParam) {
         String val = getVal(keyParam);
         if (Objects.isNull(val)) {
             if (CacheUtil.enabledAb(keyParam.key())) {
@@ -94,30 +96,30 @@ public final class CaffeineServiceImpl implements LocalCacheService {
             }
         }
         if (Objects.isNull(val)) {
-            return null;
+            return CacheResult.NULL;
         }
         if (CacheUtil.isEmpty(keyParam.key(), val)) {
             boolean enabledEmpty = CacheUtil.emptyEnabled(keyParam.key());
             if (enabledEmpty) {
-                return null;
+                return CacheResult.EMPTY;
             }
         }
-        return val;
+        return new CacheResult<>(val);
     }
 
     @Override
-    public <T> List<T> getStringAsList(CacheKey keyParam, Class<T> returnClassType) {
+    public <T> Result<List<T>> getStringAsList(CacheKey keyParam, Class<T> returnClassType) {
         Object value = getVal(keyParam);
         if (null == value && CacheUtil.enabledAb(keyParam.key())) {
             value = getCache(keyParam).getIfPresent(keyParam.parseBKey());
         }
         if (Objects.isNull(value)) {
-            return null;
+            return CacheResult.NULL;
         }
         if (CacheUtil.isEmpty(keyParam.key(), value)) {
-            return Collections.emptyList();
+            return CacheResult.EMPTY;
         }
-        return (List<T>) value;
+        return new CacheResult<>((List<T>) value);
     }
 
     @Override
@@ -147,28 +149,35 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
-    public Map<String, Object> getMap(CacheKey keyParam) {
+    public Result<Map<String, Object>> getMap(CacheKey keyParam) {
         Map<String, Object> map = getVal(keyParam);
         if (map == null) {
-            return Collections.emptyMap();
+            return CacheResult.NULL;
         }
-        return map;
+        return new CacheResult<>(map);
     }
 
     @Override
-    public Map<String, Object> getMapValues(CacheKey keyParam, List<String> fields) {
-        Map<String, Object> valueMap = getMap(keyParam);
+    public Result<Map<String, Object>> getMapValues(CacheKey keyParam, List<String> fields) {
+        Result<Map<String, Object>> valueMap = getMap(keyParam);
+        if (!valueMap.isSuccess()) {
+            return CacheResult.NULL;
+        }
 
         Map<String, Object> resultMap = new HashMap<>();
         for (String field : fields) {
-            resultMap.put(field, valueMap.get(field));
+            resultMap.put(field, valueMap.getResults().get(field));
         }
-        return resultMap;
+        return new CacheResult<>(resultMap);
     }
 
     @Override
     public void setMapValue(CacheKey keyParam, String key, Object value) {
-        Map<String, Object> map = getMap(keyParam);
+        Result<Map<String, Object>> result = getMap(keyParam);
+        Map<String, Object> map = result.getResults();
+        if (Objects.isNull(map)) {
+            map = new HashMap<>();
+        }
         if (Objects.isNull(value)) {
             map.remove(key);
         } else {
@@ -183,7 +192,8 @@ public final class CaffeineServiceImpl implements LocalCacheService {
         if (value == null || value.isEmpty()) {
             return;
         }
-        Map<String, Object> map = getMap(keyParam);
+        Result<Map<String, Object>> result = getMap(keyParam);
+        Map<String, Object> map = result.getResults();
         if (Objects.isNull(map)) {
             map = new HashMap<>();
         }
@@ -214,24 +224,28 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
-    public <T> List<T> getList(CacheKey keyParam) {
+    public <T> Result<List<T>> getList(CacheKey keyParam) {
         List<T> list = getVal(keyParam);
         if (list == null) {
-            return Collections.emptyList();
+            return CacheResult.NULL;
         }
-        return list;
+        return new CacheResult<>(list);
     }
 
     @Override
-    public <T> List<T> getList(CacheKey keyParam, int start, int end) {
-        List<T> list = getList(keyParam);
-        if (list.isEmpty()) {
-            return list;
+    public <T> Result<List<T>> getList(CacheKey keyParam, int start, int end) {
+        Result<List<Object>> result = getList(keyParam);
+        if (!result.isSuccess()) {
+            return CacheResult.NULL;
+        }
+        List<Object> list = result.getResults();
+        if (ValueUtil.isEmpty(result.getResults())) {
+            return CacheResult.EMPTY;
         }
         if (end < list.size()) {
-            return list.subList(start, end);
+            return new CacheResult<>((List<T>) list.subList(start, end));
         }
-        return Collections.emptyList();
+        return CacheResult.EMPTY;
     }
 
     @Override
@@ -246,10 +260,10 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
-    public <T> Set<T> getSet(CacheKey keyParam, int count) {
+    public <T> Result<Set<T>> getSet(CacheKey keyParam, int count) {
         Set<T> set = getVal(keyParam);
         if (set == null) {
-            set = Collections.emptySet();
+            return CacheResult.NULL;
         }
         Set<T> resultSet = new HashSet<>();
         int pos = 0;
@@ -259,7 +273,7 @@ public final class CaffeineServiceImpl implements LocalCacheService {
             resultSet.add(t);
             pos++;
         }
-        return set;
+        return new CacheResult<>(set);
     }
 
     @Override
@@ -279,10 +293,10 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
-    public <T> List<SortedValue<T>> getSortedSet(CacheKey keyParam, int start, int end, boolean reversed) {
+    public <T> Result<List<SortedValue<T>>> getSortedSet(CacheKey keyParam, int start, int end, boolean reversed) {
         List<SortedValue<T>> list = (List<SortedValue<T>>) getCache(keyParam).asMap().get(keyParam.parseKey());
         if (Objects.isNull(list)) {
-            return Collections.emptyList();
+            return CacheResult.NULL;
         }
         Iterator<SortedValue<T>> iterator = list.iterator();
         for (int i = 0; i < start; i++) {
@@ -294,7 +308,7 @@ public final class CaffeineServiceImpl implements LocalCacheService {
             SortedValue<T> item = iterator.next();
             resultList.add(item);
         }
-        return resultList;
+        return new CacheResult<>(resultList);
     }
 
     @Override
@@ -315,17 +329,17 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
-    public <T> T getEntity(CacheKey keyParam, Class<T> valueTypeClass) {
+    public <T> Result<T> getEntity(CacheKey keyParam, Class<T> valueTypeClass) {
         Object data = getVal(keyParam);
         if (data == null) {
-            return null;
+            return CacheResult.NULL;
         }
         if (data instanceof String) {
             if (CacheUtil.isEmpty(keyParam.key(), (String) data)) {
-                return null;
+                return CacheResult.EMPTY;
             }
         }
-        return (T) data;
+        return new CacheResult<>((T) data);
     }
 
     @Override
@@ -339,16 +353,19 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
-    public long setExpire(CacheKey keyParam, long timeout) {
+    public Result<Long> setExpire(CacheKey keyParam, long timeout) {
         Object value = getCache(keyParam).getIfPresent(keyParam.parseKey());
+        if (Objects.isNull(value)) {
+            return new CacheResult<>(-1L, false);
+        }
         getCache(keyParam).policy().expireVariably().ifPresent(e -> {
             e.put(keyParam.parseKey(), value, keyParam.expire(), TimeUnit.MILLISECONDS);
         });
-        return getCache(keyParam).policy().expireAfterWrite().get().getExpiresAfter(TimeUnit.MILLISECONDS);
+        return new CacheResult<>(getCache(keyParam).policy().expireAfterWrite().get().getExpiresAfter(TimeUnit.MILLISECONDS));
     }
 
     @Override
-    public Long increment(CacheKey keyParam, long delta) {
+    public Result<Long> increment(CacheKey keyParam, long delta) {
         synchronized (this) {
             Long value = (Long) getCache(keyParam).asMap().get(keyParam.parseKey());
             if (Objects.isNull(value)) {
@@ -356,7 +373,7 @@ public final class CaffeineServiceImpl implements LocalCacheService {
             }
             value = value + delta;
             putVal(keyParam, value);
-            return value;
+            return new CacheResult<>(value);
         }
     }
 

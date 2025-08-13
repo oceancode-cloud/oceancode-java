@@ -4,9 +4,11 @@
 
 package com.oceancode.cloud.common.cache.redis;
 
+import com.oceancode.cloud.api.Result;
 import com.oceancode.cloud.api.cache.CacheKey;
 import com.oceancode.cloud.api.cache.RedisCacheService;
 import com.oceancode.cloud.api.cache.entity.SortedValue;
+import com.oceancode.cloud.common.cache.CacheResult;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.CacheUtil;
@@ -94,16 +96,20 @@ public class RedisCacheServiceImpl implements RedisCacheService {
 
 
     @Override
-    public String getString(CacheKey keyParam) {
+    public Result<String> getString(CacheKey keyParam) {
         int maxReplica = CacheUtil.replica(keyParam.key());
         if (maxReplica > 1) {
-            Map<String, Object> values = getMap(keyParam);
+            Result<Map<String, Object>> result = getMap(keyParam);
+            if(!result.isSuccess()){
+                return CacheResult.NULL;
+            }
+            Map<String, Object> values = result.getResults();
             if (ValueUtil.isEmpty(values)) {
-                return null;
+                return CacheResult.EMPTY;
             }
             Integer count = (Integer) values.get("count");
             if (Objects.isNull(count) || count <= 0) {
-                return null;
+                return CacheResult.EMPTY;
             }
             StringBuilder sb = new StringBuilder();
             for (int index = 0; index < count; index++) {
@@ -112,10 +118,10 @@ public class RedisCacheServiceImpl implements RedisCacheService {
             String text = sb.toString();
             if (CacheUtil.enabledAb(keyParam.key())) {
                 if (CacheUtil.isEmpty(keyParam.key(), text)) {
-                    return null;
+                    return CacheResult.EMPTY;
                 }
             }
-            return text;
+            return new CacheResult<>(text);
         }
         Object value = redisTemplate(keyParam.sourceKey()).opsForValue().get(keyParam.parseKey());
         if (Objects.isNull(value)) {
@@ -124,30 +130,30 @@ public class RedisCacheServiceImpl implements RedisCacheService {
             }
         }
         if (Objects.isNull(value)) {
-            return null;
+            return CacheResult.NULL;
         }
         if (CacheUtil.isEmpty(keyParam.key(), value)) {
             boolean enabledEmpty = CacheUtil.emptyEnabled(keyParam.key());
             if (enabledEmpty) {
-                return (String) value;
+                return new CacheResult<>((String) value);
             }
         }
         if (value instanceof List || value instanceof Map) {
-            return JsonUtil.toJson(value);
+            return new CacheResult<>(JsonUtil.toJson(value));
         }
-        return String.valueOf(value);
+        return new CacheResult<>(String.valueOf(value));
     }
 
     @Override
-    public <T> List<T> getStringAsList(CacheKey keyParam, Class<T> returnClassType) {
-        String value = getString(keyParam);
-        if (null == value) {
-            return null;
+    public <T> Result<List<T>> getStringAsList(CacheKey keyParam, Class<T> returnClassType) {
+        Result<String> value = getString(keyParam);
+        if (!value.isSuccess()) {
+            return CacheResult.NULL;
         }
         if (CacheUtil.isEmpty(keyParam.key(), value)) {
-            return Collections.emptyList();
+            return new CacheResult<>(Collections.emptyList());
         }
-        return JsonUtil.toList(value, returnClassType);
+        return new CacheResult<>(JsonUtil.toList(value.getResults(), returnClassType));
     }
 
     @Override
@@ -196,7 +202,7 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
-    public Map<String, Object> getMap(CacheKey keyParam) {
+    public Result<Map<String, Object>> getMap(CacheKey keyParam) {
         RedisTemplate<String, Object> redisTemplate = redisTemplate(keyParam.sourceKey());
         Cursor<Map.Entry<Object, Object>> cursor = redisTemplate.opsForHash().scan(keyParam.parseKey(), ScanOptions.scanOptions().match("*").count(MAX_MAP_ELEMENTS_COUNT + 1).build());
         Map<String, Object> resultMap = new HashMap<>();
@@ -209,11 +215,14 @@ public class RedisCacheServiceImpl implements RedisCacheService {
         if (count > MAX_MAP_ELEMENTS_COUNT) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "key:" + keyParam.parseKey() + " elements count lager than " + MAX_MAP_ELEMENTS_COUNT);
         }
-        return resultMap;
+        if (resultMap.isEmpty()) {
+            return CacheResult.NULL;
+        }
+        return new CacheResult<>(resultMap);
     }
 
     @Override
-    public Map<String, Object> getMapValues(CacheKey keyParam, List<String> fields) {
+    public Result<Map<String, Object>> getMapValues(CacheKey keyParam, List<String> fields) {
         RedisTemplate<String, Object> redisTemplate = redisTemplate(keyParam.sourceKey());
         List values = redisTemplate.opsForHash().multiGet(keyParam.parseKey(), (List) fields);
         Map<String, Object> resultMap = new HashMap<>();
@@ -225,8 +234,11 @@ public class RedisCacheServiceImpl implements RedisCacheService {
             }
             resultMap.put(key, value);
         }
+        if (resultMap.isEmpty()) {
+            return CacheResult.NULL;
+        }
 
-        return resultMap;
+        return new CacheResult<>(resultMap);
     }
 
     @Override
@@ -281,21 +293,21 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
-    public <T> List<T> getList(CacheKey keyParam) {
+    public <T> Result<List<T>> getList(CacheKey keyParam) {
         List<Object> resultList = redisTemplate(keyParam.sourceKey()).opsForList().range(keyParam.parseKey(), 0, 100);
         if (resultList == null || resultList.isEmpty()) {
-            return Collections.EMPTY_LIST;
+            return CacheResult.NULL;
         }
-        return new ArrayList<T>((List) resultList);
+        return new CacheResult<>((List) resultList);
     }
 
     @Override
-    public <T> List<T> getList(CacheKey keyParam, int start, int end) {
+    public <T> Result<List<T>> getList(CacheKey keyParam, int start, int end) {
         List<Object> resultList = redisTemplate(keyParam.sourceKey()).opsForList().range(keyParam.parseKey(), start, end);
         if (resultList == null || resultList.isEmpty()) {
-            return Collections.EMPTY_LIST;
+            return CacheResult.NULL;
         }
-        return new ArrayList<T>((List) resultList);
+        return new CacheResult<>((List) resultList);
     }
 
     @Override
@@ -306,9 +318,12 @@ public class RedisCacheServiceImpl implements RedisCacheService {
 
 
     @Override
-    public <T> Set<T> getSet(CacheKey keyParam, int count) {
+    public <T> Result<Set<T>> getSet(CacheKey keyParam, int count) {
         List values = redisTemplate(keyParam.sourceKey()).opsForSet().pop(keyParam.parseKey(), count);
-        return new HashSet<>(values);
+        if (ValueUtil.isEmpty(values)) {
+            return CacheResult.NULL;
+        }
+        return new CacheResult<>(new HashSet<>(values));
     }
 
     @Override
@@ -325,18 +340,18 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
-    public <T> List<SortedValue<T>> getSortedSet(CacheKey keyParam, int start, int end, boolean reversed) {
+    public <T> Result<List<SortedValue<T>>> getSortedSet(CacheKey keyParam, int start, int end, boolean reversed) {
         RedisTemplate<String, Object> redisTemplate = redisTemplate(keyParam.sourceKey());
         String key = keyParam.parseKey();
         Set<ZSetOperations.TypedTuple<Object>> result = reversed ? redisTemplate.opsForZSet().reverseRangeWithScores(key, start, end) : redisTemplate.opsForZSet().rangeWithScores(key, start, end);
         if (result == null) {
-            return Collections.EMPTY_LIST;
+            return CacheResult.NULL;
         }
         List<SortedValue<T>> list = new ArrayList<>();
         for (ZSetOperations.TypedTuple<Object> item : result) {
             list.add(new SortedValue<T>((T) item.getValue(), item.getScore()));
         }
-        return list;
+        return new CacheResult<>(list);
     }
 
     @Override
@@ -350,12 +365,12 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
-    public <T> T getEntity(CacheKey keyParam, Class<T> valueTypeClass) {
+    public <T> Result<T> getEntity(CacheKey keyParam, Class<T> valueTypeClass) {
         Object result = redisTemplate(keyParam.sourceKey()).opsForValue().get(keyParam.parseKey());
         if (result instanceof Map) {
-            return JsonUtil.mapToBean((Map) result, valueTypeClass);
+            return new CacheResult<>(JsonUtil.mapToBean((Map) result, valueTypeClass));
         }
-        return null;
+        return CacheResult.NULL;
     }
 
     @Override
@@ -390,17 +405,20 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
-    public long setExpire(CacheKey keyParam, long timeout) {
+    public Result<Long> setExpire(CacheKey keyParam, long timeout) {
         List<String> keys = new ArrayList<>();
         List values = new ArrayList();
         keys.add(keyParam.parseKey());
         values.add(timeout);
         Long result = executeScript(keyParam, "if (redis.call('EXISTS', KEYS[1]) == 0) then\n" + "    return -1;\n" + "end\n" + "redis.call('PEXPIRE', KEYS[1], ARGV[1]);\n" + "return 1;", Long.class, keys, values);
-        return result == null ? -1L : result;
+        if (result == null) {
+            return new CacheResult<>(-1L, false);
+        }
+        return new CacheResult<>(result);
     }
 
     @Override
-    public Long increment(CacheKey keyParam, long delta) {
+    public Result<Long> increment(CacheKey keyParam, long delta) {
         String key = keyParam.parseKey();
         List<String> keys = new ArrayList<>();
         keys.add(key);
@@ -409,7 +427,7 @@ public class RedisCacheServiceImpl implements RedisCacheService {
         values.add(delta);
 
         Object result = executeScript(keyParam, "if (redis.call('EXISTS', KEYS[1]) == 0) then\n" + "    redis.call('SET', KEYS[1], ARGV[2]);\n" + "    redis.call('PEXPIRE', KEYS[1], ARGV[1]);\n" + "    return redis.call('GET', KEYS[1]);\n" + "end\n" + "redis.call('SET', KEYS[1], redis.call('GET', KEYS[1]) + ARGV[2]);\n" + "return redis.call('GET', KEYS[1]);", Object.class, keys, values);
-        return Long.parseLong(result + "");
+        return new CacheResult<>(Long.parseLong(result + ""));
     }
 
     @Override

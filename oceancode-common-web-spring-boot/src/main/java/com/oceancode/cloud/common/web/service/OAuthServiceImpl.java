@@ -112,11 +112,11 @@ public class OAuthServiceImpl implements OAuthService {
     public String getAccessToken(String accountId) {
         String key = "user:login:oauth:" + accountId + ":access_token";
         CacheKey cacheKey = KeyParam.of(key, false);
-        String entity = cacheService.getString(cacheKey);
+        String entity = cacheService.getString(cacheKey).getResults();
         if (ValueUtil.isEmpty(entity)) {
             String refreshKeyExpress = "user:login:oauth:" + accountId + ":refresh_token";
             CacheKey refreshKey = KeyParam.of(refreshKeyExpress, false);
-            String refreshToken = cacheService.getString(refreshKey);
+            String refreshToken = cacheService.getString(refreshKey).getResults();
             if (ValueUtil.isNotEmpty(refreshToken)) {
                 entity = refreshAccessToken(accountId).getAccessToken();
             }
@@ -134,7 +134,7 @@ public class OAuthServiceImpl implements OAuthService {
         if (cache) {
             String key = "user:login:oauth:" + account.getId() + ":refresh_token";
             CacheKey cacheKey = KeyParam.of(key, false);
-            refreshToken = cacheService.getString(cacheKey);
+            refreshToken = cacheService.getString(cacheKey).getResults();
         }
 
         if (ValueUtil.isEmpty(refreshToken)) {

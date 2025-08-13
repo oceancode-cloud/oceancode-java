@@ -39,7 +39,7 @@ public class RedisSessionServiceImpl implements SessionService {
     public boolean isLogin(String token) {
         TokenInfo tokenInfo = TokenUtil.parseToken(token);
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
-        String userId = redisCacheService.getString(cacheKey);
+        String userId = redisCacheService.getString(cacheKey).getResults();
         if (ValueUtil.isEmpty(userId)) {
             return false;
         }
@@ -50,7 +50,7 @@ public class RedisSessionServiceImpl implements SessionService {
     @Override
     public boolean isLogin(Long userId) {
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:info:" + userId);
-        Map<String, Object> map = redisCacheService.getMap(cacheKey);
+        Map<String, Object> map = redisCacheService.getMap(cacheKey).getResults();
         return ValueUtil.isNotEmpty(map);
     }
 
@@ -58,7 +58,7 @@ public class RedisSessionServiceImpl implements SessionService {
     public UserBaseInfo getUserInfo(String token) {
         TokenInfo tokenInfo = TokenUtil.parseToken(token);
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
-        String userId = redisCacheService.getString(cacheKey);
+        String userId = redisCacheService.getString(cacheKey).getResults();
         if (ValueUtil.isEmpty(userId)) {
             return null;
         }
@@ -68,7 +68,7 @@ public class RedisSessionServiceImpl implements SessionService {
     @Override
     public UserBaseInfo getUserInfoById(Long userId) {
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:info:" + userId);
-        Map<String, Object> map = redisCacheService.getMap(cacheKey);
+        Map<String, Object> map = redisCacheService.getMap(cacheKey).getResults();
         if (ValueUtil.isEmpty(map)) {
             return null;
         }
@@ -125,7 +125,7 @@ public class RedisSessionServiceImpl implements SessionService {
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:info:" + userInfo.getUserId());
         CacheKey userTokenKey = KeyParam.of(this.sessionKey()).express("_u:id:" + userInfo.getUserId());
 
-        String oldToken = redisCacheService.getString(userTokenKey);
+        String oldToken = redisCacheService.getString(userTokenKey).getResults();
         if (ValueUtil.isNotEmpty(oldToken)) {
             CacheKey oldTokenKey = KeyParam.of(this.sessionKey()).express("_u:" + oldToken);
             redisCacheService.delete(oldTokenKey);
@@ -177,7 +177,7 @@ public class RedisSessionServiceImpl implements SessionService {
     public void logout(String token) {
         TokenInfo tokenInfo = TokenUtil.parseToken(token);
         CacheKey tokenKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
-        String userId = redisCacheService.getString(tokenKey);
+        String userId = redisCacheService.getString(tokenKey).getResults();
         if (ValueUtil.isNotEmpty(userId)) {
             CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:info:" + userId);
             redisCacheService.delete(cacheKey);
@@ -192,7 +192,7 @@ public class RedisSessionServiceImpl implements SessionService {
             return null;
         }
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:info:" + userId);
-        Map<String, Object> mapValues = redisCacheService.getMapValues(cacheKey, Arrays.asList(property));
+        Map<String, Object> mapValues = redisCacheService.getMapValues(cacheKey, Arrays.asList(property)).getResults();
         if (ValueUtil.isEmpty(mapValues)) {
             return null;
         }
