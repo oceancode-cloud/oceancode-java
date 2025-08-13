@@ -102,7 +102,7 @@ public class CacheModelServiceImpl implements ModelService {
         List<MFieldObject> fields = new ArrayList<>();
         for (Object value : map.values()) {
             if (value instanceof String fieldId) {
-                CacheKey cacheKey = buildModelInfoKey(fieldId);
+                CacheKey cacheKey = buildModelFieldInfoKey(fieldId);
                 Result<Map<String, Object>> fieldResult = cacheService.getMap(cacheKey);
                 if (!fieldResult.isSuccess() || Objects.isNull(fieldResult.getResults())) {
                     Result<MFieldObject> modelFieldResult = findFieldById(fieldId);
@@ -131,7 +131,7 @@ public class CacheModelServiceImpl implements ModelService {
     }
 
     private Result<MFieldObject> findFieldById0(String id) {
-        CacheKey key = buildModelInfoKey(id);
+        CacheKey key = buildModelFieldInfoKey(id);
         Result<Map<String, Object>> result = cacheService.getMap(key);
         if (!result.isSuccess()) {
             return CacheModelResult.NULL;
@@ -164,7 +164,7 @@ public class CacheModelServiceImpl implements ModelService {
     }
 
     private void addModelField0(MFieldObject fieldObject) {
-        CacheKey modelKey = buildModelInfoKey(fieldObject.id());
+        CacheKey modelKey = buildModelFieldInfoKey(fieldObject.id());
         Map<String, Object> map = JsonUtil.beanToMap(fieldObject);
         map.put("_class", fieldObject.getClass().getName());
         cacheService.setMap(modelKey, map);
@@ -305,6 +305,9 @@ public class CacheModelServiceImpl implements ModelService {
 
     @Override
     public Class<?> getClass(String className) {
+        if (ValueUtil.isEmpty(className)) {
+            throw new BusinessRuntimeException(CommonErrorCode.ERROR, "className is required.");
+        }
         Class<?> aClass = ModelUtil.getClass(className);
         if (Objects.isNull(aClass)) {
             synchronized (this) {
@@ -335,6 +338,13 @@ public class CacheModelServiceImpl implements ModelService {
             throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, "id is required.");
         }
         return KeyParam.of(MODEL_INFO).express(MODEL_CACHE_PREFIX + id);
+    }
+
+    private CacheKey buildModelFieldInfoKey(String id) {
+        if (ValueUtil.isEmpty(id)) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, "id is required.");
+        }
+        return KeyParam.of("model-field-info").express("model:field:info:" + id);
     }
 
     private CacheKey buildModelFieldsInfoKey(String id) {
