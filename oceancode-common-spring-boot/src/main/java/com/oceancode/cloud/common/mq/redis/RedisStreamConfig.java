@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -48,7 +49,7 @@ public class RedisStreamConfig implements InitializingBean, DisposableBean {
 
     private final ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
-    @Resource
+    @Autowired(required = false)
     private com.oceancode.cloud.api.mq.Consumer consumer;
 
     public RedisStreamConfig(CommonConfig commonConfig, ThreadPoolTaskExecutor threadPoolTaskExecutor) {

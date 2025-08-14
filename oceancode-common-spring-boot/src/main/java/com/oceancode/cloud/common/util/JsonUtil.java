@@ -6,6 +6,7 @@ package com.oceancode.cloud.common.util;
 
 import com.oceancode.cloud.api.Result;
 import com.oceancode.cloud.api.TypeEnum;
+import com.oceancode.cloud.api.UnSerializable;
 import com.oceancode.cloud.common.entity.ResultData;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
@@ -88,6 +89,9 @@ public final class JsonUtil {
         }
         if (Objects.isNull(value)) {
             return null;
+        }
+        if (UnSerializable.class.isAssignableFrom(value.getClass())) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, value.getClass().getName() + " forbidden serialize.");
         }
 
         try {

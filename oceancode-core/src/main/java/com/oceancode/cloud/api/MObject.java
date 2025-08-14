@@ -10,4 +10,12 @@ public interface MObject {
     default String parentId() {
         return null;
     }
+
+    default String versionId() {
+        return null;
+    }
+
+    default String type() {
+        return null;
+    }
 }
