@@ -258,7 +258,7 @@ public final class KeyParam implements CacheKey {
         if (Objects.nonNull(this.sourceKey)) {
             return this.sourceKey;
         }
-        this.sourceKey = commonConfig.getValue("oc.cache." + key + ".source.id", this.key);
+        this.sourceKey = commonConfig.getValue("oc.cache." + key + ".source.id", "master");
         if (ValueUtil.isEmpty(this.sourceKey)) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "oc.cache." + key + ".source.id is required.");
         }
