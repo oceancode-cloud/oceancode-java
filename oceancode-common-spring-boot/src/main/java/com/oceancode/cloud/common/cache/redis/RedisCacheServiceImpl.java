@@ -100,7 +100,7 @@ public class RedisCacheServiceImpl implements RedisCacheService {
         int maxReplica = CacheUtil.replica(keyParam.key());
         if (maxReplica > 1) {
             Result<Map<String, Object>> result = getMap(keyParam);
-            if(!result.isSuccess()){
+            if (!result.isSuccess()) {
                 return CacheResult.NULL;
             }
             Map<String, Object> values = result.getResults();
@@ -329,6 +329,11 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     @Override
     public void deleteSet(CacheKey keyParam) {
         setExpire(keyParam, 0);
+    }
+
+    @Override
+    public void deleteSet(CacheKey keyParam, Set<String> values) {
+        redisTemplate(keyParam.sourceKey()).opsForSet().remove(keyParam.parseKey(), values);
     }
 
     @Override

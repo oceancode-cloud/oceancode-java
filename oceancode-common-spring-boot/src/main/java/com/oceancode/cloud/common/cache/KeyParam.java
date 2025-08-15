@@ -206,6 +206,9 @@ public final class KeyParam implements CacheKey {
     }
 
     public Long expire() {
+        if (this.expireIn != null && this.expireIn <= 0) {
+            return this.expireIn;
+        }
         return expire(false);
     }
 

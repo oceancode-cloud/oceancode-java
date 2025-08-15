@@ -47,6 +47,8 @@ public interface CacheService {
 
     void deleteSet(CacheKey keyParam);
 
+    void deleteSet(CacheKey keyParam, Set<String> values);
+
     <T> void addSortedSet(CacheKey keyParam, List<SortedValue<T>> value);
 
     <T> Result<List<SortedValue<T>>> getSortedSet(CacheKey keyParam, int start, int end, boolean reversed);

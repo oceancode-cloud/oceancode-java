@@ -26,6 +26,8 @@ public interface Model extends UnSerializable {
 
     ModelField field(String field);
 
+    MFieldObject fieldObject(String field);
+
     ModelField findFieldById(String fieldId, String versionId);
 
     ModelField findFieldById(String fieldId);

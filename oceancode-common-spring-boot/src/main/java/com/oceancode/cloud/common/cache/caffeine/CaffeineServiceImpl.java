@@ -282,6 +282,17 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
+    public void deleteSet(CacheKey keyParam, Set<String> values) {
+        Object val = getVal(keyParam);
+        if (Objects.isNull(val)) {
+            return;
+        }
+        if (val instanceof Set<?> set) {
+            set.removeAll(values);
+        }
+    }
+
+    @Override
     public <T> void addSortedSet(CacheKey keyParam, List<SortedValue<T>> value) {
         if (value == null) {
             if (!CacheUtil.emptyEnabled(keyParam.key())) {

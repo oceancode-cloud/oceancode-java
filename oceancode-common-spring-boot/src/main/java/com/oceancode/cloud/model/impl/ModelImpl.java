@@ -110,11 +110,20 @@ public class ModelImpl implements Model {
             return null;
         }
         List<ModelField> list = new ArrayList<>();
-        collectFields(list, this, true, fields -> fields.stream().anyMatch(f -> Objects.equals(f.field(), field)));
+        collectFields(list, this, true, f -> Objects.equals(f.field(), field));
         if (list.isEmpty()) {
             return null;
         }
         return list.get(0);
+    }
+
+    @Override
+    public MFieldObject fieldObject(String field) {
+        ModelField modelField = field(field);
+        if (Objects.nonNull(modelField)) {
+            return modelField.object();
+        }
+        return null;
     }
 
     @Override
@@ -140,17 +149,19 @@ public class ModelImpl implements Model {
         return modelFields;
     }
 
-    private void collectFields(List<ModelField> list, Model model, boolean allFields, Function<List<ModelField>, Boolean> nextFunction) {
+    private void collectFields(List<ModelField> list, Model model, boolean allFields, Function<ModelField, Boolean> nextFunction) {
         if (Objects.isNull(model)) {
             return;
         }
         List<ModelField> modelFields = listFields(model.id());
-        list.addAll(modelFields);
 
         if (Objects.nonNull(nextFunction)) {
-            if (ValueUtil.isFalse(nextFunction.apply(list))) {
+            list.addAll(modelFields.stream().filter(nextFunction::apply).toList());
+            if (!list.isEmpty()) {
                 return;
             }
+        } else {
+            list.addAll(modelFields);
         }
 
         if (allFields) {

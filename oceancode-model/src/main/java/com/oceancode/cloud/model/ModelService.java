@@ -6,6 +6,8 @@ import com.oceancode.cloud.api.MObject;
 public interface ModelService {
     Class<?> getClass(String className);
 
+    void addIndexer(MFieldObject object);
+
     Model findByModelId(String modelId);
 
     Model findByModelId(String modelId, String versionId);
