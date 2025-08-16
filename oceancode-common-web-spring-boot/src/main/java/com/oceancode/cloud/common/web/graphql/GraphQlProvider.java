@@ -366,6 +366,8 @@ public class GraphQlProvider {
                     javaTypeValue = ((IntValue) fieldValue).getValue().intValue();
                 } else if (fieldValue instanceof StringValue) {
                     javaTypeValue = ((StringValue) fieldValue).getValue();
+                } else if (fieldValue instanceof ArrayValue arrayValue) {
+                    javaTypeValue = processArray(arrayValue);
                 }
                 valueMap.put(objectField.getName(), javaTypeValue);
             }
@@ -380,6 +382,27 @@ public class GraphQlProvider {
             }
             return JsonUtil.toBean(JsonUtil.toJson(value), type);
         }
+    }
+
+    private Object processArray(ArrayValue arrayValue) {
+        if (Objects.isNull(arrayValue)) {
+            return null;
+        }
+        List<Value> values = arrayValue.getValues();
+        if (ValueUtil.isEmpty(values)) {
+            return null;
+        }
+        List<Object> list = new ArrayList<>();
+        for (Value value : values) {
+            if (value instanceof IntValue v) {
+                list.add(v.getValue().intValue());
+            } else if (value instanceof StringValue v) {
+                list.add(v.getValue());
+            } else {
+                list.add(value);
+            }
+        }
+        return list;
     }
 
 //    private void mergeSchema(TypeDefinitionRegistry registry, File file) {
