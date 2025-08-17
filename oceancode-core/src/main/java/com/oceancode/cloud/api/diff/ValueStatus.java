@@ -1,10 +1,9 @@
-package com.oceancode.cloud.model;
+package com.oceancode.cloud.api.diff;
 
 import com.oceancode.cloud.api.TypeEnum;
 
 public enum ValueStatus implements TypeEnum<Integer> {
     ADD(1, "Add", ""),
-    DELETE(2, "Delete", ""),
     UPDATE(3, "Update", ""),
     SET(4, "Set", ""),
     UNSET(5, "Unset", ""),
@@ -33,5 +32,13 @@ public enum ValueStatus implements TypeEnum<Integer> {
     @Override
     public String getDescription() {
         return desc;
+    }
+
+    boolean isDeleted() {
+        return UNSET.equals(this);
+    }
+
+    boolean isUpdated() {
+        return SET.equals(this) || UPDATE.equals(this);
     }
 }

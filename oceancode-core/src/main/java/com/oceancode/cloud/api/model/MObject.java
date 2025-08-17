@@ -1,7 +1,13 @@
 package com.oceancode.cloud.api.model;
 
+import java.util.List;
+
 public interface MObject {
     String id();
+
+    default String name() {
+        return null;
+    }
 
     default String groupId() {
         return null;
@@ -18,4 +24,5 @@ public interface MObject {
     default String type() {
         return null;
     }
+
 }

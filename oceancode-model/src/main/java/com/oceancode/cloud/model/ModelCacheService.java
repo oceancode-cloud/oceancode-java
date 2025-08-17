@@ -7,12 +7,21 @@ import java.util.List;
 public interface ModelCacheService {
     MObject findMObjectById(String id, String versionId, String scope);
 
+    List<MObject> findAllObjects(String scope);
+
     default MObject findMObjectById(Long id, Long versionId, String scope) {
         return findMObjectById(ModelUtil.toStr(id), ModelUtil.toStr(versionId), scope);
     }
 
+    List<Model> findAllModel();
+
+    List<ModelField> findAllModelField();
+
+    List<ModelGroup> findAllModelGroup();
+
     MObject findMObjectById(String id, String scope);
-    void saveMObjects(List<MObject> objects);
+
+    void saveGroupMObjects(List<MObject> objects);
 
     default MObject findMObjectById(Long id, String scope) {
         return findMObjectById(ModelUtil.toStr(id), scope);

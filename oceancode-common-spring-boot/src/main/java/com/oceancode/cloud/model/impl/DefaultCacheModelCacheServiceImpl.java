@@ -27,9 +27,11 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class DefaultCacheModelCacheServiceImpl implements ModelCacheService {
@@ -105,12 +107,87 @@ public class DefaultCacheModelCacheServiceImpl implements ModelCacheService {
     }
 
     @Override
+    public List<MObject> findAllObjects(String scope) {
+        CacheKey key = buildAllKey(scope);
+        Result<Set<Object>> result = cacheService.getSet(key, 10000);
+        Supplier<List<MObject>> supplier = () -> {
+            PersistModelService persistModelService = getPersistModelService(scope);
+            if (Objects.isNull(persistModelService)) {
+                throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "not found PersistModelService of " + scope);
+            }
+            List<MObject> allObjects = persistModelService.findAllObjects();
+            Set<String> ids = new HashSet<>();
+            for (MObject object : allObjects) {
+                CacheKey objectKey = buildKey(object.id(), scope, null);
+                cacheService.setMap(objectKey, toMap(object));
+                ids.add(object.id());
+            }
+
+            cacheService.addSet(key, ids);
+            return allObjects;
+        };
+        if (!result.isSuccess()) {
+            return supplier.get();
+        }
+        if (ValueUtil.isEmpty(result.getResults())) {
+            return Collections.emptyList();
+        }
+        List<MObject> list = new ArrayList<>();
+        for (Object o : result.getResults()) {
+            if (Objects.isNull(o)) {
+                cacheService.delete(key);
+                return supplier.get();
+            }
+
+            String id = o + ";";
+            if (ValueUtil.isEmpty(id)) {
+                cacheService.delete(key);
+                return supplier.get();
+            }
+            CacheKey objectKey = buildKey(id, scope, null);
+            Result<Map<String, Object>> objectResult = cacheService.getMap(objectKey);
+            if (!objectResult.isSuccess() || ValueUtil.isEmpty(objectResult.getResults())) {
+                cacheService.delete(key);
+                return supplier.get();
+            }
+            Object bean = ModelInnerUtil.toBean(objectResult.getResults());
+            if (Objects.nonNull(bean)) {
+                list.add((MObject) bean);
+            }
+        }
+        return list;
+    }
+
+    @Override
+    public List<Model> findAllModel() {
+        return findAllObjects(PersistModelService.MODEL)
+                .stream().map(mObject -> (Model) create(mObject)).toList();
+    }
+
+    @Override
+    public List<ModelField> findAllModelField() {
+        return findAllObjects(PersistModelService.MODEL_FIELD)
+                .stream().map(mObject -> (ModelField) create(mObject)).toList();
+    }
+
+    private void deleteAllObjects(String scope) {
+        CacheKey key = buildAllKey(scope);
+        cacheService.delete(key);
+    }
+
+    @Override
+    public List<ModelGroup> findAllModelGroup() {
+        return findAllObjects(PersistModelService.MODEL_GROUP)
+                .stream().map(mObject -> (ModelGroup) create(mObject)).toList();
+    }
+
+    @Override
     public MObject findMObjectById(String id, String scope) {
         return findMObjectById(id, null, scope);
     }
 
     @Override
-    public void saveMObjects(List<MObject> objects) {
+    public void saveGroupMObjects(List<MObject> objects) {
         Map<String, Map<String, Object>> modelFieldMappings = new HashMap<>();
         for (MObject object : objects) {
             if (object instanceof MFieldObject o) {
@@ -135,6 +212,7 @@ public class DefaultCacheModelCacheServiceImpl implements ModelCacheService {
     public void deleteMObjectById(String id, String versionId, String scope) {
         CacheKey key = buildKey(id, scope, versionId);
         cacheService.delete(key);
+        deleteAllObjects(scope);
     }
 
     @Override
@@ -162,6 +240,7 @@ public class DefaultCacheModelCacheServiceImpl implements ModelCacheService {
                     cacheService.setMap(cacheKey, map);
                 }
             }
+            deleteAllObjects(scope);
             return createObject(scope, map, Objects.isNull(map));
         }
 
@@ -296,32 +375,28 @@ public class DefaultCacheModelCacheServiceImpl implements ModelCacheService {
             scope = MODEL_FIELD;
         }
 
-        if (!saveCache && ValueUtil.isNotEmpty(object.id())) {
+        if (!saveCache) {
             PersistModelService persistModelService = getPersistModelService(scope);
             if (Objects.nonNull(persistModelService)) {
                 persistModelService.saveObject(object, throwEx);
-                if (object instanceof MFieldObject o) {
-                    if (ValueUtil.isNotEmpty(o.modelId())) {
-                        cacheService.delete(buildKey(object.id(), MODEL_FIELDS, o.modelId()));
-                    }
-                }
             } else {
                 if (throwEx) {
                     throw new BusinessRuntimeException(CommonErrorCode.ERROR, "not found PersistModelService to save object");
                 }
             }
-            return;
         }
-
-        CacheKey key = buildKey(object.id(), scope, object.versionId());
 
         if (object instanceof MFieldObject o) {
             if (ValueUtil.isNotEmpty(o.modelId())) {
-                cacheService.delete(buildKey(object.id(), MODEL_FIELDS, o.modelId()));
+                cacheService.delete(buildKey(o.modelId(), MODEL_FIELDS, null));
             }
         }
 
-        cacheService.delete(key);
+        if (ValueUtil.isNotEmpty(object.id())) {
+            CacheKey key = buildKey(object.id(), scope, null);
+            cacheService.delete(key);
+        }
+        deleteAllObjects(scope);
     }
 
     @Override
@@ -373,6 +448,7 @@ public class DefaultCacheModelCacheServiceImpl implements ModelCacheService {
         }
         CacheKey key = buildKey(id, scope, versionId);
         cacheService.delete(key);
+        deleteAllObjects(scope);
     }
 
     @Override
@@ -390,6 +466,19 @@ public class DefaultCacheModelCacheServiceImpl implements ModelCacheService {
 
     protected static String getModelCachePrefix() {
         return "model:";
+    }
+
+    private static CacheKey buildAllKey(String scope) {
+        if (ValueUtil.isEmpty(scope)) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "scope is required.");
+        }
+        String express = getModelCachePrefix();
+        String keyId = "model";
+        if (ValueUtil.isNotEmpty(scope)) {
+            express += scope + ":";
+            keyId += "-" + scope;
+        }
+        return KeyParam.of(keyId).express(express);
     }
 
     private static CacheKey buildKey(String id, String scope, String versionId) {

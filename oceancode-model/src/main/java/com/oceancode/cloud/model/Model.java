@@ -33,7 +33,10 @@ public interface Model extends BaseObject<MObject> {
 
     boolean isEnum();
 
+
     List<Model> refModels(boolean isList);
 
     ModelGroup group();
+
+    String path();
 }

@@ -119,6 +119,9 @@ public class ModelImpl extends AbstractBaseObject<MObject> implements Model {
         if (Objects.isNull(model)) {
             return;
         }
+        if(!model.isPersist()){
+            return;
+        }
         List<ModelField> modelFields = MODEL_CACHE_SERVICE.findModelFields(model.id(), model.versionId());
 
         if (Objects.nonNull(nextFunction)) {
@@ -142,7 +145,7 @@ public class ModelImpl extends AbstractBaseObject<MObject> implements Model {
 
     @Override
     public boolean hasParent() {
-        return Objects.nonNull(parent());
+        return Objects.nonNull(parent()) && parent().isPersist();
     }
 
     @Override
@@ -170,5 +173,16 @@ public class ModelImpl extends AbstractBaseObject<MObject> implements Model {
             return ModelGroupImpl.NULL;
         }
         return MODEL_CACHE_SERVICE.findModelGroupById(object().groupId());
+    }
+
+    @Override
+    public String path() {
+        StringBuilder pathBuilder = new StringBuilder();
+        List<ModelGroup> list = group().pathGroups();
+        for (ModelGroup modelGroup : list) {
+            pathBuilder.append(modelGroup.object().name());
+            pathBuilder.append("/");
+        }
+        return pathBuilder.toString();
     }
 }

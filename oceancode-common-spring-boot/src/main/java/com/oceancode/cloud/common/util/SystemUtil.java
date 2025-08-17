@@ -35,6 +35,16 @@ public final class SystemUtil {
         return dataDir;
     }
 
+    public static String repositoryDir() {
+        Environment environment = ComponentUtil.getBean(Environment.class);
+        String dataDir = environment.getProperty("oc.system.repository.dir");
+        if (ValueUtil.isEmpty(dataDir)) {
+            return dataDir + "/repository";
+        }
+
+        return dataDir;
+    }
+
     public static String outputDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
         String dataDir = environment.getProperty(OUTPUT_DIR_CONFIG_KEY);
