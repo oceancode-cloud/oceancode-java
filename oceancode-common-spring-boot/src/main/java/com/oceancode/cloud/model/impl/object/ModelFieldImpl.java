@@ -246,6 +246,10 @@ public class ModelFieldImpl extends AbstractBaseObject<MFieldObject> implements 
         return ref.isEnum();
     }
 
+    public boolean isList() {
+        return "list".equalsIgnoreCase(type());
+    }
+
     private boolean hasTag(String tag) {
         if (Objects.isNull(object())) {
             return false;

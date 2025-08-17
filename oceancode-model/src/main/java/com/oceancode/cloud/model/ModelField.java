@@ -80,4 +80,6 @@ public interface ModelField extends BaseObject<MFieldObject> {
     boolean isPrimaryKey();
 
     boolean isRefEnum();
+
+    boolean isList();
 }
