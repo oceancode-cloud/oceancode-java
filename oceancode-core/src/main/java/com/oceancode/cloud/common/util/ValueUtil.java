@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * <B>ValueUtil</B>
@@ -31,6 +33,10 @@ import java.util.function.Supplier;
  * @since 1.0
  */
 public final class ValueUtil {
+    private static Pattern linePattern = Pattern.compile("_(\\w)");
+    private static Pattern middleLinePattern = Pattern.compile("-(\\w)");
+    private static Pattern humpPattern = Pattern.compile("[A-Z]");
+
     private ValueUtil() {
     }
 
@@ -348,5 +354,56 @@ public final class ValueUtil {
 
     public static <T, E> E getValue(T object, Function<T, E> function) {
         return getValue(object, (E) null, function);
+    }
+
+    public static String underlineToCamel(String line) {
+        Matcher matcher = linePattern.matcher(line);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, matcher.group(1).toUpperCase());
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+
+    public static String camelToUnderline(String line) {
+        return camelTo(line, "_");
+    }
+
+    public static String camelTo(String line, String ch) {
+        Matcher matcher = humpPattern.matcher(line);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, ch + matcher.group(0).toLowerCase());
+        }
+        matcher.appendTail(sb);
+        String result = sb.toString();
+        if (Objects.isNull(result)) {
+            return result;
+        }
+        if (result.startsWith(ch)) {
+            return result.substring(1);
+        }
+        return result;
+    }
+
+    public static String toCamel(String line) {
+        if (line.contains("_")) {
+            return underlineToCamel(line);
+        }
+        if (line.contains("-")) {
+            Matcher matcher = middleLinePattern.matcher(line);
+            StringBuffer sb = new StringBuffer();
+            while (matcher.find()) {
+                matcher.appendReplacement(sb, matcher.group(1).toUpperCase());
+            }
+            matcher.appendTail(sb);
+            String code = sb.toString();
+            if (code.length() > 0) {
+                return code.substring(0, 1).toUpperCase() + code.substring(1);
+            }
+            return code.substring(0, 1).toUpperCase();
+        }
+        return line;
     }
 }
