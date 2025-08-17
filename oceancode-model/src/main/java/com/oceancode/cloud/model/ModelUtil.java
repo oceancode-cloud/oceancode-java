@@ -2,6 +2,7 @@ package com.oceancode.cloud.model;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class ModelUtil {
     private final static Map<String, Class<?>> CLASS_MAPPING = new HashMap<>();
@@ -15,5 +16,9 @@ public class ModelUtil {
 
     public static Class<?> getClass(String className) {
         return CLASS_MAPPING.get(className);
+    }
+
+    public static String toStr(Long value) {
+        return Objects.nonNull(value) ? String.valueOf(value) : null;
     }
 }

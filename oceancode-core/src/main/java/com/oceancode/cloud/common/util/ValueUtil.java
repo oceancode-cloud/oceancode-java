@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -316,10 +317,6 @@ public final class ValueUtil {
         return str.split(String.valueOf((char) 10));
     }
 
-    public static <T> T getValue(Object data, Supplier<T> supplier) {
-        return getValue(data, supplier, null);
-    }
-
     public static boolean isTrue(Boolean value) {
         return Objects.nonNull(value) && value;
     }
@@ -336,5 +333,20 @@ public final class ValueUtil {
         map.putAll(dataMap);
 
         return map;
+    }
+
+    public static <T, E> E getValue(T object, E defaultValue, Function<T, E> function) {
+        if (Objects.isNull(object)) {
+            return defaultValue;
+        }
+        E element = function.apply(object);
+        if (Objects.isNull(element)) {
+            return defaultValue;
+        }
+        return element;
+    }
+
+    public static <T, E> E getValue(T object, Function<T, E> function) {
+        return getValue(object, (E) null, function);
     }
 }

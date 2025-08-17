@@ -1,20 +1,14 @@
-package com.oceancode.cloud.api;
+package com.oceancode.cloud.api.model;
 
 import java.util.Collections;
 import java.util.Set;
 
-public interface MFieldObject {
-    String id();
-
+public interface MFieldObject extends MObject {
     String modelId();
 
     String field();
 
     String refModelId();
-
-    String versionId();
-
-    String type();
 
     default Set<String> tags() {
         return Collections.emptySet();

@@ -1,14 +1,8 @@
 package com.oceancode.cloud.model;
 
-import com.oceancode.cloud.api.MFieldObject;
-import com.oceancode.cloud.api.UnSerializable;
+import com.oceancode.cloud.api.model.MFieldObject;
 
-public interface ModelField extends UnSerializable {
-
-    MFieldObject object();
-
-    String id();
-
+public interface ModelField extends BaseObject<MFieldObject> {
     String field();
 
     String type();

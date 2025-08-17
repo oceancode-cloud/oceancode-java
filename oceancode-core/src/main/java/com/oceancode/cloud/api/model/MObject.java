@@ -1,4 +1,4 @@
-package com.oceancode.cloud.api;
+package com.oceancode.cloud.api.model;
 
 public interface MObject {
     String id();

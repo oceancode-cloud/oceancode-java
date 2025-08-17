@@ -1,43 +1,27 @@
-package com.oceancode.cloud.model.impl;
+package com.oceancode.cloud.model.impl.object;
 
-import com.oceancode.cloud.api.MFieldObject;
-import com.oceancode.cloud.common.util.ComponentUtil;
+import com.oceancode.cloud.api.model.MFieldObject;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.model.Model;
 import com.oceancode.cloud.model.ModelField;
-import com.oceancode.cloud.model.ModelService;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class ModelFieldImpl implements ModelField {
-    private transient MFieldObject object;
-    private transient Map<String, Object> dataMap;
+public class ModelFieldImpl extends AbstractBaseObject<MFieldObject> implements ModelField {
 
-    private static final BaseModelServiceImpl modelService;
+    public static final ModelFieldImpl NULL = new ModelFieldImpl();
 
-    static {
-        modelService = (BaseModelServiceImpl) ComponentUtil.getBean(ModelService.class);
+    public ModelFieldImpl(MFieldObject object) {
+        super(object);
     }
 
+    public ModelFieldImpl(Map<String, Object> dataMap) {
+        super(dataMap);
+    }
 
-    @Override
-    public MFieldObject object() {
-        if (Objects.isNull(object)) {
-            if (ValueUtil.isEmpty(dataMap)) {
-                return null;
-            }
-            synchronized (this) {
-                if (ValueUtil.isEmpty(dataMap)) {
-                    return null;
-                }
-                if (Objects.isNull(object)) {
-                    object = (MFieldObject) modelService.toBean(dataMap);
-                }
-            }
-        }
-        return object;
+    public ModelFieldImpl() {
+
     }
 
     @Override
@@ -53,11 +37,6 @@ public class ModelFieldImpl implements ModelField {
     @Override
     public String type() {
         return Objects.nonNull(object()) ? object().type() : null;
-    }
-
-    @Override
-    public String versionId() {
-        return Objects.nonNull(object()) ? object().versionId() : null;
     }
 
     @Override
@@ -125,24 +104,16 @@ public class ModelFieldImpl implements ModelField {
         return "timestamp".equalsIgnoreCase(type());
     }
 
-    public void setObject(MFieldObject object) {
-        this.object = object;
-    }
-
-    public void setDataMap(Map<String, Object> dataMap) {
-        this.dataMap = dataMap;
-    }
-
     @Override
     public Model ref() {
         if (Objects.isNull(object())) {
-            return null;
+            return ModelImpl.NULL;
         }
         String modelId = object().refModelId();
         if (ValueUtil.isEmpty(modelId)) {
-            return null;
+            return ModelImpl.NULL;
         }
-        return modelService.findByModelId(modelId);
+        return MODEL_CACHE_SERVICE.findModelById(modelId);
     }
 
     @Override

@@ -1,49 +1,32 @@
-package com.oceancode.cloud.model.impl;
+package com.oceancode.cloud.model.impl.object;
 
-import com.oceancode.cloud.api.MFieldObject;
-import com.oceancode.cloud.api.MObject;
-import com.oceancode.cloud.common.util.ComponentUtil;
+import com.oceancode.cloud.api.model.MFieldObject;
+import com.oceancode.cloud.api.model.MObject;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.model.Model;
 import com.oceancode.cloud.model.ModelField;
-import com.oceancode.cloud.model.ModelService;
+import com.oceancode.cloud.model.ModelGroup;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-public class ModelImpl implements Model {
-    private transient MObject object;
-    private transient Map<String, Object> dataMap = new HashMap<>();
-
+public class ModelImpl extends AbstractBaseObject<MObject> implements Model {
+    public static final ModelImpl NULL = new ModelImpl();
     private transient List<ModelField> fields;
 
-    private static final BaseModelServiceImpl modelService;
-
-    static {
-        modelService = (BaseModelServiceImpl) ComponentUtil.getBean(ModelService.class);
+    public ModelImpl(MObject object) {
+        super(object);
     }
 
+    public ModelImpl(Map<String, Object> dataMap) {
+        super(dataMap);
+    }
 
-    @Override
-    public MObject object() {
-        if (Objects.isNull(object)) {
-            if (ValueUtil.isEmpty(dataMap)) {
-                return null;
-            }
-            synchronized (this) {
-                if (ValueUtil.isEmpty(dataMap)) {
-                    return null;
-                }
-                if (Objects.isNull(object)) {
-                    object = (MObject) modelService.toBean(dataMap);
-                }
-            }
-        }
-        return object;
+    public ModelImpl() {
+
     }
 
     @Override
@@ -56,14 +39,7 @@ public class ModelImpl implements Model {
 
     @Override
     public void addField(MFieldObject object) {
-        ModelField modelField = modelService.createModelField(object);
-        if (Objects.nonNull(modelField)) {
-            addField(modelField);
-        }
-    }
-
-    public List<ModelField> getFields() {
-        return fields;
+        MODEL_CACHE_SERVICE.save(object, true);
     }
 
     @Override
@@ -77,26 +53,21 @@ public class ModelImpl implements Model {
     }
 
     @Override
-    public String versionId() {
-        return isPersist() ? object().versionId() : null;
-    }
-
-    @Override
     public Model parent() {
         if (!isPersist()) {
-            return null;
+            return NULL;
         }
-        if (ValueUtil.isEmpty(object().parentId())) {
-            return null;
+        if (ValueUtil.isEmpty(object().parentId()) || "0".equals(object().parentId())) {
+            return NULL;
         }
-        return modelService.findByModelId(object().parentId());
+        return MODEL_CACHE_SERVICE.findModelById(object().parentId());
     }
 
     @Override
     public List<Model> parents() {
         List<Model> list = new ArrayList<>();
         Model parent = parent();
-        while (Objects.nonNull(parent)) {
+        while (Objects.nonNull(parent) && parent.isPersist()) {
             list.add(parent);
             parent = parent.parent();
         }
@@ -107,12 +78,12 @@ public class ModelImpl implements Model {
     @Override
     public ModelField field(String field) {
         if (ValueUtil.isEmpty(field)) {
-            return null;
+            return ModelFieldImpl.NULL;
         }
         List<ModelField> list = new ArrayList<>();
         collectFields(list, this, true, f -> Objects.equals(f.field(), field));
         if (list.isEmpty()) {
-            return null;
+            return ModelFieldImpl.NULL;
         }
         return list.get(0);
     }
@@ -133,7 +104,7 @@ public class ModelImpl implements Model {
 
     @Override
     public ModelField findFieldById(String fieldId, String versionId) {
-        return modelService.findFieldById(fieldId, versionId);
+        return MODEL_CACHE_SERVICE.findModelFieldById(fieldId, versionId);
     }
 
     @Override
@@ -144,16 +115,11 @@ public class ModelImpl implements Model {
         return list;
     }
 
-    private static List<ModelField> listFields(String modelId) {
-        List<ModelField> modelFields = modelService.findModelFields(modelId);
-        return modelFields;
-    }
-
     private void collectFields(List<ModelField> list, Model model, boolean allFields, Function<ModelField, Boolean> nextFunction) {
         if (Objects.isNull(model)) {
             return;
         }
-        List<ModelField> modelFields = listFields(model.id());
+        List<ModelField> modelFields = MODEL_CACHE_SERVICE.findModelFields(model.id(), model.versionId());
 
         if (Objects.nonNull(nextFunction)) {
             list.addAll(modelFields.stream().filter(nextFunction::apply).toList());
@@ -179,23 +145,6 @@ public class ModelImpl implements Model {
         return Objects.nonNull(parent());
     }
 
-    public void setObject(MObject object) {
-        this.object = object;
-    }
-
-    public void setDataMap(Map<String, Object> dataMap) {
-        if (Objects.isNull(dataMap)) {
-            return;
-        }
-        this.dataMap = dataMap;
-    }
-
-    @Override
-    public boolean isPersist() {
-        return Objects.nonNull(object());
-    }
-
-
     @Override
     public boolean isEnum() {
         return isPersist() && "enum".equalsIgnoreCase(object().type());
@@ -209,6 +158,17 @@ public class ModelImpl implements Model {
                 return it.isRefList();
             }
             return it.isRef();
-        }).map(it -> it.ref()).toList();
+        }).map(ModelField::ref).toList();
+    }
+
+    @Override
+    public ModelGroup group() {
+        if (Objects.isNull(object())) {
+            return ModelGroupImpl.NULL;
+        }
+        if (ValueUtil.isEmpty(object().groupId())) {
+            return ModelGroupImpl.NULL;
+        }
+        return MODEL_CACHE_SERVICE.findModelGroupById(object().groupId());
     }
 }

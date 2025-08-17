@@ -1,24 +1,17 @@
 package com.oceancode.cloud.model;
 
-import com.oceancode.cloud.api.MFieldObject;
-import com.oceancode.cloud.api.MObject;
-import com.oceancode.cloud.api.UnSerializable;
+import com.oceancode.cloud.api.model.MFieldObject;
+import com.oceancode.cloud.api.model.MObject;
 
 import java.util.List;
 
-public interface Model extends UnSerializable {
-
-    MObject object();
+public interface Model extends BaseObject<MObject> {
 
     void addField(ModelField modelField);
 
     void addField(MFieldObject object);
 
     List<Model> findReferenced();
-
-    String id();
-
-    String versionId();
 
     Model parent();
 
@@ -38,9 +31,9 @@ public interface Model extends UnSerializable {
 
     boolean hasParent();
 
-    boolean isPersist();
-
     boolean isEnum();
 
     List<Model> refModels(boolean isList);
+
+    ModelGroup group();
 }
