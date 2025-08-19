@@ -38,5 +38,9 @@ public interface Model extends BaseObject<MObject> {
 
     ModelGroup group();
 
+    List<String> paths();
+
+    String path(String separator);
+
     String path();
 }

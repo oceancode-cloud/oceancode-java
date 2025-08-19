@@ -119,7 +119,7 @@ public class ModelImpl extends AbstractBaseObject<MObject> implements Model {
         if (Objects.isNull(model)) {
             return;
         }
-        if(!model.isPersist()){
+        if (!model.isPersist()) {
             return;
         }
         List<ModelField> modelFields = MODEL_CACHE_SERVICE.findModelFields(model.id(), model.versionId());
@@ -176,13 +176,30 @@ public class ModelImpl extends AbstractBaseObject<MObject> implements Model {
     }
 
     @Override
-    public String path() {
+    public List<String> paths() {
+        List<String> paths = new ArrayList<>();
+        List<ModelGroup> list = group().pathGroups();
+        for (ModelGroup modelGroup : list) {
+            paths.add(modelGroup.object().name());
+        }
+        return paths;
+    }
+
+    @Override
+    public String path(String separator) {
         StringBuilder pathBuilder = new StringBuilder();
         List<ModelGroup> list = group().pathGroups();
         for (ModelGroup modelGroup : list) {
+            if (!pathBuilder.isEmpty()) {
+                pathBuilder.append(separator);
+            }
             pathBuilder.append(modelGroup.object().name());
-            pathBuilder.append("/");
         }
         return pathBuilder.toString();
+    }
+
+    @Override
+    public String path() {
+        return path("/");
     }
 }

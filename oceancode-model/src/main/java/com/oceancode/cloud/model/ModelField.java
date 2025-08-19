@@ -41,6 +41,18 @@ public interface ModelField extends BaseObject<MFieldObject> {
 
     boolean isRefList();
 
+    Model refList();
+
+    boolean isCharArray();
+
+    String simpleType();
+
+    boolean isDeleted();
+
+    boolean isBusinesses();
+
+    boolean isSimpleType();
+
     boolean isSensitive();
 
     boolean isUsername();
@@ -52,6 +64,12 @@ public interface ModelField extends BaseObject<MFieldObject> {
     boolean isTenantId();
 
     boolean isUserId();
+
+    boolean isVersion();
+
+    boolean isParentId();
+
+    boolean isSessionBusiness();
 
     boolean isCreatedAt();
 
@@ -82,4 +100,26 @@ public interface ModelField extends BaseObject<MFieldObject> {
     boolean isRefEnum();
 
     boolean isList();
+
+    boolean isSimpleList();
+
+    boolean hasTag(String tag);
+
+    boolean isMultiple();
+
+    boolean isAutoIncrement();
+
+    boolean isUpdateBy();
+
+    boolean isCreateBy();
+
+    boolean isUnique();
+
+    String name();
+
+    boolean isName();
+
+    boolean isGroupId();
+
+    String methodFieldName();
 }

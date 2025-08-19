@@ -5,6 +5,7 @@ import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.model.Model;
 import com.oceancode.cloud.model.ModelField;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -143,13 +144,64 @@ public class ModelFieldImpl extends AbstractBaseObject<MFieldObject> implements 
     }
 
     @Override
+    public Model refList() {
+        if (isRefList()) {
+            if (Objects.nonNull(object().refModelId())) {
+                return ref();
+            }
+        }
+        return ModelImpl.NULL;
+    }
+
+    @Override
+    public boolean isCharArray() {
+        if (isSensitive()) {
+            return isString() || isText();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isSimpleType() {
+        return ValueUtil.isNotEmpty(simpleType());
+    }
+
+    @Override
+    public boolean isDeleted() {
+        return hasTag("deleted");
+    }
+
+    @Override
+    public boolean isBusinesses() {
+        return isProjectId() || isDeleted() || isTenantId() || isUserId();
+    }
+
+    @Override
+    public String simpleType() {
+        if (isCharArray()) {
+            return "char[]";
+        }
+        if (isLong() || isInteger() || isString() || isBoolean() || isBigDecimal() || isMap()) {
+            if (isMap()) {
+                return "Map<String, Object>";
+            }
+            return type();
+        }
+        if (isText()) {
+            return type();
+        }
+
+        return null;
+    }
+
+    @Override
     public boolean isSensitive() {
         return hasTag("sensitive");
     }
 
     @Override
     public boolean isUsername() {
-        return hasTag("username");
+        return hasTag("username") && isString();
     }
 
     @Override
@@ -159,7 +211,7 @@ public class ModelFieldImpl extends AbstractBaseObject<MFieldObject> implements 
 
     @Override
     public boolean isProjectId() {
-        return hasTag("projectId");
+        return hasTag("projectId") || hasTag("ProjectId");
     }
 
     @Override
@@ -169,7 +221,25 @@ public class ModelFieldImpl extends AbstractBaseObject<MFieldObject> implements 
 
     @Override
     public boolean isUserId() {
+        if (hasTag("UserId")) {
+            return true;
+        }
         return hasTag("userId");
+    }
+
+    @Override
+    public boolean isVersion() {
+        return hasTag("version");
+    }
+
+    @Override
+    public boolean isParentId() {
+        return hasTag("parentId");
+    }
+
+    @Override
+    public boolean isSessionBusiness() {
+        return isUserId() || isProjectId() || isTenantId();
     }
 
     @Override
@@ -250,10 +320,67 @@ public class ModelFieldImpl extends AbstractBaseObject<MFieldObject> implements 
         return "list".equalsIgnoreCase(type());
     }
 
-    private boolean hasTag(String tag) {
+    @Override
+    public boolean isSimpleList() {
+        return isList() && !isFileList();
+    }
+
+    @Override
+    public boolean hasTag(String tag) {
         if (Objects.isNull(object())) {
             return false;
         }
         return object().tags().contains(tag);
+    }
+
+    @Override
+    public boolean isMultiple() {
+        return isList() || isStringList() || isLongList() || isIntegerList() || isMap() || isRefList();
+    }
+
+    @Override
+    public boolean isAutoIncrement() {
+        if (isLong() || isInteger()) {
+            if (ValueUtil.isEmpty(object().tags())) {
+                return true;
+            }
+            return hasTag("auto_increment");
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isUpdateBy() {
+        return hasTag("updateBy");
+    }
+
+    @Override
+    public boolean isCreateBy() {
+        return hasTag("createBy");
+    }
+
+    @Override
+    public boolean isUnique() {
+        return hasTag("unique");
+    }
+
+    @Override
+    public String name() {
+        return object().name();
+    }
+
+    @Override
+    public boolean isName() {
+        return hasTag("name");
+    }
+
+    @Override
+    public boolean isGroupId() {
+        return hasTag("groupId");
+    }
+
+    @Override
+    public String methodFieldName() {
+        return object().field().substring(0, 1).toUpperCase(Locale.ROOT) + object().field().substring(1);
     }
 }
