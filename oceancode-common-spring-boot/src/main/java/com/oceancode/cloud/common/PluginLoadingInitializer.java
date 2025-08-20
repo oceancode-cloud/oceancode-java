@@ -62,7 +62,7 @@ public class PluginLoadingInitializer implements ApplicationContextInitializer<C
             JarURLConnection jarURLConnection = (JarURLConnection) urlConnection;
             JarFile jarFile = jarURLConnection.getJarFile();
             Enumeration<JarEntry> entries = jarFile.entries();
-            URLClassLoader loader = new URLClassLoader(new URL[]{jarUrlObj});
+            URLClassLoader loader = new URLClassLoader(new URL[]{jarUrlObj}, PluginLoadingInitializer.class.getClassLoader());
             while (entries.hasMoreElements()) {
                 JarEntry jarEntry = entries.nextElement();
                 if (jarEntry.getName().endsWith(".class")) {
