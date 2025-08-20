@@ -1,4 +1,4 @@
-package com.oceancode.cloud.api.excel;
+package com.oceancode.cloud.api.file;
 
 import java.io.OutputStream;
 import java.util.Map;
@@ -8,7 +8,7 @@ public class ExportFileContext extends FileContext {
 
     private OutputStream outputStream;
 
-    private Map<String,Object> variables;
+    private Map<String, Object> variables;
 
     public String getTemplateFile() {
         return templateFile;

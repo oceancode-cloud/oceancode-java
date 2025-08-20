@@ -1,12 +1,12 @@
 package com.oceancode.cloud.common.excel;
 
-import com.oceancode.cloud.api.excel.ExportFileContext;
-import com.oceancode.cloud.api.excel.FileContext;
-import com.oceancode.cloud.api.excel.FileService;
-import com.oceancode.cloud.api.excel.ParseCallback;
-import com.oceancode.cloud.api.excel.ParseFileContext;
-import com.oceancode.cloud.api.excel.TemplateInputStream;
-import com.oceancode.cloud.api.excel.WriteCallback;
+import com.oceancode.cloud.api.file.ExportFileContext;
+import com.oceancode.cloud.api.file.FileContext;
+import com.oceancode.cloud.api.file.FileService;
+import com.oceancode.cloud.api.file.ParseCallback;
+import com.oceancode.cloud.api.file.ParseFileContext;
+import com.oceancode.cloud.api.file.TemplateInputStream;
+import com.oceancode.cloud.api.file.WriteCallback;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 

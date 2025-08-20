@@ -4,7 +4,7 @@ import com.oceancode.cloud.api.cache.CacheService;
 import com.oceancode.cloud.api.cache.LocalCacheService;
 import com.oceancode.cloud.api.cache.LockService;
 import com.oceancode.cloud.api.cache.RedisCacheService;
-import com.oceancode.cloud.api.excel.FileService;
+import com.oceancode.cloud.api.file.FileService;
 import com.oceancode.cloud.api.mq.Consumer;
 import com.oceancode.cloud.api.mq.Producer;
 import com.oceancode.cloud.api.security.AesCryptoService;

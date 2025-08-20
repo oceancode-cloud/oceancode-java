@@ -1,4 +1,4 @@
-package com.oceancode.cloud.api.excel;
+package com.oceancode.cloud.api.file;
 
 public interface ParseCallback {
     boolean parse(FileContext context, Row row);
