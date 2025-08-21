@@ -4,9 +4,11 @@
 
 package com.oceancode.cloud.common.util;
 
+import com.oceancode.cloud.api.security.Rsa2CryptoService;
 import com.oceancode.cloud.common.entity.PartFile;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
+import com.oceancode.cloud.common.security.Rsa2Crypto;
 import org.apache.commons.io.FileUtils;
 import org.springframework.web.multipart.MultipartFile;
 

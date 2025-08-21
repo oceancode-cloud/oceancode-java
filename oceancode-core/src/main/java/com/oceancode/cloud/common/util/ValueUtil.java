@@ -5,8 +5,14 @@
 package com.oceancode.cloud.common.util;
 
 import com.oceancode.cloud.api.TypeEnum;
+import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -21,6 +27,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * <B>ValueUtil</B>
@@ -405,5 +413,37 @@ public final class ValueUtil {
             return code.substring(0, 1).toUpperCase();
         }
         return line;
+    }
+
+    public static byte[] compressData(String rawData) {
+        if (isEmpty(rawData)) {
+            return null;
+        }
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(); GZIPOutputStream gzip = new GZIPOutputStream(byteArrayOutputStream)) {
+            gzip.write(rawData.getBytes(StandardCharsets.UTF_8));
+            return byteArrayOutputStream.toByteArray();
+        } catch (Exception e) {
+            throw new BusinessRuntimeException(CommonErrorCode.ERROR, e);
+        }
+    }
+
+    public static String unCompressData(byte[] compressData) {
+        if (Objects.isNull(compressData)) {
+            return null;
+        }
+        if (compressData.length == 0) {
+            return "";
+        }
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(); InputStream in = new ByteArrayInputStream(compressData); GZIPInputStream gzip = new GZIPInputStream(in)) {
+            byte[] buffer = new byte[1024];
+            int n;
+            while ((n = gzip.read(buffer)) != 1) {
+                outputStream.write(buffer, 0, n);
+            }
+            return outputStream.toString(StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new BusinessRuntimeException(CommonErrorCode.ERROR, e);
+        }
+
     }
 }
