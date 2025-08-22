@@ -1,17 +1,36 @@
 package com.oceancode.cloud.x.wrapper;
 
+import com.oceancode.cloud.x.util.XUtil;
+import com.oceancode.cloud.x.wrapper.java.MapperClassWrapper;
+import com.oceancode.cloud.x.wrapper.java.MapperXmlFileWrapper;
+
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class ProjectWrapper {
-    private File dir;
+    private File projectDir;
+    private File replaceDir;
+    private String sourceCodeDir;
+    private Set<String> basePackages = new HashSet<>();
+    private Map<String, JavaClassFileWrapper> packageFileMapping = new HashMap<>();
+    private List<MapperXmlFileWrapper> mapperXmlFiles;
 
-    public ProjectWrapper(String dir) {
-        this.dir = new File(dir);
+    public ProjectWrapper(String projectDir, String replaceDir) {
+        this.projectDir = new File(projectDir);
+        this.replaceDir = new File(replaceDir, getProjectName());
     }
 
     public FileWrapper getPackageFile() {
-        return findRootPackageFile(dir);
+        return findRootPackageFile(projectDir);
     }
 
     private FileWrapper findRootPackageFile(File dir) {
@@ -25,21 +44,118 @@ public class ProjectWrapper {
                 return null;
             }
             for (File file : files) {
+                if (file.isFile() && file.getName().toLowerCase().endsWith(".java")) {
+                    return new FileWrapper(file.getParentFile(), this, null);
+                }
+            }
+            for (File file : files) {
                 FileWrapper rootPackageFile = findRootPackageFile(file);
                 if (Objects.nonNull(rootPackageFile)) {
                     return rootPackageFile;
                 }
             }
         }
-
-        if (dir.getName().toLowerCase().endsWith(".java")) {
-            return new FileWrapper(dir.getParentFile(), this);
-        }
-
         return null;
     }
 
-    public File getFile() {
-        return dir;
+    public String getProjectName() {
+        return projectDir.getName();
+    }
+
+    public List<FileWrapper> files() {
+        if (basePackages.isEmpty()) {
+            return getPackageFile().files();
+        }
+        List<FileWrapper> list = new ArrayList<>();
+        for (String basePackage : basePackages) {
+            File file = new File(projectDir, getSourceCodePath() + basePackage.replace(".", "/"));
+            if (!file.exists()) {
+                continue;
+            }
+            if (file.isFile()) {
+                continue;
+            }
+            list.add(new FileWrapper(file, this, null));
+        }
+        return list;
+    }
+
+    public void replaceAll() {
+        if (!replaceDir.exists()) {
+            replaceDir.mkdir();
+        }
+
+        File codeDir = new File(replaceDir, getSourceCodePath());
+        if (!codeDir.exists()) {
+            codeDir.mkdirs();
+        }
+        File pomFile = new File(projectDir, "pom.xml");
+        File targetPomFile = new File(replaceDir, pomFile.getName());
+        if (pomFile.exists() && !targetPomFile.exists()) {
+            XUtil.copyFile(pomFile.getAbsolutePath(), targetPomFile.getAbsolutePath());
+        }
+        for (FileWrapper file : files()) {
+            file.replaceAll();
+        }
+    }
+
+    public String getAbsolutePath() {
+        return projectDir.getAbsolutePath();
+    }
+
+    public String getSourceCodePath() {
+        sourceCodeDir = "src" + File.separator + "main" + File.separator + "java" + File.separator;
+        return sourceCodeDir;
+    }
+
+    public String getOutputCodeDir() {
+        return Path.of(replaceDir.getAbsolutePath(), getSourceCodePath()).toString();
+    }
+
+    public String getOutputResourceDir() {
+        return Path.of(replaceDir.getAbsolutePath(), getResourceRootDir()).toString();
+    }
+
+    public JavaClassFileWrapper findByPackageName(String fullName) {
+        return packageFileMapping.computeIfAbsent(fullName, key -> {
+            List<FileWrapper> files = getPackageFile().files();
+            for (FileWrapper file : files) {
+                JavaClassFileWrapper target = file.findByPackageName(fullName);
+                if (Objects.nonNull(target)) {
+                    return target;
+                }
+            }
+            return null;
+        });
+    }
+
+    public void addBasePackages(String basePackage) {
+        basePackages.add(basePackage);
+    }
+
+    public String getResourceRootDir() {
+        return "src" + File.separator + "main" + File.separator + getResourceDir() + File.separator;
+    }
+
+    public String getResourceDir() {
+        return "resources";
+    }
+
+    public String getMapperXmlRootDir() {
+        return "repository";
+    }
+
+    public List<MapperXmlFileWrapper> mapperXmlFiles() {
+        if (Objects.nonNull(mapperXmlFiles)) {
+            return mapperXmlFiles;
+        }
+        File mapperFile = new File(projectDir, getResourceRootDir() + getMapperXmlRootDir());
+        if (!mapperFile.exists()) {
+            mapperXmlFiles = Collections.emptyList();
+            return mapperXmlFiles;
+        }
+        mapperXmlFiles = new ArrayList<>();
+        mapperXmlFiles.add(new MapperXmlFileWrapper(mapperFile, this, null));
+        return mapperXmlFiles;
     }
 }
