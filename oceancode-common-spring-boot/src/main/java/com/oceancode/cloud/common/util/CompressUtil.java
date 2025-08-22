@@ -101,6 +101,10 @@ public class CompressUtil {
             }
         } catch (Exception e) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
+        } finally {
+            if (keyFile.exists()) {
+                keyFile.delete();
+            }
         }
     }
 
