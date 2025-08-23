@@ -1,15 +1,12 @@
 package com.oceancode.cloud.x.wrapper;
 
 import com.oceancode.cloud.x.util.XUtil;
-import com.oceancode.cloud.x.wrapper.java.MapperClassWrapper;
 import com.oceancode.cloud.x.wrapper.java.MapperXmlFileWrapper;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,15 +20,36 @@ public class ProjectWrapper {
     private String sourceCodeDir;
     private Set<String> basePackages = new HashSet<>();
     private Map<String, JavaClassFileWrapper> packageFileMapping = new ConcurrentHashMap<>();
+    private Map<String, JavaClassFileWrapper> fileIndexerMapping = new ConcurrentHashMap<>();
     private List<MapperXmlFileWrapper> mapperXmlFiles;
+    private FileWrapper packageRootFile;
+    private Set<String> excludePaths = new HashSet<>();
 
     public ProjectWrapper(String projectDir, String replaceDir) {
-        this.projectDir = new File(projectDir);
+        this(projectDir, null, replaceDir);
+    }
+
+    public ProjectWrapper(String projectDir, String modelDir, String replaceDir) {
+        if (Objects.nonNull(modelDir)) {
+            this.projectDir = new File(projectDir, modelDir);
+        } else {
+            this.projectDir = new File(projectDir);
+        }
         this.replaceDir = new File(replaceDir, getProjectName());
     }
 
+
     public FileWrapper getPackageFile() {
-        return findRootPackageFile(projectDir);
+        if (Objects.nonNull(packageRootFile)) {
+            return packageRootFile;
+        }
+        File file = new File(projectDir, getSourceCodePath());
+        if (file.exists()) {
+            packageRootFile = new FileWrapper(file.getParentFile(), this, null);
+            return packageRootFile;
+        }
+        packageRootFile = findRootPackageFile(file);
+        return packageRootFile;
     }
 
     private FileWrapper findRootPackageFile(File dir) {
@@ -82,6 +100,10 @@ public class ProjectWrapper {
     }
 
     public void replaceAll() {
+        List<FileWrapper> files = files();
+        if (files.isEmpty()) {
+            return;
+        }
         if (!replaceDir.exists()) {
             replaceDir.mkdir();
         }
@@ -95,7 +117,7 @@ public class ProjectWrapper {
         if (pomFile.exists() && !targetPomFile.exists()) {
             XUtil.copyFile(pomFile.getAbsolutePath(), targetPomFile.getAbsolutePath());
         }
-        for (FileWrapper file : files()) {
+        for (FileWrapper file : files) {
             file.replaceAll();
         }
     }
@@ -118,6 +140,14 @@ public class ProjectWrapper {
     }
 
     public JavaClassFileWrapper findByPackageName(String fullName) {
+        return findByPackageName(fullName, null);
+    }
+
+    public JavaClassFileWrapper findByPackageName(String fullName, Boolean canReplaced) {
+        JavaClassFileWrapper javaClassFile = getJavaClassFile(fullName);
+        if (Objects.nonNull(javaClassFile)) {
+            return javaClassFile;
+        }
         JavaClassFileWrapper javaClassFileWrapper = packageFileMapping.computeIfAbsent(fullName, key -> {
             List<FileWrapper> files = getPackageFile().files();
             for (FileWrapper file : files) {
@@ -126,16 +156,27 @@ public class ProjectWrapper {
                     return target;
                 }
             }
+            JavaClassFileWrapper target = getJavaClassFile(fullName);
+            if (Objects.nonNull(target)) {
+                return target;
+            }
             return JavaClassFileWrapper.EMPTY;
         });
         if (javaClassFileWrapper == JavaClassFileWrapper.EMPTY) {
             return null;
         }
+        if (Objects.isNull(canReplaced)) {
+            return javaClassFileWrapper;
+        } else if (canReplaced) {
+            if (!javaClassFileWrapper.canReplaced()) {
+                return null;
+            }
+        } else {
+            if (javaClassFileWrapper.canReplaced()) {
+                return null;
+            }
+        }
         return javaClassFileWrapper;
-    }
-
-    public void addFileIndexer(JavaClassFileWrapper javaClass) {
-        packageFileMapping.put(javaClass.getFullPackageName(true), javaClass);
     }
 
     public void addBasePackages(String basePackage) {
@@ -166,5 +207,30 @@ public class ProjectWrapper {
         mapperXmlFiles = new ArrayList<>();
         mapperXmlFiles.add(new MapperXmlFileWrapper(mapperFile, this, null));
         return mapperXmlFiles;
+    }
+
+    public void addExcludePath(String path) {
+        File file = new File(projectDir, path);
+        if (!file.exists()) {
+            throw new RuntimeException(file.getAbsolutePath() + " not exists.");
+        }
+        this.excludePaths.add(file.getAbsolutePath());
+    }
+
+    public boolean isExcludeFile(File file) {
+        if (excludePaths.contains(file.getAbsolutePath())) {
+            return true;
+        }
+        return excludePaths.stream().anyMatch(path -> file.getAbsolutePath().startsWith(path));
+    }
+
+    public void addFileIndexer(FileWrapper fileWrapper) {
+        if (fileWrapper instanceof JavaClassFileWrapper javaClass) {
+            fileIndexerMapping.put(javaClass.getFullPackageName(true), javaClass);
+        }
+    }
+
+    public JavaClassFileWrapper getJavaClassFile(String fullPackageName) {
+        return fileIndexerMapping.get(fullPackageName);
     }
 }

@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -86,5 +87,25 @@ public class XUtil {
         } finally {
             remove();
         }
+    }
+
+    public static File findFirstFileFromDir(File dir) {
+        if (dir.isFile()) {
+            return dir;
+        }
+        File[] files = dir.listFiles();
+        if (Objects.isNull(files)) {
+            return null;
+        }
+        for (File file : files) {
+            if (file.isFile()) {
+                return file;
+            }
+            File f = findFirstFileFromDir(file);
+            if (Objects.nonNull(f)) {
+                return f;
+            }
+        }
+        return null;
     }
 }

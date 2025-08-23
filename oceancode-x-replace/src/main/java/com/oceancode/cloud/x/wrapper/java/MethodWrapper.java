@@ -3,6 +3,8 @@ package com.oceancode.cloud.x.wrapper.java;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.SimpleName;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.oceancode.cloud.x.util.XUtil;
 import com.oceancode.cloud.x.wrapper.JavaClassFileWrapper;
 
@@ -50,13 +52,60 @@ public class MethodWrapper extends BaseJavaClassPartWrapper<MethodDeclaration> {
 
         object().findAll(MethodCallExpr.class)
                 .forEach(methodCallExpr -> {
+                    if (methodCallExpr.getScope().isPresent()) {
+                        return;
+                    }
                     MethodWrapper method = file().method(methodCallExpr.getNameAsString());
                     if (Objects.nonNull(method)) {
                         String xName = method.name(false);
                         file().addCallback(() -> methodCallExpr.setName(xName));
                     }
                 });
-
+        object().getBody().get().findAll(SimpleName.class)
+                .forEach(simpleName -> {
+                    if (!simpleName.getParentNode().isPresent()) {
+                        return;
+                    }
+                    if (!(simpleName.getParentNode().get() instanceof MethodCallExpr method)) {
+                        return;
+                    }
+                    if (!method.getScope().isPresent()) {
+                        return;
+                    }
+                    String field = method.getScope().get().toString();
+                    FieldWrapper fieldWrapper = file().field(field);
+                    if (Objects.isNull(fieldWrapper)) {
+                        if (simpleName.getParentNode().get().toString().startsWith("mapper.")) {
+                            List<FieldWrapper> list = file().fields().stream().filter(it -> it.isMapperField()).toList();
+                            if (list.size() == 1) {
+                                fieldWrapper = list.get(0);
+                            }
+                        }
+                    }
+                    if (Objects.isNull(fieldWrapper) || !fieldWrapper.isMapperField()) {
+                        return;
+                    }
+                    String xName;
+                    MethodWrapper targetMethod = fieldWrapper.typeFile().method(simpleName.getIdentifier());
+                    if (Objects.nonNull(targetMethod)) {
+                        xName = fieldWrapper.typeFile().method(simpleName.getIdentifier()).name(false);
+                    } else {
+                        xName = simpleName.getIdentifier();
+                    }
+                    file().addCallback(() -> simpleName.setIdentifier(xName));
+                });
+        object().getBody().get().findAll(ClassOrInterfaceType.class)
+                .forEach(classOrInterfaceType -> {
+                    String name = classOrInterfaceType.getNameAsString();
+                    ImportClassWrapper importClassWrapper = file().findImportByClassName(name);
+                    if (Objects.nonNull(importClassWrapper)) {
+                        JavaClassFileWrapper target = file().project().findByPackageName(importClassWrapper.object().getNameAsString(), true);
+                        if (Objects.nonNull(target)) {
+                            String xName = target.getClassName();
+                            file().addCallback(() -> classOrInterfaceType.setName(xName));
+                        }
+                    }
+                });
         parameters().forEach(ParameterWrapper::replaceAll);
     }
 

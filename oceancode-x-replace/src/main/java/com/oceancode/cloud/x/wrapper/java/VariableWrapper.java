@@ -16,6 +16,11 @@ public class VariableWrapper extends BaseJavaClassPartWrapper<VariableDeclarator
 
     @Override
     public boolean canReplaced() {
+        if (parent instanceof FieldWrapper fieldWrapper) {
+            if (fieldWrapper.isMapperField()) {
+                return true;
+            }
+        }
         if (!object().getParentNode().isPresent()) {
             return super.canReplaced();
         }

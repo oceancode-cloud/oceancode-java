@@ -75,6 +75,11 @@ public class JavaClassFileWrapper extends FileWrapper {
         return fields;
     }
 
+    public FieldWrapper field(String name) {
+        return fields().stream().filter(fieldWrapper -> Objects.equals(name, fieldWrapper.name(true)))
+                .findFirst().orElse(null);
+    }
+
     public List<VariableWrapper> globalVariables() {
         return fields().stream().flatMap(it -> it.variables().stream()).toList();
     }
@@ -123,6 +128,7 @@ public class JavaClassFileWrapper extends FileWrapper {
 
     @Override
     public JavaClassFileWrapper findByPackageName(String fullName) {
+        project().addFileIndexer(this);
         if (Objects.equals(getFullPackageName(true), fullName)) {
             return this;
         }

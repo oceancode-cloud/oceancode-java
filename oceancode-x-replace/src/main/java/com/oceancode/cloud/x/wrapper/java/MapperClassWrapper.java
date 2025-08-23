@@ -55,11 +55,17 @@ public class MapperClassWrapper extends JavaClassFileWrapper {
         if (isRaw) {
             return super.getPackageName(true);
         }
+        return super.getPackageName(false) + "." + datasourceId(false);
+    }
+
+    public String datasourceId(boolean isRaw) {
         String name = super.getPackageName(true);
         name = name.substring(name.lastIndexOf(".mapper.") + ".mapper.".length());
         String datasourceId = name.substring(0, name.indexOf("."));
+        if (isRaw) {
+            return datasourceId;
+        }
         datasourceId = XUtil.getContext().replaceDatasourceId(datasourceId);
-        name = super.getPackageName(false) + "." + datasourceId;
-        return name;
+        return datasourceId;
     }
 }

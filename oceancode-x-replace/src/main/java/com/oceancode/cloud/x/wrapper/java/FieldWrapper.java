@@ -1,7 +1,7 @@
 package com.oceancode.cloud.x.wrapper.java;
 
 import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.oceancode.cloud.x.wrapper.JavaClassFileWrapper;
 
 import java.util.List;
@@ -25,5 +25,32 @@ public class FieldWrapper extends BaseJavaClassPartWrapper<FieldDeclaration> {
         }
         variables = object().getVariables().stream().map(it -> new VariableWrapper(file(), it, this)).toList();
         return variables;
+    }
+
+    public boolean isMapperField() {
+        JavaClassFileWrapper target = typeFile();
+        return Objects.nonNull(target) && target.isMapper();
+    }
+
+    public JavaClassFileWrapper typeFile() {
+        List<ClassOrInterfaceType> list = object().findAll(ClassOrInterfaceType.class);
+        if (list.size() != 1) {
+            return null;
+        }
+        ImportClassWrapper importClassWrapper = file().findImportByClassName(list.get(0).getNameAsString());
+        if (Objects.isNull(importClassWrapper)) {
+            return null;
+        }
+        JavaClassFileWrapper target = file().project().findByPackageName(importClassWrapper.object().getNameAsString());
+        return target;
+    }
+
+    @Override
+    public String name(boolean isRaw) {
+        if (variables().size() != 1) {
+            return super.name(isRaw);
+        }
+        VariableWrapper name = variables().get(0);
+        return name.name(isRaw);
     }
 }

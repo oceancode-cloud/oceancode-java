@@ -2,6 +2,7 @@ package com.oceancode.cloud.x.wrapper.java;
 
 import com.oceancode.cloud.x.util.XUtil;
 import com.oceancode.cloud.x.wrapper.FileWrapper;
+import com.oceancode.cloud.x.wrapper.JavaClassFileWrapper;
 import com.oceancode.cloud.x.wrapper.ProjectWrapper;
 
 import java.io.File;
@@ -30,7 +31,7 @@ public class MapperXmlFileWrapper extends FileWrapper {
             return datasourceId;
         }
         if (file.isFile()) {
-            return ((MapperXmlFileWrapper) parent()).datasourceId();
+            return mapper().datasourceId(false);
         }
         File cur = file;
         datasourceId = "";
@@ -79,14 +80,26 @@ public class MapperXmlFileWrapper extends FileWrapper {
             return;
         }
 
-        code = getReplaceCode().replace(getFullPackageName(true), mapperSource.getFullPackageName(false));
-        for (MethodWrapper method : mapperSource.methods()) {
+        code = getReplaceCode().replace(getFullPackageName(true), mapper().getFullPackageName(false));
+        for (MethodWrapper method : mapper().methods()) {
             String rawName = method.name(true);
             String xName = method.name(false);
             String rawId = " id=\"" + rawName + "\" ";
             String xId = " id=\"" + xName + "\" ";
             code = code.replace(rawId, xId);
         }
+    }
+
+    public MapperClassWrapper mapper() {
+        if (Objects.nonNull(mapperSource)) {
+            return mapperSource;
+        }
+        String name = getFullPackageName(true);
+        JavaClassFileWrapper target = project().findByPackageName(name);
+        if (target instanceof MapperClassWrapper) {
+            mapperSource = (MapperClassWrapper) target;
+        }
+        return mapperSource;
     }
 
     @Override
@@ -127,10 +140,7 @@ public class MapperXmlFileWrapper extends FileWrapper {
 
     @Override
     public String getAbsolutePath(boolean isRaw) {
-        String id = datasourceId();
-        if (!isRaw) {
-            id = XUtil.getContext().replaceDatasourceId(id);
-        }
+        String id = mapper().datasourceId(true);
         return project().getOutputResourceDir() + File.separator + project().getMapperXmlRootDir() + File.separator + id + File.separator + getPackageName(isRaw) + File.separator + getClassName(isRaw) + getSuffix();
     }
 

@@ -6,6 +6,7 @@ import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.oceancode.cloud.x.util.XUtil;
 import com.oceancode.cloud.x.wrapper.java.MapperClassWrapper;
+import com.oceancode.cloud.x.wrapper.java.MapperXmlFileWrapper;
 
 import java.io.File;
 import java.util.Arrays;
@@ -28,7 +29,9 @@ public class FileWrapper {
     }
 
     public <T extends FileWrapper> List<T> files() {
-        List<FileWrapper> list = Arrays.stream(file.listFiles()).map(it -> {
+        List<FileWrapper> list = Arrays.stream(file.listFiles())
+                .filter(f -> !project().isExcludeFile(f))
+                .map(it -> {
                     FileWrapper file = null;
                     if (XUtil.isJavaSourceFile(it)) {
                         JavaClassFileWrapper temp = new JavaClassFileWrapper(it, projectWrapper, this);
@@ -36,9 +39,12 @@ public class FileWrapper {
                         if (temp.isMapper()) {
                             file = new MapperClassWrapper(it, projectWrapper, this);
                         }
+                    } else if (it.getName().toLowerCase().endsWith("mapper.xml")) {
+                        file = new MapperXmlFileWrapper(it, projectWrapper, this);
                     } else {
                         file = new FileWrapper(it, projectWrapper, this);
                     }
+                    project().addFileIndexer(file);
                     return file;
                 })
                 .toList();
@@ -102,7 +108,7 @@ public class FileWrapper {
     }
 
     public String getClassName(boolean isRaw) {
-        throw new RuntimeException("not implementation.");
+        throw new RuntimeException(file + "not implementation.");
     }
 
     public String getAbsolutePath(boolean isRaw) {
@@ -162,10 +168,18 @@ public class FileWrapper {
     }
 
     public JavaClassFileWrapper findByPackageName(String fullName) {
+        String curPath = fullName.replace(".", File.separator);
+        if (!file.getAbsolutePath().endsWith(curPath)) {
+            int len = (project().getAbsolutePath() + File.separator + project().getSourceCodePath()).length() + curPath.length();
+            if (file.getAbsoluteFile().length() > len) {
+                return null;
+            }
+        }
         if (file.isFile()) {
             return null;
         }
         for (FileWrapper f : files()) {
+            project().addFileIndexer(f);
             JavaClassFileWrapper targetFile = f.findByPackageName(fullName);
             if (Objects.nonNull(targetFile)) {
                 return targetFile;
