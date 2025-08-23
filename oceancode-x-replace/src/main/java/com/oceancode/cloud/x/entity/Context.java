@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Context {
     private Map<String, String> packageMapping = new HashMap<>();
-    private Map<String, String> methodMapping = new HashMap<>();
+    private Map<String, Map<String, String>> methodMapping = new HashMap<>();
     private Map<String, String> datasourceIdMapping = new HashMap<>();
     private Map<String, String> classNameMapping = new HashMap<>();
     private Map<String, Map<String, String>> variableMapping = new HashMap<>();
@@ -35,7 +35,11 @@ public class Context {
     }
 
     public String replaceMethodName(String fullPackageName, String name) {
-        return methodMapping.computeIfAbsent(fullPackageName + ":" + name, key -> randomVar(methodMapping));
+        if (!methodMapping.containsKey(fullPackageName)) {
+            methodMapping.put(fullPackageName, new HashMap<>());
+        }
+        Map<String, String> map = methodMapping.get(fullPackageName);
+        return map.computeIfAbsent(name, key -> randomVar(map));
     }
 
     public String replaceDatasourceId(String id) {

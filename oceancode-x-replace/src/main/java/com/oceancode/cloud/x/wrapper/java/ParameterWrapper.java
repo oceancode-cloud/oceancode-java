@@ -54,15 +54,27 @@ public class ParameterWrapper extends BaseJavaClassPartWrapper<Parameter> {
             }
         }
 
+        if (file() instanceof MapperClassWrapper mapperClass) {
+            String rawName = object().getNameAsString();
+            String xName = XUtil.getContext().replaceVariable(getScope(), rawName);
+            file().addCallback(() -> object().setName(xName));
+        }
+
     }
 
     @Override
     protected String getScope() {
         String name = "";
-        if (!body.getParentNode().isPresent()) {
-            return super.getScope();
+        Node parentNode = null;
+        if (Objects.nonNull(body)) {
+            if (!body.getParentNode().isPresent()) {
+                return super.getScope();
+            }
+            parentNode = body.getParentNode().get();
+        } else if (object().getParentNode().isPresent()) {
+            parentNode = object().getParentNode().get();
         }
-        Node parentNode = body.getParentNode().get();
+
         if (parentNode instanceof ConstructorDeclaration constructorDeclaration) {
             name = ".ConstructorDeclaration:" + constructorDeclaration.getParameters().toString();
         } else if (parentNode instanceof MethodDeclaration methodDeclaration) {

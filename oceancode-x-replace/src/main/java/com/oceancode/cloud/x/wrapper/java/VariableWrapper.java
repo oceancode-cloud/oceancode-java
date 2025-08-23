@@ -15,6 +15,20 @@ public class VariableWrapper extends BaseJavaClassPartWrapper<VariableDeclarator
     }
 
     @Override
+    public boolean canReplaced() {
+        if (!object().getParentNode().isPresent()) {
+            return super.canReplaced();
+        }
+        Node node = object().getParentNode().get();
+        if (node instanceof FieldDeclaration fieldDeclaration) {
+            if (!XUtil.canReplaced(fieldDeclaration.getAnnotations())) {
+                return false;
+            }
+        }
+        return super.canReplaced();
+    }
+
+    @Override
     protected void doReplaceAll() {
         String rawName = object().getNameAsString();
         String name = XUtil.getContext().replaceVariable(getScope(), rawName);
@@ -30,7 +44,7 @@ public class VariableWrapper extends BaseJavaClassPartWrapper<VariableDeclarator
 
     @Override
     public String name(boolean isRaw) {
-        if (isRaw || Objects.isNull(parent)) {
+        if (isRaw || Objects.isNull(parent) || !canReplaced()) {
             return super.name(true);
         }
         if (parent instanceof FieldWrapper field) {

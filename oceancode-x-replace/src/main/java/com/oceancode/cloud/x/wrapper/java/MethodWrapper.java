@@ -1,6 +1,7 @@
 package com.oceancode.cloud.x.wrapper.java;
 
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.oceancode.cloud.x.util.XUtil;
 import com.oceancode.cloud.x.wrapper.JavaClassFileWrapper;
@@ -14,12 +15,31 @@ public class MethodWrapper extends BaseJavaClassPartWrapper<MethodDeclaration> {
     }
 
     @Override
-    protected void doReplaceAll() {
-        if (!XUtil.hasAnnotation(object().getAnnotations(), "Override")) {
-            String name = XUtil.getContext().replaceMethodName(file().getFullPackageName(true), object().getNameAsString());
-            file().addCallback(() -> object().setName(name));
+    public boolean canReplaced() {
+        if (object().isStatic() && object().isPublic()) {
+            return false;
         }
+        boolean canReplaced = XUtil.canReplaced(object().getAnnotations());
+        if (!canReplaced) {
 
+            return false;
+        }
+//        if (!object().isPrivate()) {
+//            List<JavaClassFileWrapper> parents = file().mainClass().parents();
+//            for (JavaClassFileWrapper item : parents) {
+//                if (item.hasMethod(object().getNameAsString())) {
+//                    return false;
+//                }
+//            }
+//        }
+        return canReplaced;
+    }
+
+    @Override
+    protected void doRenderContent() {
+        if (!object().getBody().isPresent()) {
+            return;
+        }
         object().findAll(NameExpr.class).forEach(name -> {
             VariableWrapper variable = file().globalVariable(name.getNameAsString());
             if (Objects.nonNull(variable)) {
@@ -28,10 +48,38 @@ public class MethodWrapper extends BaseJavaClassPartWrapper<MethodDeclaration> {
             }
         });
 
+        object().findAll(MethodCallExpr.class)
+                .forEach(methodCallExpr -> {
+                    MethodWrapper method = file().method(methodCallExpr.getNameAsString());
+                    if (Objects.nonNull(method)) {
+                        String xName = method.name(false);
+                        file().addCallback(() -> methodCallExpr.setName(xName));
+                    }
+                });
+
         parameters().forEach(ParameterWrapper::replaceAll);
+    }
+
+    @Override
+    protected void doReplaceAll() {
+        String xMethodName = name(false);
+        file().addCallback(() -> object().setName(xMethodName));
     }
 
     public List<ParameterWrapper> parameters() {
         return object().getParameters().stream().map(it -> new ParameterWrapper(file(), object().getBody().orElse(null), it)).toList();
+    }
+
+    @Override
+    protected String getScope() {
+        return file().getFullPackageName(true);
+    }
+
+    @Override
+    public String name(boolean isRaw) {
+        if (isRaw) {
+            return super.name(isRaw);
+        }
+        return XUtil.getContext().replaceMethodName(getScope(), object().getNameAsString());
     }
 }

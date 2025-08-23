@@ -15,13 +15,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ProjectWrapper {
     private File projectDir;
     private File replaceDir;
     private String sourceCodeDir;
     private Set<String> basePackages = new HashSet<>();
-    private Map<String, JavaClassFileWrapper> packageFileMapping = new HashMap<>();
+    private Map<String, JavaClassFileWrapper> packageFileMapping = new ConcurrentHashMap<>();
     private List<MapperXmlFileWrapper> mapperXmlFiles;
 
     public ProjectWrapper(String projectDir, String replaceDir) {
@@ -117,7 +118,7 @@ public class ProjectWrapper {
     }
 
     public JavaClassFileWrapper findByPackageName(String fullName) {
-        return packageFileMapping.computeIfAbsent(fullName, key -> {
+        JavaClassFileWrapper javaClassFileWrapper = packageFileMapping.computeIfAbsent(fullName, key -> {
             List<FileWrapper> files = getPackageFile().files();
             for (FileWrapper file : files) {
                 JavaClassFileWrapper target = file.findByPackageName(fullName);
@@ -125,8 +126,16 @@ public class ProjectWrapper {
                     return target;
                 }
             }
-            return null;
+            return JavaClassFileWrapper.EMPTY;
         });
+        if (javaClassFileWrapper == JavaClassFileWrapper.EMPTY) {
+            return null;
+        }
+        return javaClassFileWrapper;
+    }
+
+    public void addFileIndexer(JavaClassFileWrapper javaClass) {
+        packageFileMapping.put(javaClass.getFullPackageName(true), javaClass);
     }
 
     public void addBasePackages(String basePackage) {

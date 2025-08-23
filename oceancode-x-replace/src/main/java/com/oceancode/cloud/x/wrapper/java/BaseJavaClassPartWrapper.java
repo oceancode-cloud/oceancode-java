@@ -42,19 +42,28 @@ public class BaseJavaClassPartWrapper<T> {
 
     public void replaceAll() {
         if (!canReplaced()) {
+            doRenderContent();
             return;
         }
         if (replaced) {
             return;
         }
         doReplaceAll();
+        doRenderContent();
         this.replaced = true;
+    }
+
+    protected void doRenderContent() {
+
     }
 
     protected void doReplaceAll() {
     }
 
     public String name(boolean isRaw) {
+        if (!canReplaced()) {
+            isRaw = true;
+        }
         if (object() instanceof NodeWithSimpleName node) {
             String name = node.getNameAsString();
             return isRaw ? name :
@@ -62,6 +71,5 @@ public class BaseJavaClassPartWrapper<T> {
         }
         return null;
     }
-
 
 }

@@ -58,6 +58,13 @@ public class XUtil {
         }
     }
 
+    public static boolean canReplaced(NodeList<AnnotationExpr> annotations) {
+        if (hasAnnotation(annotations, "PrivateScope")) {
+            return true;
+        }
+        return !hasAnnotation(annotations, "Resource", "Autowired", "RawScope", "PublicApi", "Override");
+    }
+
     public static boolean hasAnnotation(NodeList<AnnotationExpr> annotations, String... overrides) {
         Set<String> set = Arrays.stream(overrides).collect(Collectors.toSet());
         return annotations.stream().anyMatch(it -> set.contains(it.getNameAsString()));

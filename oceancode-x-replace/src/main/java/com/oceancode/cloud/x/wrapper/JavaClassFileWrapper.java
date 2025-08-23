@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class JavaClassFileWrapper extends FileWrapper {
+    public final static JavaClassFileWrapper EMPTY = new JavaClassFileWrapper(null, null, null);
     private PackageWrapper pkg;
     private MainClassWrapper mainClass;
     private List<ImportClassWrapper> imports;
@@ -103,7 +104,7 @@ public class JavaClassFileWrapper extends FileWrapper {
     }
 
 
-    private List<ImportClassWrapper> imports() {
+    public List<ImportClassWrapper> imports() {
         if (Objects.nonNull(imports)) {
             return imports;
         }
@@ -115,6 +116,11 @@ public class JavaClassFileWrapper extends FileWrapper {
         return imports;
     }
 
+    public ImportClassWrapper findImportByClassName(String className) {
+        return imports().stream().filter(importClassWrapper -> importClassWrapper.object().getNameAsString().endsWith("." + className))
+                .findFirst().orElse(null);
+    }
+
     @Override
     public JavaClassFileWrapper findByPackageName(String fullName) {
         if (Objects.equals(getFullPackageName(true), fullName)) {
@@ -123,7 +129,7 @@ public class JavaClassFileWrapper extends FileWrapper {
         return null;
     }
 
-    private List<ConstructorWrapper> constructors() {
+    public List<ConstructorWrapper> constructors() {
         if (Objects.nonNull(constructors)) {
             return constructors;
         }
@@ -142,6 +148,20 @@ public class JavaClassFileWrapper extends FileWrapper {
                 .map(it -> new MethodWrapper(this, it))
                 .toList();
         return methods;
+    }
+
+    public MethodWrapper method(String rawName) {
+        return methods().stream().filter(method -> method.name(true).equals(rawName))
+                .filter(method -> method.canReplaced())
+                .findAny().orElse(null);
+    }
+
+    public boolean hasMethod(String rawName) {
+        return Objects.nonNull(method(rawName));
+    }
+
+    public boolean hasPublicStaticMethod() {
+        return methods().stream().anyMatch(methodWrapper -> methodWrapper.object().isPublic() && methodWrapper.object().isStatic());
     }
 
     @Override
