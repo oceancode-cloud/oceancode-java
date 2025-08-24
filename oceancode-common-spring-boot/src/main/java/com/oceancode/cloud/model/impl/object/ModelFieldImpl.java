@@ -82,7 +82,7 @@ public class ModelFieldImpl extends AbstractBaseObject<MFieldObject> implements 
 
     @Override
     public boolean isMap() {
-        return "map".equalsIgnoreCase(type()) || "stringMap".equalsIgnoreCase(type());
+        return "map".equalsIgnoreCase(type()) || "StringTypeMap".equalsIgnoreCase(type());
     }
 
     @Override
@@ -188,7 +188,7 @@ public class ModelFieldImpl extends AbstractBaseObject<MFieldObject> implements 
             return type();
         }
         if (isText()) {
-            return type();
+            return "String";
         }
 
         return null;
