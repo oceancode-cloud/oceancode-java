@@ -51,17 +51,21 @@ public class JavaClassFileWrapper extends FileWrapper {
     }
 
     @Override
-    protected boolean canReplaced() {
+    public boolean canReplaced() {
         return mainClass().canReplaced();
     }
 
     @Override
     protected void doReplaceAll() {
         pkg().replaceAll();
-        imports().stream().forEach(ImportClassWrapper::replaceAll);
         mainClass().replaceAll();
-        fields().forEach(FieldWrapper::replaceAll);
         constructors().forEach(ConstructorWrapper::replaceAll);
+    }
+
+    @Override
+    protected void doReplaceContent() {
+        imports().stream().forEach(ImportClassWrapper::replaceAll);
+        fields().forEach(FieldWrapper::replaceAll);
         methods().forEach(MethodWrapper::replaceAll);
     }
 
@@ -180,6 +184,58 @@ public class JavaClassFileWrapper extends FileWrapper {
         if (Objects.isNull(mainClassWrapper)) {
             return false;
         }
+        if (Objects.isNull(mainClassWrapper.object())) {
+            return false;
+        }
         return mainClassWrapper.object().isInterface() && XUtil.hasAnnotation(mainClass().object().getAnnotations(), "Mapper");
+    }
+
+    public JavaClassFileWrapper importFile(String className) {
+        ImportClassWrapper importClassWrapper = findImportByClassName(className);
+        if (Objects.nonNull(importClassWrapper)) {
+            return importClassWrapper.importFile();
+        }
+        return project().findByPackageName(getPackageName(true) + "." + className);
+    }
+
+    @Override
+    public String getPackageName(boolean isRaw) {
+        String packageName = super.getPackageName(true);
+        if (!mainClass().canReplaced()) {
+            isRaw = true;
+        }
+        if (isRaw) {
+            return packageName;
+        }
+        if (hasMain() && isRootPackage()) {
+            return null;
+        }
+        return XUtil.getContext().replacePackageName(packageName);
+    }
+
+    private boolean isRootPackage() {
+        if (Objects.isNull(project().getRootPackageFile())) {
+            return false;
+        }
+        return project().getRootPackageFile().getPackageName(true).equals(getPackageName(true));
+    }
+
+    public boolean hasMain() {
+        return methods().stream().anyMatch(MethodWrapper::isMain);
+    }
+
+    @Override
+    public String getFullPackageName(boolean isRaw) {
+        if (!mainClass().canReplaced()) {
+            isRaw = true;
+        }
+        return super.getFullPackageName(isRaw);
+    }
+
+    public boolean isImported(JavaClassFileWrapper javaClassFileWrapper) {
+        if (javaClassFileWrapper.getFullPackageName(true).equals(getFullPackageName(true))) {
+            return true;
+        }
+        return Objects.nonNull(findImportByClassName(javaClassFileWrapper.getClassName(true)));
     }
 }

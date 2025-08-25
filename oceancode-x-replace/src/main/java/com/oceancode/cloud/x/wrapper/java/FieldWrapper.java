@@ -17,6 +17,23 @@ public class FieldWrapper extends BaseJavaClassPartWrapper<FieldDeclaration> {
     @Override
     protected void doReplaceAll() {
         variables().forEach(VariableWrapper::replaceAll);
+        replaceClass();
+    }
+
+    private void replaceClass() {
+        object().findAll(ClassOrInterfaceType.class)
+                .forEach(it -> {
+                    JavaClassFileWrapper javaClassFileWrapper = file().importFile(it.getNameAsString());
+                    if (Objects.isNull(javaClassFileWrapper) || !javaClassFileWrapper.canReplaced()) {
+                        return;
+                    }
+                    String xName = javaClassFileWrapper.getClassName(false);
+                    if (!file().isImported(javaClassFileWrapper)) {
+                        xName = javaClassFileWrapper.getFullPackageName(false);
+                    }
+                    String finalXName = xName;
+                    file().addCallback(() -> it.setName(finalXName));
+                });
     }
 
     public List<VariableWrapper> variables() {

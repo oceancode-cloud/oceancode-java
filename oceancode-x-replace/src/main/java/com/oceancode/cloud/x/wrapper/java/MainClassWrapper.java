@@ -1,6 +1,8 @@
 package com.oceancode.cloud.x.wrapper.java;
 
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
@@ -29,6 +31,10 @@ public class MainClassWrapper extends BaseJavaClassPartWrapper<ClassOrInterfaceD
             return false;
         }
 
+        if (file().hasMain()) {
+            return true;
+        }
+
         return !file().hasPublicStaticMethod();
     }
 
@@ -37,7 +43,6 @@ public class MainClassWrapper extends BaseJavaClassPartWrapper<ClassOrInterfaceD
         String name = file().getClassName();
         file().addCallback(() -> object().setName(name));
 
-        replaceAnnotation();
 
         String rawName = file().getClassName(true);
         file().getParse().findAll(ClassOrInterfaceType.class)
@@ -49,6 +54,25 @@ public class MainClassWrapper extends BaseJavaClassPartWrapper<ClassOrInterfaceD
                 });
     }
 
+    @Override
+    protected void doRenderContent() {
+        replaceAnnotation();
+        replaceImplementation();
+    }
+
+    private void replaceImplementation() {
+        NodeList<ClassOrInterfaceType> implementedTypes = object().getImplementedTypes();
+        for (ClassOrInterfaceType implementedType : implementedTypes) {
+            JavaClassFileWrapper targetJava = file().importFile(implementedType.getNameAsString());
+            if (Objects.nonNull(targetJava)) {
+                if (!targetJava.getPackageName(false).equals(file().getPackageName(false)) {
+                    String xName = targetJava.getFullPackageName(false);
+                    file().addCallback(() -> implementedType.setName(xName));
+                }
+            }
+        }
+    }
+
     private void replaceAnnotation() {
         object().getAnnotations().forEach(annotationExpr -> {
             if ("MapperScan".equals(annotationExpr.getNameAsString())) {
@@ -56,7 +80,7 @@ public class MainClassWrapper extends BaseJavaClassPartWrapper<ClassOrInterfaceD
                     if ("basePackages".equals(memberValuePair.getNameAsString())) {
                         memberValuePair.findAll(StringLiteralExpr.class).forEach(stringLiteralExpr -> {
                             String datasourceId = stringLiteralExpr.getValue();
-                            File file = new File(file().project().getAbsolutePath() + File.separator + file().project().getSourceCodePath(),
+                            File file = new File(file().project().getAbsolutePath() + file().project().getSourceCodePath(),
                                     datasourceId.replace(".", File.separator));
                             if (file.exists() && file.isDirectory()) {
                                 File targetFile = XUtil.findFirstFileFromDir(file);
@@ -69,10 +93,17 @@ public class MainClassWrapper extends BaseJavaClassPartWrapper<ClassOrInterfaceD
                                 }
                             }
                         });
+                    } else {
+                        replaceOtherAnnotation(annotationExpr);
                     }
                 });
             }
         });
+    }
+
+    private void replaceOtherAnnotation(AnnotationExpr annotationExpr) {
+        AnnotationWrapper annotationWrapper = new AnnotationWrapper(file(), annotationExpr, this);
+        annotationWrapper.replaceAll();
     }
 
     public List<JavaClassFileWrapper> parents() {

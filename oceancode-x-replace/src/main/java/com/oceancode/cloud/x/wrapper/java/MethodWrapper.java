@@ -1,6 +1,8 @@
 package com.oceancode.cloud.x.wrapper.java;
 
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.SimpleName;
@@ -53,6 +55,7 @@ public class MethodWrapper extends BaseJavaClassPartWrapper<MethodDeclaration> {
         object().findAll(MethodCallExpr.class)
                 .forEach(methodCallExpr -> {
                     if (methodCallExpr.getScope().isPresent()) {
+                        replaceScope(methodCallExpr.getScope().get());
                         return;
                     }
                     MethodWrapper method = file().method(methodCallExpr.getNameAsString());
@@ -97,16 +100,74 @@ public class MethodWrapper extends BaseJavaClassPartWrapper<MethodDeclaration> {
         object().getBody().get().findAll(ClassOrInterfaceType.class)
                 .forEach(classOrInterfaceType -> {
                     String name = classOrInterfaceType.getNameAsString();
-                    ImportClassWrapper importClassWrapper = file().findImportByClassName(name);
-                    if (Objects.nonNull(importClassWrapper)) {
-                        JavaClassFileWrapper target = file().project().findByPackageName(importClassWrapper.object().getNameAsString(), true);
-                        if (Objects.nonNull(target)) {
-                            String xName = target.getClassName();
-                            file().addCallback(() -> classOrInterfaceType.setName(xName));
+                    JavaClassFileWrapper javaClassFileWrapper = file().importFile(name);
+                    if (Objects.isNull(javaClassFileWrapper)) {
+                        return;
+                    }
+                    if (!javaClassFileWrapper.canReplaced()) {
+                        if (javaClassFileWrapper.getPackageName().equals(file().getPackageName())) {
+                            return;
                         }
                     }
+                    String xName = javaClassFileWrapper.getClassName(false);
+                    if (!file().isImported(javaClassFileWrapper)) {
+                        xName = javaClassFileWrapper.getFullPackageName(false);
+                    }
+                    String finalXName = xName;
+                    file().addCallback(() -> classOrInterfaceType.setName(finalXName));
                 });
         parameters().forEach(ParameterWrapper::replaceAll);
+        replaceVariables();
+        replaceMethodClassType();
+    }
+
+    private void replaceMethodClassType() {
+        object().findAll(ClassOrInterfaceType.class)
+                .forEach(it -> {
+                    JavaClassFileWrapper javaClassFileWrapper = file().importFile(it.getNameAsString());
+                    if (Objects.isNull(javaClassFileWrapper) || !javaClassFileWrapper.canReplaced()) {
+                        return;
+                    }
+                    String xName = javaClassFileWrapper.getClassName(false);
+                    if (!file().isImported(javaClassFileWrapper)) {
+                        xName = javaClassFileWrapper.getFullPackageName(false);
+                    }
+                    String finalXName = xName;
+                    file().addCallback(() -> it.setName(finalXName));
+                });
+    }
+
+    private void replaceVariables() {
+        List<VariableWrapper> list = object().getBody().get().findAll(VariableDeclarator.class)
+                .stream().map(it -> new VariableWrapper(file(), it, this)).toList();
+        for (VariableWrapper variableWrapper : list) {
+            variableWrapper.replaceAll();
+        }
+    }
+
+    public String getParameterScope() {
+        if (parameters().isEmpty()) {
+            return null;
+        }
+        return parameters().get(0).getScope();
+    }
+
+    private void replaceScope(Expression expression) {
+        List<SimpleName> list = expression.findAll(SimpleName.class);
+        for (SimpleName simpleName : list) {
+            String rawName = simpleName.getIdentifier();
+            JavaClassFileWrapper javaClassFileWrapper = file().importFile(rawName);
+            if (Objects.isNull(javaClassFileWrapper)) {
+                return;
+            }
+            String xName = javaClassFileWrapper.getClassName(false);
+            if (!file().isImported(javaClassFileWrapper)) {
+                xName = javaClassFileWrapper.getFullPackageName(false);
+            }
+            String finalXName = xName;
+            file().addCallback(() -> simpleName.setIdentifier(finalXName));
+        }
+
     }
 
     @Override
@@ -115,8 +176,9 @@ public class MethodWrapper extends BaseJavaClassPartWrapper<MethodDeclaration> {
         file().addCallback(() -> object().setName(xMethodName));
     }
 
+
     public List<ParameterWrapper> parameters() {
-        return object().getParameters().stream().map(it -> new ParameterWrapper(file(), object().getBody().orElse(null), it)).toList();
+        return object().getParameters().stream().map(it -> new ParameterWrapper(file(), object().getBody().orElse(null), it, this)).toList();
     }
 
     @Override
@@ -129,6 +191,15 @@ public class MethodWrapper extends BaseJavaClassPartWrapper<MethodDeclaration> {
         if (isRaw) {
             return super.name(isRaw);
         }
+        if (file().mainClass().object().isInterface()) {
+            return super.name(true);
+        }
         return XUtil.getContext().replaceMethodName(getScope(), object().getNameAsString());
+    }
+
+    public boolean isMain() {
+        boolean ret = object().isPublic() && object().isStatic();
+        ret = ret && "main".equals(object().getNameAsString());
+        return ret;
     }
 }

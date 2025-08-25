@@ -9,15 +9,22 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 import com.oceancode.cloud.x.util.XUtil;
 import com.oceancode.cloud.x.wrapper.JavaClassFileWrapper;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 public class ParameterWrapper extends BaseJavaClassPartWrapper<Parameter> {
     private BlockStmt body;
 
     public ParameterWrapper(JavaClassFileWrapper javaClass, BlockStmt body, Parameter object) {
         super(javaClass, object);
+        this.body = body;
+    }
+
+    public ParameterWrapper(JavaClassFileWrapper javaClass, BlockStmt body, Parameter object, BaseJavaClassPartWrapper<?> parent) {
+        super(javaClass, object, parent);
         this.body = body;
     }
 
@@ -36,9 +43,13 @@ public class ParameterWrapper extends BaseJavaClassPartWrapper<Parameter> {
         }
 
         if (Objects.nonNull(body)) {
+            Set<String> globalFieldScopes = new HashSet<>();
+            if (!file().files().isEmpty()) {
+                globalFieldScopes.add(file().fields().get(0).getScope());
+            }
             for (NameExpr nameExpr : body.findAll(NameExpr.class)) {
                 String rawName = nameExpr.getNameAsString();
-                String xName = XUtil.getContext().replaceVariable(getScope(), rawName);
+                String xName = XUtil.getContext().replaceVariable(globalFieldScopes, getScope(), rawName);
                 if (rawName.equals(name(true))) {
                     file().addCallback(() -> nameExpr.setName(xName));
                 }

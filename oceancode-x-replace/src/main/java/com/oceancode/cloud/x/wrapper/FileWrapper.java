@@ -5,6 +5,7 @@ import com.github.javaparser.JavaParserAdapter;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.oceancode.cloud.x.util.XUtil;
+import com.oceancode.cloud.x.wrapper.java.FieldWrapper;
 import com.oceancode.cloud.x.wrapper.java.MapperClassWrapper;
 import com.oceancode.cloud.x.wrapper.java.MapperXmlFileWrapper;
 
@@ -31,6 +32,7 @@ public class FileWrapper {
     public <T extends FileWrapper> List<T> files() {
         List<FileWrapper> list = Arrays.stream(file.listFiles())
                 .filter(f -> !project().isExcludeFile(f))
+                .filter(f -> "package-info.java".equals(f.getName().toLowerCase()))
                 .map(it -> {
                     FileWrapper file = null;
                     if (XUtil.isJavaSourceFile(it)) {
@@ -89,7 +91,7 @@ public class FileWrapper {
         if (Objects.nonNull(packageName)) {
             return isRaw ? packageName : XUtil.getContext().replacePackageName(packageName);
         }
-        String path = file.getParentFile().getAbsolutePath();
+        String path = (file.isFile() ? file.getParentFile() : file).getAbsolutePath();
         path = path.substring(projectWrapper.getAbsolutePath().length());
         if (path.length() >= projectWrapper.getSourceCodePath().length()) {
             path = path.substring(projectWrapper.getSourceCodePath().length());
@@ -112,7 +114,15 @@ public class FileWrapper {
     }
 
     public String getAbsolutePath(boolean isRaw) {
-        return projectWrapper.getOutputCodeDir() + File.separator + getPackageName(isRaw).replace(".", File.separator) + File.separator + getClassName(isRaw) + getSuffix();
+        if (!file.getAbsolutePath().startsWith(project().getAbsolutePath() + project().getSourceCodePath())) {
+            return project().getOutputAbstractPath() + project().getSourceCodePath().substring(project().getAbsolutePath().length());
+        }
+        String path = projectWrapper.getOutputCodeDir();
+        String pkgName = getPackageName(isRaw);
+        if (Objects.nonNull(pkgName) && !pkgName.isEmpty()) {
+            path += pkgName.replace(".", File.separator) + File.separator;
+        }
+        return path + getClassName(isRaw) + getSuffix();
     }
 
     protected String getSuffix() {
@@ -134,7 +144,7 @@ public class FileWrapper {
             init();
             doReplaceAll();
         }
-
+        doReplaceContent();
         File targetFile = new File(getAbsolutePath(!isReplaced));
         if (!targetFile.getParentFile().exists()) {
             targetFile.getParentFile().mkdirs();
@@ -143,7 +153,18 @@ public class FileWrapper {
         XUtil.getContext().addCodeCallback(() -> doWriteFileContent(getAbsolutePath(!isReplaced)));
     }
 
+    protected void doReplaceContent() {
+    }
+
     protected void doWriteFileContent(String absolutePath) {
+        if (!XUtil.isJavaSourceFile(file)) {
+            File target = new File(absolutePath);
+            if (target.exists()) {
+                target.delete();
+            }
+            XUtil.copyFile(file.getAbsolutePath(), absolutePath);
+            return;
+        }
         XUtil.writeFile(absolutePath, getReplaceCode());
     }
 
@@ -170,7 +191,7 @@ public class FileWrapper {
     public JavaClassFileWrapper findByPackageName(String fullName) {
         String curPath = fullName.replace(".", File.separator);
         if (!file.getAbsolutePath().endsWith(curPath)) {
-            int len = (project().getAbsolutePath() + File.separator + project().getSourceCodePath()).length() + curPath.length();
+            int len = (project().getAbsolutePath() + project().getSourceCodePath()).length() + curPath.length();
             if (file.getAbsoluteFile().length() > len) {
                 return null;
             }
@@ -199,4 +220,10 @@ public class FileWrapper {
     public String name() {
         return file.getName();
     }
+
+    public File getFile() {
+        return file;
+    }
+
+
 }

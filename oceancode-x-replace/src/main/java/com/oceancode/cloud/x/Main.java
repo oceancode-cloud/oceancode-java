@@ -8,13 +8,14 @@ import java.util.Arrays;
 public class Main {
 
     public static void main(String[] args) {
-        String dir = "D:\\qinjiawang\\project\\code-cloud\\server\\ccp-server-lib\\ccp-admin\\server_releases\\demo\\code-platform\\templates\\code-platform-core\\projects\\ocean-platform\\";
-        String outDir = "C:\\Users\\qinjiawang\\Downloads\\test\\xreplace";
-        ProjectWrapper coreProject = new ProjectWrapper(dir + "ocean-platform-core", outDir);
-        coreProject.addBasePackages("com.ocean.platform.mapper.master.account");
+        String dir = "C:\\Users\\qinjiawang\\Downloads\\test\\repository\\123\\code";
+        String outDir = "C:\\Users\\qinjiawang\\Downloads\\test\\123";
+        ProjectWrapper apiProject = new ProjectWrapper(dir, "test-api", outDir);
+        apiProject.addExcludePath("src");
 
-        ProjectWrapper apiProject = new ProjectWrapper(dir + "ocean-platform-api", outDir);
-        apiProject.addBasePackages("com.ocean.platform.function.account");
-        XUtil.replaceAll(Arrays.asList(coreProject));
+        ProjectWrapper coreProject = new ProjectWrapper(dir, "test-core", outDir);
+//        coreProject.addBasePackages("com.test.common.config.handler");
+
+        XUtil.replaceAll(Arrays.asList(apiProject, coreProject));
     }
 }

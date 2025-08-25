@@ -6,6 +6,7 @@ import com.oceancode.cloud.x.wrapper.java.MapperXmlFileWrapper;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +24,7 @@ public class ProjectWrapper {
     private Map<String, JavaClassFileWrapper> fileIndexerMapping = new ConcurrentHashMap<>();
     private List<MapperXmlFileWrapper> mapperXmlFiles;
     private FileWrapper packageRootFile;
+    private FileWrapper rootPackageFile;
     private Set<String> excludePaths = new HashSet<>();
 
     public ProjectWrapper(String projectDir, String replaceDir) {
@@ -123,7 +125,7 @@ public class ProjectWrapper {
     }
 
     public String getAbsolutePath() {
-        return projectDir.getAbsolutePath();
+        return projectDir.getAbsolutePath() + File.separator;
     }
 
     public String getSourceCodePath() {
@@ -132,7 +134,11 @@ public class ProjectWrapper {
     }
 
     public String getOutputCodeDir() {
-        return Path.of(replaceDir.getAbsolutePath(), getSourceCodePath()).toString();
+        return Path.of(replaceDir.getAbsolutePath(), getSourceCodePath()).toString() + File.separator;
+    }
+
+    public String getOutputAbstractPath() {
+        return replaceDir.getAbsolutePath() + File.separator;
     }
 
     public String getOutputResourceDir() {
@@ -228,9 +234,27 @@ public class ProjectWrapper {
         if (fileWrapper instanceof JavaClassFileWrapper javaClass) {
             fileIndexerMapping.put(javaClass.getFullPackageName(true), javaClass);
         }
+        if (Objects.nonNull(rootPackageFile)) {
+            return;
+        }
+        if (fileWrapper.getFile().getAbsolutePath().startsWith(getAbsolutePath() + getSourceCodePath())) {
+            if (fileWrapper.getFile().isDirectory()) {
+                File[] files = fileWrapper.getFile().listFiles();
+                if (Objects.nonNull(files)) {
+                    boolean hasFile = Arrays.stream(files).anyMatch(file -> file.isFile());
+                    if (hasFile) {
+                        rootPackageFile = fileWrapper;
+                    }
+                }
+            }
+        }
     }
 
     public JavaClassFileWrapper getJavaClassFile(String fullPackageName) {
         return fileIndexerMapping.get(fullPackageName);
+    }
+
+    public FileWrapper getRootPackageFile() {
+        return rootPackageFile;
     }
 }

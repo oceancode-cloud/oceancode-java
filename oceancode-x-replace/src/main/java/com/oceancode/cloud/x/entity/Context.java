@@ -1,9 +1,13 @@
 package com.oceancode.cloud.x.entity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Context {
@@ -31,7 +35,23 @@ public class Context {
     }
 
     public String replacePackageName(String packageName) {
-        return packageMapping.computeIfAbsent(packageName, key -> randomVar(packageMapping));
+        return packageMapping.computeIfAbsent(packageName, key -> {
+            String prefix = "";
+            Set<String> classNames = new HashSet<>();
+            for (Map.Entry<String, String> entry : classNameMapping.entrySet()) {
+                if (entry.getKey().startsWith(packageName + ".")) {
+                    classNames.add(entry.getValue());
+                }
+            }
+            while (true) {
+                String pkg = prefix + randomVar(packageMapping);
+                if (classNames.contains(pkg)) {
+                    prefix = pkg;
+                    continue;
+                }
+                return pkg;
+            }
+        });
     }
 
     public String replaceMethodName(String fullPackageName, String name) {
@@ -50,18 +70,51 @@ public class Context {
         if (!packageName.endsWith(className)) {
             packageName = packageName + "." + className;
         }
-        String name = classNameMapping.computeIfAbsent(packageName, key -> randomVar(classNameMapping));
+        String name = classNameMapping.computeIfAbsent(packageName, key -> {
+            String prefix = "";
+            while (true) {
+                String cName = prefix + randomVar(classNameMapping);
+                if (packageMapping.containsKey(cName)) {
+                    prefix = cName;
+                    continue;
+                }
+                return cName;
+            }
+        });
         return name;
     }
 
     public String replaceVariable(String scope, String name) {
+        return replaceVariable(Collections.emptySet(), scope, name);
+    }
+
+    public String replaceVariable(String methodScope, String scope, String name) {
+        return replaceVariable(Collections.singleton(methodScope), scope, name);
+    }
+
+    public String replaceVariable(Set<String> scopes, String scope, String name) {
         if (!variableMapping.containsKey(scope)) {
             variableMapping.put(scope, new HashMap<>());
         }
         Map<String, String> map = variableMapping.get(scope);
         return map.computeIfAbsent(name, key -> {
+            String prefix = "";
             while (true) {
-                String v = randomVar(map);
+                String v = prefix + randomVar(map);
+                if (Objects.nonNull(scopes)) {
+                    boolean isExists = false;
+                    for (String it : scopes) {
+                        Map<String, String> targetMap = variableMapping.get(it);
+                        if (Objects.nonNull(targetMap) && targetMap.values().contains(v)) {
+                            isExists = true;
+                            break;
+                        }
+                    }
+                    if (isExists) {
+                        prefix = v;
+                        continue;
+                    }
+                }
                 if (v.equals(classNameMapping.get(scope))) {
                     v = randomVar(map);
                 } else {
