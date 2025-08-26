@@ -47,6 +47,7 @@ public class VariableWrapper extends BaseJavaClassPartWrapper<VariableDeclarator
 
         if (parent instanceof MethodWrapper methodWrapper) {
             replaceMethodCaller(methodWrapper, rawName, name);
+            return;
         }
 
         file().getParse().findAll(FieldAccessExpr.class)

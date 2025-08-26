@@ -65,7 +65,7 @@ public class MainClassWrapper extends BaseJavaClassPartWrapper<ClassOrInterfaceD
         for (ClassOrInterfaceType implementedType : implementedTypes) {
             JavaClassFileWrapper targetJava = file().importFile(implementedType.getNameAsString());
             if (Objects.nonNull(targetJava)) {
-                if (!targetJava.getPackageName(false).equals(file().getPackageName(false)) {
+                if (!targetJava.getPackageName(false).equals(file().getPackageName(false))) {
                     String xName = targetJava.getFullPackageName(false);
                     file().addCallback(() -> implementedType.setName(xName));
                 }

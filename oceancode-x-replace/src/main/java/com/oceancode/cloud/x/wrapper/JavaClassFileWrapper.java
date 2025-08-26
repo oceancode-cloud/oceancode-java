@@ -58,12 +58,13 @@ public class JavaClassFileWrapper extends FileWrapper {
     @Override
     protected void doReplaceAll() {
         pkg().replaceAll();
-        mainClass().replaceAll();
+
         constructors().forEach(ConstructorWrapper::replaceAll);
     }
 
     @Override
     protected void doReplaceContent() {
+        mainClass().replaceAll();
         imports().stream().forEach(ImportClassWrapper::replaceAll);
         fields().forEach(FieldWrapper::replaceAll);
         methods().forEach(MethodWrapper::replaceAll);
