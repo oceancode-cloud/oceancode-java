@@ -1,10 +1,15 @@
 package com.oceancode.cloud.x.wrapper.java;
 
 import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.EnumDeclaration;
+import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithPublicModifier;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.oceancode.cloud.x.util.XUtil;
 import com.oceancode.cloud.x.wrapper.JavaClassFileWrapper;
@@ -24,6 +29,12 @@ public class MainClassWrapper extends BaseJavaClassPartWrapper<ClassOrInterfaceD
 
     @Override
     public boolean canReplaced() {
+        if (Objects.isNull(object())) {
+            if (isAnnotation()) {
+                return false;
+            }
+            return !isEnum();
+        }
         if (object().isInterface()) {
             if (file().isMapper()) {
                 return true;
@@ -38,8 +49,27 @@ public class MainClassWrapper extends BaseJavaClassPartWrapper<ClassOrInterfaceD
         return !file().hasPublicStaticMethod();
     }
 
+    private boolean isEnum() {
+        if (Objects.nonNull(object())) {
+            return false;
+        }
+        return file().getParse().findAll(EnumDeclaration.class)
+                .stream().anyMatch(it -> it.isPublic() && it.getNameAsExpression().equals(file().getClassName(true)));
+    }
+
+    private boolean isAnnotation() {
+        if (Objects.nonNull(object())) {
+            return false;
+        }
+        return file().getParse().findAll(AnnotationDeclaration.class)
+                .stream().anyMatch(NodeWithPublicModifier::isPublic);
+    }
+
     @Override
     protected void doReplaceAll() {
+        if (isAnnotation()) {
+            return;
+        }
         String name = file().getClassName();
         file().addCallback(() -> object().setName(name));
 
@@ -56,8 +86,35 @@ public class MainClassWrapper extends BaseJavaClassPartWrapper<ClassOrInterfaceD
 
     @Override
     protected void doRenderContent() {
+        if (Objects.isNull(object())) {
+            return;
+        }
         replaceAnnotation();
         replaceImplementation();
+        replaceInit();
+    }
+
+    private void replaceInit() {
+        if (isInterface() || isAnnotation()) {
+            return;
+        }
+        object().findAll(InitializerDeclaration.class)
+                .forEach(it -> {
+                    if (it.isStatic()) {
+                        it.getBody().findAll(NameExpr.class)
+                                .forEach(nameExpr -> {
+                                    FieldWrapper field = file().field(nameExpr.getNameAsString());
+                                    if (Objects.nonNull(field) && field.object().isStatic()) {
+                                        String xName = field.name(false);
+                                        if (xName.contains(".")) {
+                                            xName = xName.substring(xName.indexOf(".") + 1);
+                                        }
+                                        String finalXName = xName;
+                                        file().addCallback(() -> nameExpr.setName(finalXName));
+                                    }
+                                });
+                    }
+                });
     }
 
     private void replaceImplementation() {
@@ -132,4 +189,27 @@ public class MainClassWrapper extends BaseJavaClassPartWrapper<ClassOrInterfaceD
         return ret;
     }
 
+    public boolean isInterface() {
+        return Objects.nonNull(object()) && object().isInterface();
+    }
+
+    public boolean hasSetter() {
+        if (isInterface()) {
+            return false;
+        }
+        if (isAnnotation()) {
+            return false;
+        }
+        return XUtil.hasAnnotation(object().getAnnotations(), "Data", "Setter");
+    }
+
+    public boolean hasGetter() {
+        if (isInterface()) {
+            return false;
+        }
+        if (isAnnotation()) {
+            return false;
+        }
+        return XUtil.hasAnnotation(object().getAnnotations(), "Data", "Getter");
+    }
 }

@@ -9,7 +9,6 @@ import com.github.javaparser.ast.expr.NameExpr;
 import com.oceancode.cloud.x.util.XUtil;
 import com.oceancode.cloud.x.wrapper.JavaClassFileWrapper;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
 
@@ -68,7 +67,7 @@ public class VariableWrapper extends BaseJavaClassPartWrapper<VariableDeclarator
                     List<MethodCallExpr> methods = methodWrapper.object().findAll(MethodCallExpr.class);
                     for (MethodCallExpr method : methods) {
                         if (!method.getScope().isPresent()) {
-                            return;
+                            break;
                         }
                         if (nameExpr.getNameAsString().equals(method.getScope().get().toString())) {
                             MethodWrapper targetMethod = javaClassFileWrapper.method(method.getNameAsString());
@@ -80,6 +79,33 @@ public class VariableWrapper extends BaseJavaClassPartWrapper<VariableDeclarator
                     }
                 }
             }
+        }
+
+        List<FieldAccessExpr> fieldAccessExprs = methodWrapper.object().findAll(FieldAccessExpr.class);
+        for (FieldAccessExpr fieldAccessExpr : fieldAccessExprs) {
+            NameExpr nameExpr = fieldAccessExpr.getScope().findFirst(NameExpr.class).orElse(null);
+            if (Objects.isNull(nameExpr)) {
+                continue;
+            }
+            if (!nameExpr.getNameAsString().equals(rawName)) {
+                continue;
+            }
+            JavaClassFileWrapper javaClassFileWrapper = file().importFile(object().getTypeAsString());
+            if (Objects.isNull(javaClassFileWrapper)) {
+                continue;
+            }
+            FieldWrapper field = javaClassFileWrapper.field(fieldAccessExpr.getNameAsString());
+            if (Objects.isNull(field)) {
+                continue;
+            }
+            file().addCallback(() -> nameExpr.setName(name));
+
+            String fieldName = field.name(false);
+            if (fieldName.startsWith("this.")) {
+                fieldName = fieldName.substring("this.".length());
+            }
+            String finalFieldName = fieldName;
+            file().addCallback(() -> fieldAccessExpr.setName(finalFieldName));
         }
     }
 

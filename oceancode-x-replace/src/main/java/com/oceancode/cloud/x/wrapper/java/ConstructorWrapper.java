@@ -14,8 +14,10 @@ public class ConstructorWrapper extends BaseJavaClassPartWrapper<ConstructorDecl
 
     @Override
     protected void doReplaceAll() {
-        String name = file().getClassName();
-        file().addCallback(() -> object().setName(name));
+        if(file().canReplaced()){
+            String name = file().getClassName();
+            file().addCallback(() -> object().setName(name));
+        }
 
         List<NameExpr> list = object().getBody().findAll(NameExpr.class);
         for (NameExpr nameExpr : list) {

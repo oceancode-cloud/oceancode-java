@@ -70,4 +70,8 @@ public class FieldWrapper extends BaseJavaClassPartWrapper<FieldDeclaration> {
         VariableWrapper name = variables().get(0);
         return name.name(isRaw);
     }
+
+    public String getElementType(){
+        return object().getElementType().toString();
+    }
 }

@@ -5,6 +5,7 @@ import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.oceancode.cloud.x.util.XUtil;
 import com.oceancode.cloud.x.wrapper.JavaClassFileWrapper;
@@ -30,6 +31,16 @@ public class ParameterWrapper extends BaseJavaClassPartWrapper<Parameter> {
 
     @Override
     protected void doReplaceAll() {
+        object().findAll(SimpleName.class)
+                .forEach(it -> {
+                    if (it.getParentNode().isPresent()) {
+                        if (it.getParentNode().get() instanceof Parameter parameter) {
+                            String xName = XUtil.getContext().replaceVariable(getScope(), it.getIdentifier());
+                            file().addCallback(() -> it.setIdentifier(xName));
+                        }
+                    }
+                });
+
         Optional<Node> parentNode = Objects.nonNull(body) ? body.getParentNode() : Optional.empty();
         ConstructorDeclaration constructorDeclaration = null;
         MethodDeclaration methodDeclaration = null;

@@ -32,7 +32,7 @@ public class FileWrapper {
     public <T extends FileWrapper> List<T> files() {
         List<FileWrapper> list = Arrays.stream(file.listFiles())
                 .filter(f -> !project().isExcludeFile(f))
-                .filter(f -> "package-info.java".equals(f.getName().toLowerCase()))
+                .filter(f -> !"package-info.java".equals(f.getName().toLowerCase()))
                 .map(it -> {
                     FileWrapper file = null;
                     if (XUtil.isJavaSourceFile(it)) {

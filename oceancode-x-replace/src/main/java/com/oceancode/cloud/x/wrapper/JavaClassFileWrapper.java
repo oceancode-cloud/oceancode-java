@@ -58,8 +58,6 @@ public class JavaClassFileWrapper extends FileWrapper {
     @Override
     protected void doReplaceAll() {
         pkg().replaceAll();
-
-        constructors().forEach(ConstructorWrapper::replaceAll);
     }
 
     @Override
@@ -67,6 +65,7 @@ public class JavaClassFileWrapper extends FileWrapper {
         mainClass().replaceAll();
         imports().stream().forEach(ImportClassWrapper::replaceAll);
         fields().forEach(FieldWrapper::replaceAll);
+        constructors().forEach(ConstructorWrapper::replaceAll);
         methods().forEach(MethodWrapper::replaceAll);
     }
 
@@ -81,7 +80,11 @@ public class JavaClassFileWrapper extends FileWrapper {
     }
 
     public FieldWrapper field(String name) {
-        return fields().stream().filter(fieldWrapper -> Objects.equals(name, fieldWrapper.name(true)))
+        if (name.startsWith("this.")) {
+            name = name.substring("this.".length());
+        }
+        String finalName = name;
+        return fields().stream().filter(fieldWrapper -> Objects.equals(finalName, fieldWrapper.name(true)))
                 .findFirst().orElse(null);
     }
 

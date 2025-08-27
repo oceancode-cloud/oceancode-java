@@ -108,4 +108,12 @@ public class XUtil {
         }
         return null;
     }
+
+    public static String upperMethod(String name) {
+        return name.length() > 1 ? name.substring(0, 1).toUpperCase() + name.substring(1) : name.toUpperCase();
+    }
+
+    public static String lowerMethod(String name) {
+        return name.length() > 1 ? name.substring(0, 1).toLowerCase() + name.substring(1) : name.toLowerCase();
+    }
 }
