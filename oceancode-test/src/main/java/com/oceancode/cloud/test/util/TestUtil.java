@@ -2,11 +2,15 @@ package com.oceancode.cloud.test.util;
 
 import cn.hutool.core.thread.ThreadUtil;
 import com.oceancode.cloud.common.config.CommonConfig;
+import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.SystemUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
+import com.oceancode.cloud.test.Parameter;
+import com.oceancode.cloud.test.TestPluginLoadingInitializer;
 import com.oceancode.cloud.test.data.TestData;
 import com.oceancode.cloud.test.reporter.TestReporter;
 import com.oceancode.cloud.test.reporter.TestResult;
@@ -17,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -265,5 +270,61 @@ public final class TestUtil {
 
     public static boolean isDevelopEnv() {
         return new File(System.getProperty("user.dir") + File.separator + "target").exists();
+    }
+
+    public static List<TestResult> executeCase(String groupCaseId, String testCaseId) {
+        return executeCase(groupCaseId, testCaseId, null);
+    }
+
+    public static List<TestResult> executeCase(String groupCaseId, String testCaseId, Map<String, Object> config) {
+        Map<String, Method> map = TestPluginLoadingInitializer.CASES.get(groupCaseId);
+        if (Objects.isNull(map)) {
+            throw new BusinessRuntimeException(CommonErrorCode.NOT_FOUND, groupCaseId + " not found.");
+        }
+        Method method = map.get(testCaseId);
+        if (Objects.isNull(method)) {
+            throw new BusinessRuntimeException(CommonErrorCode.NOT_FOUND, testCaseId + " not found.");
+        }
+        List<TestResult> list = new ArrayList<>();
+        TestResult testResult = new TestResult();
+        list.add(testResult);
+        testResult.setCaseId(testCaseId);
+        testResult.setGroup(groupCaseId);
+        testResult.setNamespace(method.getDeclaringClass().getName());
+        testResult.setId(UUID.randomUUID().toString().replace("-", ""));
+        testResult.setSuccess(true);
+
+        try {
+            Object[] args = null;
+            if (method.getParameterCount() > 0) {
+                args = new Object[]{new Parameter(config)};
+            }
+            testResult.setStartTime(System.nanoTime());
+            Object invoke = method.invoke(ComponentUtil.getBean(method.getDeclaringClass()), args);
+            if (invoke instanceof TestResult result) {
+                result.setParentId(testResult.getId());
+                list.add(result);
+            } else if (invoke instanceof List<?> results) {
+                results.stream().filter(TestResult.class::isInstance)
+                        .map(TestResult.class::cast)
+                        .forEach(it -> {
+                            if (Objects.isNull(it.getParentId())) {
+                                it.setParentId(testResult.getId());
+                            }
+                            list.add(it);
+                        });
+            } else {
+                testResult.setResponse(invoke);
+            }
+            testResult.setEndTime(System.nanoTime());
+        } catch (Throwable throwable) {
+            testResult.setEndTime(System.nanoTime());
+            testResult.setSuccess(false);
+            testResult.setThrowable(throwable);
+        } finally {
+            testResult.setInputs(config);
+            testResult.setTotalTime(testResult.getEndTime() - testResult.getStartTime());
+        }
+        return list;
     }
 }

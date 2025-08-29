@@ -74,6 +74,9 @@ public class PluginLoadingInitializer implements ApplicationContextInitializer<C
                     }
                     Class<?>[] interfaces = clazz.getInterfaces();
                     for (Class<?> it : interfaces) {
+                        if (it.equals(Plugin.class)) {
+                            continue;
+                        }
                         if (processRegisterBean(clazz, it, registry)) {
                             LOGGER.info("load plugin[" + className + " - " + it.getName() + "] successful - " + path);
                         }
@@ -86,10 +89,7 @@ public class PluginLoadingInitializer implements ApplicationContextInitializer<C
     }
 
 
-    private boolean processRegisterBean(Class<?> clazz, Class<?> func, BeanDefinitionRegistry registry) {
-        if (func.equals(Plugin.class)) {
-            return false;
-        }
+    protected boolean processRegisterBean(Class<?> clazz, Class<?> func, BeanDefinitionRegistry registry) {
         registry.registerBeanDefinition(func.getName(), BeanDefinitionBuilder.genericBeanDefinition(clazz).getBeanDefinition());
         return true;
     }
