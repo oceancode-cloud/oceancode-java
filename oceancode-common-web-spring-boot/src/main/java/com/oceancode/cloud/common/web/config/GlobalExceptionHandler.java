@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Objects;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -35,6 +37,8 @@ public class GlobalExceptionHandler {
                 ApiUtil.getResponse().setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             } else if (CommonErrorCode.PERMISSION_DENIED.equals(businessRuntimeException.getCode())) {
                 ApiUtil.getResponse().setStatus(HttpServletResponse.SC_FORBIDDEN);
+            } else if (CommonErrorCode.API_NOT_FOUND.equals(businessRuntimeException.getCode())) {
+                ApiUtil.getResponse().setStatus(HttpServletResponse.SC_NOT_FOUND);
             } else {
                 ApiUtil.getResponse().setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
@@ -59,7 +63,9 @@ public class GlobalExceptionHandler {
         } else {
             LOGGER.error("[C] url:" + request.getRequestURI() + ",code:" + result.getCode() + " - " + result.getMessage(), exception);
         }
-        if (ValueUtil.isNotEmpty(result.getCode()) && result.getCode().startsWith(CommonConst.CLIENT_ERROR_CODE_PREFIX)) {
+        if (Objects.equals(CommonErrorCode.API_NOT_FOUND.getCode(), result.getCode())) {
+            ApiUtil.getResponse().setStatus(HttpServletResponse.SC_NOT_FOUND);
+        } else if (ValueUtil.isNotEmpty(result.getCode()) && result.getCode().startsWith(CommonConst.CLIENT_ERROR_CODE_PREFIX)) {
             ApiUtil.getResponse().setStatus(HttpServletResponse.SC_BAD_REQUEST);
         } else {
             ApiUtil.getResponse().setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

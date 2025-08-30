@@ -1,6 +1,7 @@
 package com.oceancode.cloud.common.web.graphql;
 
 import com.oceancode.cloud.common.entity.ResultData;
+import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
 import com.oceancode.cloud.common.util.ValueUtil;
@@ -8,6 +9,7 @@ import com.oceancode.cloud.common.web.util.ApiUtil;
 import graphql.ExceptionWhileDataFetching;
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
+import graphql.validation.ValidationError;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.lang.reflect.InvocationTargetException;
@@ -36,7 +38,8 @@ public final class GraphUtil {
                         }
                     }
                 }
-
+            } else if (error instanceof ValidationError validationError) {
+                throw new BusinessRuntimeException(CommonErrorCode.API_NOT_FOUND, validationError.getDescription());
             }
         }
         ApiUtil.getResponse().setStatus(HttpServletResponse.SC_BAD_REQUEST);
