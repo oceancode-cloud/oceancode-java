@@ -20,11 +20,20 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 public final class CheckParamUtil {
+    final static Pattern EMAIL_PATTERN = Pattern.compile("[a-zA-Z0-9]+[\\.]{0,1}[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-zA-Z]+");
+
     public static void notNull(Object value, String field) {
         if (value == null) {
             throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_MISSING, field + " is required.");
+        }
+    }
+
+    public static void checkEmail(String email, String field) {
+        if (EMAIL_PATTERN.matcher(email).matches()) {
+            throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_INVALID, field + " invalid.");
         }
     }
 
