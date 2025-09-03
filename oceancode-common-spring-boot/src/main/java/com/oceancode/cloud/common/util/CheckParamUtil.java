@@ -32,7 +32,7 @@ public final class CheckParamUtil {
     }
 
     public static void checkEmail(String email, String field) {
-        if (EMAIL_PATTERN.matcher(email).matches()) {
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
             throw new BusinessRuntimeException(CommonErrorCode.PARAMETER_INVALID, field + " invalid.");
         }
     }

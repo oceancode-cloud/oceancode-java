@@ -156,7 +156,7 @@ public class ModelFieldImpl extends AbstractBaseObject<MFieldObject> implements 
     @Override
     public boolean isCharArray() {
         if (isSensitive()) {
-            return isString() || isText();
+            return isString() || isText() || isPassword();
         }
         return false;
     }
@@ -196,6 +196,9 @@ public class ModelFieldImpl extends AbstractBaseObject<MFieldObject> implements 
 
     @Override
     public boolean isSensitive() {
+        if (isPassword()) {
+            return true;
+        }
         return hasTag("sensitive");
     }
 

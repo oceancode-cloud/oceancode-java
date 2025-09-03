@@ -102,6 +102,18 @@ public class CommonConfig {
         return getValueAsLong(key, null);
     }
 
+    public Boolean getValueAsBoolean(String key, Boolean defaultValue) {
+        String value = getValue(key);
+        if (ValueUtil.isEmpty(value)) {
+            return defaultValue;
+        }
+        return Boolean.parseBoolean(value);
+    }
+
+    public Boolean getValueAsBoolean(String key) {
+        return getValueAsBoolean(key, null);
+    }
+
     public boolean isTrue(String key) {
         return isTrue(key, false);
     }
