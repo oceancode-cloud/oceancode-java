@@ -113,6 +113,7 @@ public enum CommonErrorCode implements ErrorCode {
     API_REQUEST_FAILED(CommonConst.SERVER_ERROR_CODE_PREFIX + "api.request.failed", "Api request failed."),
     FORCED_OFFLINE(CommonConst.CLIENT_ERROR_CODE_PREFIX + "user.forced.offline", "Forced offline"),
     API_NOT_FOUND(CommonConst.CLIENT_ERROR_CODE_PREFIX + "api.not_found", "Api Not Found."),
+    VERIFY_CODE_INVALID(CommonConst.CLIENT_ERROR_CODE_PREFIX + "verify.code.invalid.", "Verify code invalid."),
     ;
     /**
      * errorCode

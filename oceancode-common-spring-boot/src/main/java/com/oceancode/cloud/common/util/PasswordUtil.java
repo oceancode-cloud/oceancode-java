@@ -35,6 +35,10 @@ public final class PasswordUtil {
         return new BCryptPasswordEncoder().encode(rawPassword);
     }
 
+    public static String encode(char[] rawPassword) {
+        return encode(String.valueOf(rawPassword));
+    }
+
     /**
      * match old password and encode password
      *
