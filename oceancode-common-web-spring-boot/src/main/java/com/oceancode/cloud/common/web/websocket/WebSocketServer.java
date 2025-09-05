@@ -26,6 +26,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -51,7 +52,23 @@ public class WebSocketServer {
     }
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("userId") Long userId) {
+    public void onOpen(Session session, @PathParam("userId") String uid) {
+
+        Long userId = null;
+        if (ValueUtil.isNotEmpty(uid)) {
+            try {
+                userId = Long.parseLong(uid);
+            } catch (Exception e) {
+                LOGGER.error("userId invalid.", e);
+            }
+        }
+        if (Objects.isNull(userId)) {
+            try {
+                session.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         WsSession wsSession = new WsSession(userId, session);
         if (SESSIONS.containsKey(userId)) {
             SESSIONS.remove(userId);
