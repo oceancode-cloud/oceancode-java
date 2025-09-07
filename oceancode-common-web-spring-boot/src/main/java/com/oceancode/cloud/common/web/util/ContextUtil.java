@@ -4,7 +4,7 @@ import com.oceancode.cloud.function.Context;
 
 public final class ContextUtil {
 
-    private final static ThreadLocal<Context> CONTEXT_LOCAL = new ThreadLocal<>();
+    private final static InheritableThreadLocal<Context> CONTEXT_LOCAL = new InheritableThreadLocal<>();
 
     public static void set(Context context) {
         CONTEXT_LOCAL.set(context);

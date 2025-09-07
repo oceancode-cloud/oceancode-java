@@ -22,7 +22,7 @@ public class BaseTest {
     @Resource
     protected CommonConfig commonConfig;
 
-    private static final ThreadLocal<Map<String, Object>> CONTEXT = new ThreadLocal();
+    private static final InheritableThreadLocal<Map<String, Object>> CONTEXT = new InheritableThreadLocal();
 
     protected CommonConfig getConfig() {
         return commonConfig;

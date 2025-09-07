@@ -4,7 +4,6 @@
 
 package com.oceancode.cloud.common.util;
 
-import com.oceancode.cloud.api.cache.CacheKey;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 
@@ -16,11 +15,11 @@ import java.util.List;
  * @author qinjiawang
  */
 public final class SessionUtil {
-    private final static ThreadLocal<Long> USER_ID = new ThreadLocal<>();
-    private final static ThreadLocal<Long> PROJECT_ID = new ThreadLocal<>();
-    private final static ThreadLocal<Long> TENANT_ID = new ThreadLocal<>();
-    private final static ThreadLocal<String> BRANCH = new ThreadLocal<>();
-    private final static ThreadLocal<String> CLIENT_ID = new ThreadLocal<>();
+    private final static InheritableThreadLocal<Long> USER_ID = new InheritableThreadLocal<>();
+    private final static InheritableThreadLocal<Long> PROJECT_ID = new InheritableThreadLocal<>();
+    private final static InheritableThreadLocal<Long> TENANT_ID = new InheritableThreadLocal<>();
+    private final static InheritableThreadLocal<String> BRANCH = new InheritableThreadLocal<>();
+    private final static InheritableThreadLocal<String> CLIENT_ID = new InheritableThreadLocal<>();
 
     private SessionUtil() {
     }
