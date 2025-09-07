@@ -13,6 +13,7 @@ import com.oceancode.cloud.common.function.BaseFunction;
 import com.oceancode.cloud.common.function.ClientFunction;
 import com.oceancode.cloud.common.function.LocalFunction;
 import com.oceancode.cloud.common.function.RemoteFunction;
+import com.oceancode.cloud.function.Plugin;
 import org.springframework.context.ApplicationContext;
 
 import java.util.*;
@@ -186,5 +187,9 @@ public final class ComponentUtil {
             }
         }
         return null;
+    }
+
+    public static void checkPlugin(Plugin plugin) {
+
     }
 }

@@ -1,6 +1,8 @@
 package com.oceancode.cloud.common;
 
+import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.SystemUtil;
+import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.function.Plugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,16 +17,20 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Objects;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 public class PluginLoadingInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
     private final static Logger LOGGER = LoggerFactory.getLogger(PluginLoadingInitializer.class);
 
     @Override
     public void initialize(ConfigurableApplicationContext applicationContext) {
+        ComponentUtil.setApplicationContext(applicationContext);
         ConfigurableEnvironment environment = applicationContext.getEnvironment();
         boolean enabled = Boolean.parseBoolean(environment.getProperty("oc.plugin.enabled", "false"));
         if (!enabled) {
