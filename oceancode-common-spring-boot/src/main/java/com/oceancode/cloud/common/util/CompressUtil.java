@@ -93,6 +93,9 @@ public class CompressUtil {
         try (ZipFile zipFile = new ZipFile(outputFile)) {
             zipFile.setPassword(aes.toCharArray());
             for (File file : dirFile.listFiles()) {
+                if (".git".equals(file.getName()) || ".idea".equals(file.getName())) {
+                    continue;
+                }
                 if (".public".equals(file.getName()) || ".private".equals(file.getName())) {
                     zipFile.addFile(file);
                     continue;
