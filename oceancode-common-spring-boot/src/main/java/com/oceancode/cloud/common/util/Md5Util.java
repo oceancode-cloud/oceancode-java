@@ -36,6 +36,9 @@ public final class Md5Util {
      * @return md5 string
      */
     public static String md5(String text) {
+        if (ValueUtil.isEmpty(text)) {
+            return null;
+        }
         return DigestUtils.md5DigestAsHex(text.getBytes(StandardCharsets.UTF_8));
     }
 
