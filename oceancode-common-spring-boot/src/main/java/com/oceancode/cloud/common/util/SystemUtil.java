@@ -13,6 +13,10 @@ import java.nio.file.Path;
 public final class SystemUtil {
     public static final String OUTPUT_DIR_CONFIG_KEY = "oc.system.output.dir";
 
+    public static boolean isWindow() {
+        return System.getProperty("os.name").toLowerCase().contains("win");
+    }
+
     public static void init() {
         File dataDirFile = new File(dataDir());
         if (!dataDirFile.exists()) {
