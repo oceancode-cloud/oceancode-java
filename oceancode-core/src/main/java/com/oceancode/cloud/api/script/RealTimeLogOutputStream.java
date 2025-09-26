@@ -18,6 +18,12 @@ public class RealTimeLogOutputStream extends OutputStream {
 
     @Override
     public void write(int b) throws IOException {
+        if (index >= bytes.length) {
+            int len = bytes.length + 200;
+            byte[] temp = new byte[len];
+            System.arraycopy(bytes, 0, temp, 0, index);
+            bytes = temp;
+        }
         bytes[index++] = (byte) b;
         if (b == 10) {
             byte[] array = new byte[index];
@@ -30,6 +36,11 @@ public class RealTimeLogOutputStream extends OutputStream {
     @Override
     public void close() throws IOException {
         super.close();
+        if (index != 0) {
+            byte[] array = new byte[index];
+            System.arraycopy(bytes, 0, array, 0, index);
+            lineCallback.accept(new String(array));
+        }
         index = 0;
         bytes = null;
     }

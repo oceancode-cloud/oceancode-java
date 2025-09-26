@@ -1,8 +1,11 @@
 package com.oceancode.cloud.api.script;
 
-import java.io.OutputStream;
-import java.util.function.Function;
+import java.util.Map;
 
 public interface ScriptService {
-    void executeScript(String filePath, LineCallback callback);
+    void executeScript(String filePath, Map<String, String> envMap, LineCallback callback);
+
+    default void executeScript(String filePath, LineCallback callback) {
+        executeScript(filePath, null, callback);
+    }
 }
