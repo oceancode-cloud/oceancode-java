@@ -31,6 +31,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -149,7 +151,7 @@ public final class ApiUtil {
         return getToken(getRequest().getHeader("Authorization"));
     }
 
-    public static String getSecretKey(){
+    public static String getSecretKey() {
         return getRequest().getHeader("x-secret-key");
     }
 
@@ -185,6 +187,29 @@ public final class ApiUtil {
         return null;
     }
 
+    public static void downloadFile(String filePath) {
+        downloadFile(filePath, null);
+    }
+
+    public static void downloadFile(String filePath, String fileName) {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "file not found.");
+        }
+        if (ValueUtil.isEmpty(fileName)) {
+            fileName = file.getName();
+        }
+        HttpServletResponse response = getResponse();
+        response.setContentType("application/force-download");
+        response.addHeader("Content-disposition", "attachment;fileName=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8));
+        response.addHeader("Access-Control-Expose-Headers", "Content-Disposition");
+        try {
+            Files.copy(file.toPath(), response.getOutputStream());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void initDownloadResponse(HttpServletResponse response, String fileName) {
         if (ValueUtil.isEmpty(fileName)) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "fileName must not be empty.");
@@ -209,6 +234,7 @@ public final class ApiUtil {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
         }
         response.setHeader("Content-disposition", "attachment;filename=" + exportFilename);
+        response.addHeader("Access-Control-Expose-Headers", "Content-Disposition");
     }
 
 
