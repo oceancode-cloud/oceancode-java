@@ -7,6 +7,7 @@ import com.oceancode.cloud.common.event.EventWaitObj;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class EventUtil {
@@ -54,6 +55,9 @@ public class EventUtil {
 
     public static void call(String id, EventParam param) {
         EventWaitObj eventWaitObj = EVENT_MAPPING.get(id);
+        if (Objects.isNull(eventWaitObj)) {
+            return;
+        }
         eventWaitObj.setData(param);
         if (!eventWaitObj.isValid()) {
             offEvent(id);
