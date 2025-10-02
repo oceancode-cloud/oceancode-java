@@ -5,6 +5,7 @@
 package com.oceancode.cloud.api.mq;
 
 import com.oceancode.cloud.common.util.SessionUtil;
+import com.oceancode.cloud.common.util.ValueUtil;
 
 import java.util.Objects;
 
@@ -27,11 +28,17 @@ public final class MessageUtil {
         } catch (Exception e) {
             //ignore
         }
+        message.setRequestId(SessionUtil.requestId());
+        message.setCursor(SessionUtil.cursor());
     }
 
     public static void setSession(Message<?> message) {
         SessionUtil.setUserId(message.getUserId());
         SessionUtil.setProjectId(message.getProjectId());
         SessionUtil.setTenantId(message.getTenantId());
+        SessionUtil.setRequestId(message.getRequestId());
+        if (ValueUtil.isEmpty(SessionUtil.cursor())) {
+            SessionUtil.setCursor(message.getCursor());
+        }
     }
 }

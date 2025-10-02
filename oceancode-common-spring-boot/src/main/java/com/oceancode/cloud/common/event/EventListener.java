@@ -1,5 +1,7 @@
 package com.oceancode.cloud.common.event;
 
+import com.oceancode.cloud.api.event.EventHandler;
+import com.oceancode.cloud.api.event.EventParam;
 import com.oceancode.cloud.api.notifier.Notifier;
 import com.oceancode.cloud.entity.EventNotifier;
 import org.slf4j.Logger;
@@ -15,28 +17,27 @@ import java.util.Objects;
 public class EventListener implements ApplicationListener<CustomEvent> {
     private static final Logger LOGGER = LoggerFactory.getLogger(EventListener.class);
 
-    private List<Notifier> notifiers;
+    private List<EventHandler> notifiers;
 
-    public EventListener(List<Notifier> notifiers) {
+    public EventListener(List<EventHandler> notifiers) {
         this.notifiers = notifiers;
     }
 
     @Override
     public void onApplicationEvent(CustomEvent event) {
-        if (Objects.isNull(event) || !(event.getSource() instanceof EventNotifier)) {
+        if (!(event.getSource() instanceof EventParam eventParam)) {
             return;
         }
-        EventNotifier eventNotifier = (EventNotifier) event.getSource();
         notifiers.stream().filter(notifier -> {
             try {
-                return notifier.support(eventNotifier);
+                return notifier.support(eventParam);
             } catch (Throwable throwable) {
                 LOGGER.error("error.", throwable);
                 return false;
             }
         }).forEach(notifier -> {
             try {
-                notifier.notifier(eventNotifier);
+                notifier.handler(eventParam);
             } catch (Throwable throwable) {
                 LOGGER.error("error.", throwable);
             }

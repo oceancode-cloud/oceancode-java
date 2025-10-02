@@ -1,10 +1,10 @@
 package com.oceancode.cloud.common.event;
 
-import com.oceancode.cloud.entity.EventNotifier;
+import com.oceancode.cloud.api.event.EventParam;
 import org.springframework.context.ApplicationEvent;
 
 public class CustomEvent extends ApplicationEvent {
-    public CustomEvent(EventNotifier source) {
+    public CustomEvent(EventParam source) {
         super(source);
     }
 }

@@ -12,6 +12,10 @@ public class Message<T> {
 
     private Long tenantId;
 
+    private String requestId;
+
+    private String cursor;
+
     private String username;
 
     private String group;
@@ -111,6 +115,22 @@ public class Message<T> {
 
     public void setSourceKey(String sourceKey) {
         this.sourceKey = sourceKey;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
+    }
+
+    public String getCursor() {
+        return cursor;
+    }
+
+    public void setCursor(String cursor) {
+        this.cursor = cursor;
     }
 
     @Override

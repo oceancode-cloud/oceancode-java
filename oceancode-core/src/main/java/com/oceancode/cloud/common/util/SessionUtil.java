@@ -20,6 +20,8 @@ public final class SessionUtil {
     private final static InheritableThreadLocal<Long> TENANT_ID = new InheritableThreadLocal<>();
     private final static InheritableThreadLocal<String> BRANCH = new InheritableThreadLocal<>();
     private final static InheritableThreadLocal<String> CLIENT_ID = new InheritableThreadLocal<>();
+    private final static InheritableThreadLocal<String> REQUEST_ID = new InheritableThreadLocal<>();
+    private final static InheritableThreadLocal<String> CURSOR = new InheritableThreadLocal<>();
 
     private SessionUtil() {
     }
@@ -50,6 +52,14 @@ public final class SessionUtil {
 
     public static Long projectId() {
         return PROJECT_ID.get();
+    }
+
+    public static String requestId() {
+        return REQUEST_ID.get();
+    }
+
+    public static void setRequestId(String id) {
+        REQUEST_ID.set(id);
     }
 
     public static Long projectId(boolean mustNotEmpty) {
@@ -104,20 +114,37 @@ public final class SessionUtil {
         return BRANCH.get();
     }
 
+    public static String cursor() {
+        return CURSOR.get();
+    }
+
+    public static void setCursor(String id) {
+        if (ValueUtil.isNotEmpty(CURSOR.get())) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "cursor can't be override.");
+        }
+        CURSOR.set(id);
+    }
+
+    public static void removeCursor() {
+        CURSOR.remove();
+    }
+
     public static void remove() {
         USER_ID.remove();
         PROJECT_ID.remove();
         TENANT_ID.remove();
         BRANCH.remove();
         CLIENT_ID.remove();
+        REQUEST_ID.remove();
+        CURSOR.remove();
     }
 
     public static List<Object> getValues() {
-        return Collections.unmodifiableList(Arrays.asList(tenantId(), projectId(), userId(), branch(), clientId()));
+        return Collections.unmodifiableList(Arrays.asList(tenantId(), projectId(), userId(), branch(), clientId(), requestId(), cursor()));
     }
 
     public static void setValues(List<Object> values) {
-        if (ValueUtil.isEmpty(values) || values.size() < 5) {
+        if (ValueUtil.isEmpty(values) || values.size() < 7) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "invalid");
         }
         setTenantId((Long) values.get(0));
@@ -125,5 +152,7 @@ public final class SessionUtil {
         setUserId((Long) values.get(2));
         setBranch((String) values.get(3));
         setClientId((String) values.get(4));
+        setRequestId((String) values.get(5));
+        setRequestId((String) values.get(6));
     }
 }

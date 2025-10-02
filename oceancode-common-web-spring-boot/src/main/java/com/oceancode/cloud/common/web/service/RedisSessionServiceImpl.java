@@ -177,7 +177,15 @@ public class RedisSessionServiceImpl implements SessionService {
     public void logout(String token) {
         TokenInfo tokenInfo = TokenUtil.parseToken(token);
         CacheKey tokenKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
+        CacheKey userTokenKey = KeyParam.of(this.sessionKey()).express("_u:id:" + SessionUtil.userId(true));
+
+        String oldToken = redisCacheService.getString(userTokenKey).getResults();
         String userId = redisCacheService.getString(tokenKey).getResults();
+        redisCacheService.delete(userTokenKey);
+        if (ValueUtil.isNotEmpty(oldToken)) {
+            CacheKey oldTokenKey = KeyParam.of(this.sessionKey()).express("_u:" + oldToken);
+            redisCacheService.delete(oldTokenKey);
+        }
         if (ValueUtil.isNotEmpty(userId)) {
             CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:info:" + userId);
             redisCacheService.delete(cacheKey);
