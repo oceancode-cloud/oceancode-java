@@ -30,6 +30,10 @@ public class CompressUtil {
         return rsa2CryptoService;
     }
 
+    public static void unCompress(String filePath, String outDir) {
+        unCompress(filePath, null, outDir);
+    }
+
     public static void unCompress(String filePath, String key, String outDir) {
         unCompress(filePath, key, true, outDir);
     }
@@ -70,6 +74,10 @@ public class CompressUtil {
         } catch (Exception e) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
         }
+    }
+
+    public static void compressDir(String dir, String outputFile) {
+        compressDir(dir, null, outputFile);
     }
 
     public static void compressDir(String dir, String key, String outputFile) {
