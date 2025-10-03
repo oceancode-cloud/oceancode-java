@@ -4,11 +4,19 @@
 
 package com.oceancode.cloud.common.util;
 
+import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import org.springframework.core.env.Environment;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.BindException;
+import java.net.ServerSocket;
 import java.nio.file.Path;
+import java.util.Objects;
 
 public final class SystemUtil {
     public static final String OUTPUT_DIR_CONFIG_KEY = "oc.system.output.dir";
@@ -115,4 +123,57 @@ public final class SystemUtil {
         return path.trim();
     }
 
+    public static boolean killPort(int port) {
+        try {
+            ServerSocket serverSocket = new ServerSocket(port);
+            serverSocket.close();
+            return true;
+        } catch (BindException bindException) {
+            Integer processId = findProcessId("netstat -ano", port);
+            if (Objects.isNull(processId)) {
+                return false;
+            }
+            try {
+                String cmd = "kill -15 " + processId;
+                if (isWindow()) {
+                    cmd = "taskkill /PID " + processId + " /F";
+                }
+                Process killProcess = Runtime.getRuntime().exec(cmd);
+                return killProcess.waitFor() == 0;
+            } catch (Exception e) {
+                //ignore
+            }
+        } catch (IOException e) {
+            //ignore
+        }
+        return false;
+    }
+
+
+    private static Integer findProcessId(String locationCmd, int port) {
+        try {
+            Process child = Runtime.getRuntime().exec(locationCmd);
+            InputStream in = child.getInputStream();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                if (line.contains(":" + port + " ")) {
+                    break;
+                }
+            }
+            in.close();
+            try {
+                child.waitFor();
+            } catch (InterruptedException e) {
+                // ignore
+            }
+            String[] split = line.split(" ");
+            if (split != null && split.length > 0) {
+                return Integer.parseInt(split[split.length - 1]);
+            }
+        } catch (IOException e) {
+            // ignore
+        }
+        return null;
+    }
 }

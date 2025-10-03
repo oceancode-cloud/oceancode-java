@@ -44,6 +44,7 @@ public class CommonConfig {
     private String activeProfile;
 
     private String instanceName;
+    private String ip;
 
     @Resource
     private ServerProperties serverProperties;
@@ -225,12 +226,20 @@ public class CommonConfig {
         if (Objects.nonNull(this.instanceName)) {
             return this.instanceName;
         }
+        this.instanceName = this.getIp() + ":" + serverProperties.getPort();
+        return this.instanceName;
+    }
+
+    public String getIp() {
+        if (Objects.nonNull(ip)) {
+            return ip;
+        }
         try {
-            this.instanceName = InetAddress.getLocalHost().getHostAddress() + ":" + serverProperties.getPort();
+            ip = InetAddress.getLocalHost().getHostAddress();
+            return ip;
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
-        return this.instanceName;
     }
 
     public boolean isTest() {

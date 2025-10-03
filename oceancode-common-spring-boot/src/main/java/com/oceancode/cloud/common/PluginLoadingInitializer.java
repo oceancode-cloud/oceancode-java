@@ -34,10 +34,12 @@ public class PluginLoadingInitializer implements ApplicationContextInitializer<C
         ConfigurableEnvironment environment = applicationContext.getEnvironment();
         boolean enabled = Boolean.parseBoolean(environment.getProperty("oc.plugin.enabled", "false"));
         if (!enabled) {
+            LOGGER.info("plugin enabled=false");
             return;
         }
         BeanDefinitionRegistry registry = (BeanDefinitionRegistry) applicationContext.getBeanFactory();
         String pluginPath = SystemUtil.parsePath(environment.getProperty("oc.plugin.dir", "../plugins"));
+        LOGGER.info("plugin dir.{}", pluginPath);
         File pluginDir = new File(pluginPath);
         loadDirJars(pluginDir, 0, registry);
     }
