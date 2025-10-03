@@ -70,6 +70,8 @@ public class CompressUtil {
                 if (keyFile.exists()) {
                     keyFile.delete();
                 }
+            } else {
+                zipFile.extractAll(outDir, parameters);
             }
         } catch (Exception e) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
