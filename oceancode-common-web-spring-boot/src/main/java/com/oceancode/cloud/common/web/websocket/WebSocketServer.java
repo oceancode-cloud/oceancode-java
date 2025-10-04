@@ -1,11 +1,10 @@
 package com.oceancode.cloud.common.web.websocket;
 
 import com.oceancode.cloud.api.session.SessionService;
-import com.oceancode.cloud.api.session.UserBaseInfo;
 import com.oceancode.cloud.chart.ChartMessage;
 import com.oceancode.cloud.chart.ChartMessageHandler;
 import com.oceancode.cloud.chart.ChartMessageType;
-import com.oceancode.cloud.chart.Messenger;
+import com.oceancode.cloud.chart.RTMessageService;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
@@ -42,12 +41,12 @@ public class WebSocketServer {
 
     private static SessionService sessionService;
 
-    private static Messenger messenger;
+    private static RTMessageService RTMessageService;
 
     @PostConstruct
     public void init() {
         sessionService = ComponentUtil.getBean(SessionService.class);
-        messenger = ComponentUtil.getBean(WebsocketMessengerImpl.class);
+        RTMessageService = ComponentUtil.getBean(WebsocketRTMessageServiceImpl.class);
         JsonUtil.registerTypeEnum(ChartMessageType.class);
     }
 
@@ -136,7 +135,7 @@ public class WebSocketServer {
         }
 
         if (ValueUtil.isNotEmpty(chartMessage.getToUser())) {
-            messenger.sendTo(chartMessage.getToUser(), chartMessage);
+            RTMessageService.sendTo(chartMessage.getToUser(), chartMessage);
         }
     }
 

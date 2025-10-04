@@ -2,7 +2,7 @@ package com.oceancode.cloud.chart;
 
 import java.util.Set;
 
-public interface Messenger {
+public interface RTMessageService {
     void sendToSelf(ChartMessage message);
 
     void sendTo(Long userId, ChartMessage message);

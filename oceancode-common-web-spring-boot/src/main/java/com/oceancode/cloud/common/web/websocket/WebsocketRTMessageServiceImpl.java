@@ -6,7 +6,7 @@ import com.oceancode.cloud.api.mq.Producer;
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.chart.ChartMessage;
 import com.oceancode.cloud.chart.ChartMessageType;
-import com.oceancode.cloud.chart.Messenger;
+import com.oceancode.cloud.chart.RTMessageService;
 import com.oceancode.cloud.common.cache.KeyParam;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
@@ -23,13 +23,13 @@ import java.util.Set;
 import java.util.UUID;
 
 @Component
-public class WebsocketMessengerImpl implements Messenger {
+public class WebsocketRTMessageServiceImpl implements RTMessageService {
     @Resource
     private SessionService sessionService;
 
     private static String msgKey;
 
-    public WebsocketMessengerImpl(CommonConfig commonConfig) {
+    public WebsocketRTMessageServiceImpl(CommonConfig commonConfig) {
         msgKey = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".name", ChartMessage.CHART_MESSAGE_KEY);
     }
 
