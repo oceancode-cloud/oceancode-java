@@ -12,6 +12,7 @@ import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
+import com.oceancode.cloud.common.util.SessionUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
@@ -30,6 +31,23 @@ public class WebsocketMessengerImpl implements Messenger {
 
     public WebsocketMessengerImpl(CommonConfig commonConfig) {
         msgKey = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".name", ChartMessage.CHART_MESSAGE_KEY);
+    }
+
+    @Override
+    public void sendToSelf(ChartMessage message) {
+        Long userId = SessionUtil.userId();
+        if (Objects.isNull(userId)) {
+            return;
+        }
+        WsSession wsSession = WebSocketServer.SESSIONS.get(userId);
+        if (Objects.isNull(wsSession)) {
+            return;
+        }
+        if (Objects.isNull(message.getType())) {
+            message.setType(ChartMessageType.NOTIFIER_MESSAGE);
+        }
+
+        wsSession.send(message);
     }
 
     @Override

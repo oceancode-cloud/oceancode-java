@@ -29,6 +29,13 @@ public class Message<T> {
 
     private String traceId;
 
+    public static <T> Message<T> log(String key) {
+        Message<T> message = new Message<>();
+        message.setMessageType(MessageType.LOG);
+        message.setKey(key);
+        return message;
+    }
+
     public String getId() {
         return id;
     }

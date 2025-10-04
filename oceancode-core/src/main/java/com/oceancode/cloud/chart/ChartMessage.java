@@ -12,6 +12,7 @@ public class ChartMessage {
     private ErrorCode errorCode;
     private Long projectId;
     private Long tenantId;
+    private String category;
 
     private ChartMessage() {
     }
@@ -139,6 +140,14 @@ public class ChartMessage {
 
     public void setTenantId(Long tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     @Override
