@@ -59,7 +59,17 @@ public final class SessionUtil {
     }
 
     public static void setRequestId(String id) {
+        if (ValueUtil.isNotEmpty(requestId())) {
+            if (ValueUtil.isEmpty(id)) {
+                return;
+            }
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "request already initial");
+        }
         REQUEST_ID.set(id);
+    }
+
+    public static void removeRequestId() {
+        REQUEST_ID.remove();
     }
 
     public static Long projectId(boolean mustNotEmpty) {

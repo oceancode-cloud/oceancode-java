@@ -36,9 +36,5 @@ public final class MessageUtil {
         SessionUtil.setUserId(message.getUserId());
         SessionUtil.setProjectId(message.getProjectId());
         SessionUtil.setTenantId(message.getTenantId());
-        SessionUtil.setRequestId(message.getRequestId());
-        if (ValueUtil.isEmpty(SessionUtil.cursor())) {
-            SessionUtil.setCursor(message.getCursor());
-        }
     }
 }

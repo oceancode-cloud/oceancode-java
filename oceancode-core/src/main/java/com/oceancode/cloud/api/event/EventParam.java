@@ -72,4 +72,12 @@ public class EventParam {
     public boolean isTypeOf(EventType eventType) {
         return Objects.equals(this.eventType, eventType.getId());
     }
+
+    @Override
+    public String toString() {
+        return "EventParam{" +
+                "eventType='" + eventType + '\'' +
+                ", data=" + data +
+                '}';
+    }
 }

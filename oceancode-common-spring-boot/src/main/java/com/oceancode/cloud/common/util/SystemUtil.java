@@ -16,7 +16,10 @@ import java.io.InputStreamReader;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 public final class SystemUtil {
     public static final String OUTPUT_DIR_CONFIG_KEY = "oc.system.output.dir";
@@ -123,43 +126,34 @@ public final class SystemUtil {
         return path.trim();
     }
 
-    public static boolean killPort(int port) {
+    public static boolean killProcess(int processId) {
         try {
-            ServerSocket serverSocket = new ServerSocket(port);
-            serverSocket.close();
-            return true;
-        } catch (BindException bindException) {
-            Integer processId = findProcessId("netstat -ano", port);
-            if (Objects.isNull(processId)) {
-                return false;
+            String cmd = "kill -15 " + processId;
+            if (isWindow()) {
+                cmd = "taskkill /PID " + processId + " /F";
             }
-            try {
-                String cmd = "kill -15 " + processId;
-                if (isWindow()) {
-                    cmd = "taskkill /PID " + processId + " /F";
-                }
-                Process killProcess = Runtime.getRuntime().exec(cmd);
-                return killProcess.waitFor() == 0;
-            } catch (Exception e) {
-                //ignore
-            }
-        } catch (IOException e) {
+            Process killProcess = Runtime.getRuntime().exec(cmd);
+            return killProcess.waitFor() == 0;
+        } catch (Exception e) {
             //ignore
         }
         return false;
     }
 
-
-    private static Integer findProcessId(String locationCmd, int port) {
+    public static List<String> execCommand(String command, Function<String, Boolean> function) {
+        List<String> list = new ArrayList<>();
         try {
-            Process child = Runtime.getRuntime().exec(locationCmd);
+            Process child = Runtime.getRuntime().exec(command);
             InputStream in = child.getInputStream();
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                if (line.contains(":" + port + " ")) {
-                    break;
+                if (Objects.nonNull(function)) {
+                    if (!ValueUtil.isTrue(function.apply(line))) {
+                        continue;
+                    }
                 }
+                list.add(line);
             }
             in.close();
             try {
@@ -167,13 +161,9 @@ public final class SystemUtil {
             } catch (InterruptedException e) {
                 // ignore
             }
-            String[] split = line.split(" ");
-            if (split != null && split.length > 0) {
-                return Integer.parseInt(split[split.length - 1]);
-            }
         } catch (IOException e) {
             // ignore
         }
-        return null;
+        return list;
     }
 }

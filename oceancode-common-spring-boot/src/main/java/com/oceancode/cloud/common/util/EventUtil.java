@@ -1,17 +1,17 @@
 package com.oceancode.cloud.common.util;
 
+import com.oceancode.cloud.common.event.CommonEventStep;
+import com.oceancode.cloud.api.event.EventStep;
 import com.oceancode.cloud.common.event.EventImpl;
 import com.oceancode.cloud.api.event.EventParam;
 import com.oceancode.cloud.api.event.EventType;
-import com.oceancode.cloud.common.event.EventWaitObj;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class EventUtil {
-    private static final Map<String, EventWaitObj> EVENT_MAPPING = new ConcurrentHashMap<>();
+    private static final Map<String, EventStep> EVENT_MAPPING = new ConcurrentHashMap<>();
 
     private EventUtil() {
     }
@@ -29,24 +29,26 @@ public class EventUtil {
     }
 
     public static String createEventId(String type) {
-        return type + ":" + SessionUtil.cursor();
+        String id = SessionUtil.requestId() + ":" + type + ":";
+        return id;
     }
 
     public static String createEventId(EventType type) {
         return createEventId(type.getId());
     }
 
-    public static EventParam onEvent(EventType type, long timeout) {
-        return onEvent(createEventId(type), timeout);
+    public static synchronized EventStep onEvent(EventType type, long timeout) {
+        CommonEventStep commonEventStep = new CommonEventStep(timeout);
+        onEvent(type, commonEventStep);
+        return commonEventStep;
     }
 
-    public static EventParam onEvent(String id, long timeout) {
-        if (EVENT_MAPPING.containsKey(id)) {
-            return EVENT_MAPPING.get(id).getData();
-        }
-        EventWaitObj eventWaitObj = new EventWaitObj(timeout);
-        EVENT_MAPPING.put(id, eventWaitObj);
-        return eventWaitObj.getData();
+    public static void onEvent(EventType type, EventStep eventStep) {
+        onEvent(createEventId(type), eventStep);
+    }
+
+    public static void onEvent(String id, EventStep eventStep) {
+        EVENT_MAPPING.put(id, eventStep);
     }
 
     public static void call(EventParam param) {
@@ -54,14 +56,8 @@ public class EventUtil {
     }
 
     public static void call(String id, EventParam param) {
-        EventWaitObj eventWaitObj = EVENT_MAPPING.get(id);
-        if (Objects.isNull(eventWaitObj)) {
-            return;
-        }
-        eventWaitObj.setData(param);
-        if (!eventWaitObj.isValid()) {
-            offEvent(id);
-        }
+        EventStep eventStep = EVENT_MAPPING.get(id);
+        eventStep.setData(param);
     }
 
     public static void emitEvent(EventType type, String dataId) {
@@ -89,7 +85,7 @@ public class EventUtil {
     }
 
     public static void emitEvent(EventParam param) {
-        send(param, false);
+        send(param, true);
     }
 
     public static void offEvent(EventType type) {

@@ -13,6 +13,9 @@ public class ChartMessage {
     private Long projectId;
     private Long tenantId;
     private String category;
+    private String dataId;
+    private String key;
+    private MessageLifeCycle lifeCycle = MessageLifeCycle.PROCESS;
 
     private ChartMessage() {
     }
@@ -99,6 +102,16 @@ public class ChartMessage {
         return this;
     }
 
+    public ChartMessage category(String category) {
+        this.category = category;
+        return this;
+    }
+
+    public ChartMessage key(String key) {
+        this.key = key;
+        return this;
+    }
+
     public ErrorCode getErrorCode() {
         return errorCode;
     }
@@ -126,6 +139,20 @@ public class ChartMessage {
         return this;
     }
 
+    public ChartMessage dataId(String dataId) {
+        this.dataId = dataId;
+        return this;
+    }
+
+    public ChartMessage dataId(Long dataId) {
+        return this.dataId(String.valueOf(dataId));
+    }
+
+    public ChartMessage lifeCycle(MessageLifeCycle lifeCycle) {
+        this.lifeCycle = lifeCycle;
+        return this;
+    }
+
     public Long getProjectId() {
         return projectId;
     }
@@ -148,6 +175,30 @@ public class ChartMessage {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public String getDataId() {
+        return dataId;
+    }
+
+    public void setDataId(String dataId) {
+        this.dataId = dataId;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public MessageLifeCycle getLifeCycle() {
+        return lifeCycle;
+    }
+
+    public void setLifeCycle(MessageLifeCycle lifeCycle) {
+        this.lifeCycle = lifeCycle;
     }
 
     @Override
