@@ -8,6 +8,7 @@ import com.oceancode.cloud.api.event.EventType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class EventUtil {
@@ -57,6 +58,9 @@ public class EventUtil {
 
     public static void call(String id, EventParam param) {
         EventStep eventStep = EVENT_MAPPING.get(id);
+        if (Objects.isNull(eventStep)) {
+            return;
+        }
         eventStep.setData(param);
     }
 
