@@ -10,6 +10,7 @@ import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author qinjiawang
@@ -162,7 +163,14 @@ public final class SessionUtil {
         setUserId((Long) values.get(2));
         setBranch((String) values.get(3));
         setClientId((String) values.get(4));
-        setRequestId((String) values.get(5));
-        setRequestId((String) values.get(6));
+        String requestId = (String) values.get(5);
+        if (!Objects.equals(requestId(), requestId)) {
+            setRequestId(requestId);
+        }
+
+        String cursor = (String) values.get(6);
+        if (!Objects.equals(cursor(), cursor)) {
+            setCursor(cursor);
+        }
     }
 }
