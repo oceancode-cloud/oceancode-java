@@ -9,7 +9,6 @@
         <version>2.0.0</version>
     </parent>
 
-    <groupId>com.oceancode-cloud</groupId>
     <artifactId>oceancode-cloud</artifactId>
     <version>2.0.0</version>
 
