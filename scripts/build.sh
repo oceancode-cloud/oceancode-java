@@ -10,7 +10,6 @@ function build_model() {
     cd $WORKDIR/$1
     mvn clean
     mvn install
-    ls
     if [ -d "./target" ]; then
         cp target/*.jar $output_path
     fi
