@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!-- Configuration for production environment. -->
+<configuration>
+
+    <!-- Default configuration. -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <!-- Configuration for console. -->
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <!--
+        Log path, pay attention to permission, logs may be unable to generate.
+        Bug recording: Setting `~/logs`, is unable to create folder in user home directory,
+        a folder with the name ~ is created in project folder.
+    -->
+    <property name="LOG_PATH" value="./logs"/>
+    <property name="log.pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{serviceName},%X{instanceName},%X{requestId},%X{traceId}] [%X{tenantId},%X{projectId},%X{userId}] [%thread] %logger{20} - %msg%n"/>
+
+    <appender name="ERROR_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_PATH}/log.%d{yyyy-MM-dd}</FileNamePattern>
+            <MaxHistory>7</MaxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${log.pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <!-- End of configuration for ERROR logs. -->
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ERROR_APPENDER"/>
+    </root>
+
+</configuration>
