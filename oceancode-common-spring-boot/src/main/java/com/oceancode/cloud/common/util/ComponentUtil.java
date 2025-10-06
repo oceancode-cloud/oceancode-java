@@ -99,6 +99,9 @@ public final class ComponentUtil {
     }
 
     public static <T> T getLocalFunction(Class<T> typeClass, List<T> functions) {
+        if (functions.size() == 1) {
+            return functions.get(0);
+        }
         T testFunction = null;
         T localFunction = null;
         boolean isTest = ComponentUtil.getBean(CommonConfig.class).isTest();
