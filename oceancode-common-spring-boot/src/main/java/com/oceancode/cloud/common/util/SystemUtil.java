@@ -20,6 +20,15 @@ import java.util.function.Function;
 public final class SystemUtil {
     public static final String OUTPUT_DIR_CONFIG_KEY = "oc.system.output.dir";
 
+    private static String getAppBinWorkDir() {
+        String dir = System.getProperty("user.dir");
+        File file = new File(dir, "bin/startup.sh");
+        if (file.exists()) {
+            dir = file.getParentFile().getAbsolutePath();
+        }
+        return dir + File.separator;
+    }
+
     public static boolean isWindow() {
         return System.getProperty("os.name").toLowerCase().contains("win");
     }
@@ -40,7 +49,7 @@ public final class SystemUtil {
         Environment environment = ComponentUtil.getBean(Environment.class);
         String dataDir = environment.getProperty("oc.system.data.dir");
         if (ValueUtil.isEmpty(dataDir)) {
-            dataDir = System.getProperty("user.dir") + "/data";
+            dataDir = getAppBinWorkDir() + "data";
         }
 
         return dataDir;
@@ -60,7 +69,7 @@ public final class SystemUtil {
         Environment environment = ComponentUtil.getBean(Environment.class);
         String dataDir = environment.getProperty(OUTPUT_DIR_CONFIG_KEY);
         if (ValueUtil.isEmpty(dataDir)) {
-            dataDir = System.getProperty("user.dir") + "/output";
+            dataDir = getAppBinWorkDir() + "output";
         }
 
         return dataDir;
@@ -101,6 +110,11 @@ public final class SystemUtil {
         return parsePath(environment.getProperty("oc.web.resource.public", "../data/web/public"));
     }
 
+    public static String pluginDir() {
+        Environment environment = ComponentUtil.getBean(Environment.class);
+        return parsePath(environment.getProperty("oc.plugin.dir", "../plugins"));
+    }
+
     public static String privateResourceDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
         return parsePath(environment.getProperty("oc.web.resource.private", "../data/web/private"));
@@ -117,7 +131,7 @@ public final class SystemUtil {
             return null;
         }
         if (path.trim().startsWith(".")) {
-            return System.getProperty("user.dir") + File.separator + path.trim();
+            return getAppBinWorkDir() + path.trim();
         }
         return path.trim();
     }

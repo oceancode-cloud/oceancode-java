@@ -2,7 +2,6 @@ package com.oceancode.cloud.common;
 
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.SystemUtil;
-import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.function.Plugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,13 +16,10 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Objects;
-import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.stream.Collectors;
 
 public class PluginLoadingInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
     private final static Logger LOGGER = LoggerFactory.getLogger(PluginLoadingInitializer.class);
@@ -80,20 +76,36 @@ public class PluginLoadingInitializer implements ApplicationContextInitializer<C
                     if (clazz.getInterfaces().length == 0 || !Plugin.class.isAssignableFrom(clazz)) {
                         continue;
                     }
-                    Class<?>[] interfaces = clazz.getInterfaces();
-                    for (Class<?> it : interfaces) {
-                        if (it.equals(Plugin.class)) {
-                            continue;
-                        }
-                        if (processRegisterBean(clazz, it, registry)) {
-                            LOGGER.info("load plugin[" + className + " - " + it.getName() + "] successful - " + path);
-                        }
+                    Class<?> it = getTargetClass(clazz);
+                    if (Objects.isNull(it)) {
+                        continue;
+                    }
+                    if (processRegisterBean(clazz, it, registry)) {
+                        LOGGER.info("load plugin[" + className + " - " + it.getName() + "] successful - " + path);
                     }
                 }
             }
         } catch (Exception e) {
             LOGGER.error("plugin load error", e);
         }
+    }
+
+    private Class<?> getTargetClass(Class<?> clazz) {
+        Class<?>[] interfaces = clazz.getInterfaces();
+        if (interfaces.length == 1) {
+            if (interfaces[0].equals(Plugin.class)) {
+                if (Objects.nonNull(clazz.getSuperclass())) {
+                    interfaces = clazz.getSuperclass().getInterfaces();
+                }
+            }
+        }
+        for (Class<?> it : interfaces) {
+            if (it.equals(Plugin.class)) {
+                continue;
+            }
+            return it;
+        }
+        return null;
     }
 
 

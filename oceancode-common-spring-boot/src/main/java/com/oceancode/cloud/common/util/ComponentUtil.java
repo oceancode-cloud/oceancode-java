@@ -104,8 +104,10 @@ public final class ComponentUtil {
         boolean isTest = ComponentUtil.getBean(CommonConfig.class).isTest();
         for (T function : functions) {
             Class<?>[] interfaces = function.getClass().getInterfaces();
-            if (Objects.isNull(interfaces)) {
-                continue;
+            if (interfaces.length == 1 && interfaces[0].equals(Plugin.class)) {
+                if (Objects.nonNull(function.getClass().getSuperclass())) {
+                    interfaces = function.getClass().getSuperclass().getInterfaces();
+                }
             }
 
             for (Class<?> it : interfaces) {
