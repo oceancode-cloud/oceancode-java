@@ -135,6 +135,9 @@ public final class FileUtil {
     }
 
     public static String readFileToString(File file) {
+        if (!file.exists()) {
+            return null;
+        }
         try {
             return FileUtils.readFileToString(file, StandardCharsets.UTF_8);
         } catch (IOException e) {
