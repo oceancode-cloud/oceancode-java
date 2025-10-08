@@ -2,9 +2,14 @@ package com.oceancode.cloud.common.service;
 
 import com.oceancode.cloud.common.entity.ResultData;
 import com.oceancode.cloud.common.util.ComponentUtil;
+import com.oceancode.cloud.common.util.ValueUtil;
+import org.apache.commons.collections4.MultiValuedMap;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriBuilder;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -79,15 +84,38 @@ public class ApiClient {
     }
 
     public <T> ResultData<T> addData(Object data, Class<T> returnType) {
+        return request(data, returnType, clientBuilder().build()
+                .post());
+    }
+
+    public <T> ResultData<T> upload(Map<String, Object> data, Class<T> returnType) {
+        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>(data.size());
+        data.forEach(map::add);
+        return request(map, returnType, clientBuilder().build()
+                .post());
+    }
+
+    public <T> ResultData<T> request(Object data, Class<T> returnType, WebClient.RequestBodyUriSpec spec) {
         String url = this.getUrl();
-        WebClient.RequestBodyUriSpec post = clientBuilder().build()
-                .post();
         for (Map.Entry<String, String> entry : headerMap().entrySet()) {
-            post.header(entry.getKey(), entry.getValue());
+            spec.header(entry.getKey(), entry.getValue());
         }
-        post.uri(url).contentType(MediaType.APPLICATION_JSON);
-        ResponseEntity<T> responseEntity = post.bodyValue(data).retrieve().toEntity(returnType)
-                .block();
+        WebClient.RequestBodySpec uri = spec.uri(url);
+        if (!(data instanceof MultiValueMap)) {
+            uri.contentType(MediaType.APPLICATION_JSON);
+        }
+        ResponseEntity<T> responseEntity = uri.bodyValue(data)
+                .retrieve().toEntity(returnType)
+                .block(Duration.ofMillis(getMaxTimeout()));
+
+        return processResult(responseEntity, returnType);
+    }
+
+    public <T> ResultData<T> post(Object data, Class<T> returnType) {
+        return addData(data, returnType);
+    }
+
+    private <T> ResultData<T> processResult(ResponseEntity<T> responseEntity, Class<T> returnType) {
         ResultData<T> resultData = ResultData.isOk(responseEntity.getBody());
         if (responseEntity.getStatusCode().isError()) {
             resultData.setCode(responseEntity.getStatusCode().value() + "");
@@ -95,4 +123,40 @@ public class ApiClient {
         return resultData;
     }
 
+    public <T> ResultData<T> getData(Map<String, String> data, Class<T> returnType) {
+        String url = getUrl();
+        if (ValueUtil.isNotEmpty(data)) {
+            for (Map.Entry<String, String> item : data.entrySet()) {
+                url += item.getKey() + "=" + item.getValue() + "&";
+            }
+        }
+        ResponseEntity<T> responseEntity = clientBuilder().build().get()
+                .uri(url)
+                .retrieve().toEntity(returnType)
+                .block(Duration.ofMillis(getMaxTimeout()));
+        return processResult(responseEntity, returnType);
+    }
+
+    public <T> ResultData<T> updateData(Object data, Class<T> returnType) {
+        ResponseEntity<T> responseEntity = clientBuilder().build().put()
+                .uri(getUrl())
+                .bodyValue(data)
+                .retrieve().toEntity(returnType)
+                .block(Duration.ofMillis(getMaxTimeout()));
+        return processResult(responseEntity, returnType);
+    }
+
+    public <T> ResultData<T> deleteData(Map<String, String> data, Class<T> returnType) {
+        String url = getUrl();
+        if (ValueUtil.isNotEmpty(data)) {
+            for (Map.Entry<String, String> item : data.entrySet()) {
+                url += item.getKey() + "=" + item.getValue() + "&";
+            }
+        }
+        ResponseEntity<T> responseEntity = clientBuilder().build().delete()
+                .uri(url)
+                .retrieve().toEntity(returnType)
+                .block(Duration.ofMillis(getMaxTimeout()));
+        return processResult(responseEntity, returnType);
+    }
 }
