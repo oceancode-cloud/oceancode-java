@@ -2,18 +2,19 @@ package com.oceancode.cloud.common.service;
 
 import com.oceancode.cloud.common.entity.ResultData;
 import com.oceancode.cloud.common.util.ComponentUtil;
-import com.oceancode.cloud.common.util.ValueUtil;
-import org.apache.commons.collections4.MultiValuedMap;
+import com.oceancode.cloud.common.util.JsonUtil;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriBuilder;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -22,7 +23,8 @@ public class ApiClient {
     private String url;
     private WebClient.Builder clientBuilder;
     private String authorization;
-    private Map<String, String> header;
+    private Map<String, String> header = new HashMap<>();
+    private long maxTimeout = 5 * 60 * 1000;
 
     private ApiClient(String id) {
         this.id = id;
@@ -40,6 +42,14 @@ public class ApiClient {
 
     public ApiClient url(String url) {
         this.url = url;
+        if ((url.startsWith("http:/") || url.startsWith("https://")) && !headerMap().containsKey("Referer") && !headerMap().containsKey("referer")) {
+            addHeader("Referer", url);
+        }
+        return this;
+    }
+
+    public ApiClient setBusinessParam(String key, String value) {
+        addHeader(key, value);
         return this;
     }
 
@@ -63,16 +73,22 @@ public class ApiClient {
         return 5 * 60 * 1000;
     }
 
+    public ApiClient timeout(long timeout) {
+        this.maxTimeout = timeout;
+        return this;
+    }
+
     public ApiClient authorization(String authorization) {
         this.authorization = authorization;
-        addHeader("Authorization", "Bearer " + authorization);
+        if (authorization.contains(" JSESSIONID=")) {
+            addHeader("Cookie", authorization);
+        } else {
+            addHeader("Authorization", "Bearer " + authorization);
+        }
         return this;
     }
 
     private void addHeader(String key, String value) {
-        if (Objects.isNull(header)) {
-            header = new HashMap<>();
-        }
         header.put(key, value);
     }
 
@@ -97,65 +113,107 @@ public class ApiClient {
 
     public <T> ResultData<T> request(Object data, Class<T> returnType, WebClient.RequestBodyUriSpec spec) {
         String url = this.getUrl();
-        for (Map.Entry<String, String> entry : headerMap().entrySet()) {
-            spec.header(entry.getKey(), entry.getValue());
-        }
+        filleHeader(spec);
         WebClient.RequestBodySpec uri = spec.uri(url);
         if (!(data instanceof MultiValueMap)) {
             uri.contentType(MediaType.APPLICATION_JSON);
         }
-        ResponseEntity<T> responseEntity = uri.bodyValue(data)
-                .retrieve().toEntity(returnType)
+        if (Objects.nonNull(data)) {
+            uri.bodyValue(data);
+        }
+        filleHeader(spec);
+        ResponseEntity<Map> responseEntity = uri
+                .retrieve().toEntity(Map.class)
                 .block(Duration.ofMillis(getMaxTimeout()));
 
         return processResult(responseEntity, returnType);
+    }
+
+
+    private void filleHeader(WebClient.RequestHeadersUriSpec spec) {
+        for (Map.Entry<String, String> entry : headerMap().entrySet()) {
+            spec.header(entry.getKey(), entry.getValue());
+        }
     }
 
     public <T> ResultData<T> post(Object data, Class<T> returnType) {
         return addData(data, returnType);
     }
 
-    private <T> ResultData<T> processResult(ResponseEntity<T> responseEntity, Class<T> returnType) {
-        ResultData<T> resultData = ResultData.isOk(responseEntity.getBody());
+    private <T> ResultData<T> processResult(ResponseEntity<Map> responseEntity, Class<T> returnType) {
+        ResultData<T> resultData = ResultData.isOk();
         if (responseEntity.getStatusCode().isError()) {
             resultData.setCode(responseEntity.getStatusCode().value() + "");
         }
+        Map body = responseEntity.getBody();
+        Object code = null;
+        Object data = null;
+        Object message = null;
+        if (Objects.isNull(body)) {
+            return resultData;
+        }
+        if (body.containsKey("code") || body.containsKey("status")) {
+            if (body.containsKey("data")) {
+                data = body.get("data");
+            } else if (body.containsKey("results")) {
+                data = body.get("results");
+            }
+            code = body.containsKey("status") ? body.get("status") : body.get("code");
+            message = body.containsKey("message") ? body.get("message") : body.get("msg");
+        }
+        if (Objects.nonNull(code)) {
+            resultData.setCode(String.valueOf(code));
+        }
+        if (Objects.nonNull(message)) {
+            resultData.setMessage(String.valueOf(message));
+        }
+        if (Objects.isNull(data)) {
+            if (Map.class.isAssignableFrom(returnType)) {
+                resultData.data((T) body);
+                return resultData;
+            }
+        }
+        T targetData = null;
+        if (data instanceof Map<?, ?> map) {
+            targetData = JsonUtil.mapToBean(map, returnType);
+            resultData.data(targetData);
+        } else if (data instanceof List<?> list) {
+            resultData.setResultList(list.stream().map(it -> JsonUtil.mapToBean((Map) it, returnType)).toList());
+        }
+
         return resultData;
     }
 
-    public <T> ResultData<T> getData(Map<String, String> data, Class<T> returnType) {
+    public <T> ResultData<T> getData(Class<T> returnType) {
         String url = getUrl();
-        if (ValueUtil.isNotEmpty(data)) {
-            for (Map.Entry<String, String> item : data.entrySet()) {
-                url += item.getKey() + "=" + item.getValue() + "&";
-            }
-        }
-        ResponseEntity<T> responseEntity = clientBuilder().build().get()
-                .uri(url)
-                .retrieve().toEntity(returnType)
+        WebClient.RequestHeadersUriSpec<?> requestHeadersUriSpec = clientBuilder().build().get();
+        filleHeader(requestHeadersUriSpec);
+        WebClient.RequestHeadersSpec<?> uri = requestHeadersUriSpec
+                .uri(url);
+        ResponseEntity<Map> responseEntity = uri
+                .retrieve().toEntity(Map.class)
                 .block(Duration.ofMillis(getMaxTimeout()));
         return processResult(responseEntity, returnType);
     }
 
     public <T> ResultData<T> updateData(Object data, Class<T> returnType) {
-        ResponseEntity<T> responseEntity = clientBuilder().build().put()
+        WebClient.RequestBodyUriSpec put = clientBuilder().build().put();
+        filleHeader(put);
+        ResponseEntity<Map> responseEntity = put
                 .uri(getUrl())
                 .bodyValue(data)
-                .retrieve().toEntity(returnType)
+                .retrieve().toEntity(Map.class)
                 .block(Duration.ofMillis(getMaxTimeout()));
         return processResult(responseEntity, returnType);
     }
 
-    public <T> ResultData<T> deleteData(Map<String, String> data, Class<T> returnType) {
+    public <T> ResultData<T> deleteData(Class<T> returnType) {
         String url = getUrl();
-        if (ValueUtil.isNotEmpty(data)) {
-            for (Map.Entry<String, String> item : data.entrySet()) {
-                url += item.getKey() + "=" + item.getValue() + "&";
-            }
-        }
-        ResponseEntity<T> responseEntity = clientBuilder().build().delete()
+        WebClient.RequestHeadersUriSpec<?> delete = clientBuilder().build().delete();
+        filleHeader(delete);
+        ResponseEntity<Map> responseEntity = delete
                 .uri(url)
-                .retrieve().toEntity(returnType)
+                .retrieve().toEntity(Map.class)
                 .block(Duration.ofMillis(getMaxTimeout()));
         return processResult(responseEntity, returnType);
     }

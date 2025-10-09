@@ -209,6 +209,9 @@ public final class JsonUtil {
     }
 
     public static <T> T mapToBean(Map map, Class<T> typeClass) {
+        if (Map.class.isAssignableFrom(typeClass)) {
+            return (T) map;
+        }
         if (Objects.isNull(typeClass)) {
             return null;
         }

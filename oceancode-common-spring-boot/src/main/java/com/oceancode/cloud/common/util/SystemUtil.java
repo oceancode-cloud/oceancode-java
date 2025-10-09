@@ -24,7 +24,7 @@ public final class SystemUtil {
         String dir = System.getProperty("user.dir");
         File file = new File(dir, "bin/startup.sh");
         if (file.exists()) {
-            dir = file.getParentFile().getAbsolutePath();
+            dir = file.getParentFile().getAbsoluteFile().getAbsolutePath();
         }
         return dir + File.separator;
     }

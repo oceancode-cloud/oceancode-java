@@ -10,6 +10,9 @@ import com.oceancode.cloud.api.ErrorCode;
 import com.oceancode.cloud.api.Result;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 
+import java.util.Collections;
+import java.util.List;
+
 public class ResultData<T> implements Result<T> {
 
     private T results;
@@ -19,6 +22,7 @@ public class ResultData<T> implements Result<T> {
     private String message;
 
     private Long total;
+    private List<T> list;
 
     private ResultData() {
     }
@@ -73,7 +77,7 @@ public class ResultData<T> implements Result<T> {
 
     @JsonIgnore
     public boolean isSuccess() {
-        return CommonErrorCode.SUCCESS.getShortCode().equals(getCode());
+        return CommonErrorCode.SUCCESS.getShortCode().equals(getCode()) || "0".equals(getCode());
     }
 
     public T getResults() {
@@ -107,5 +111,20 @@ public class ResultData<T> implements Result<T> {
 
     public void setTotal(Long total) {
         this.total = total;
+    }
+
+    public boolean isList() {
+        return results == null && list != null && list != Collections.emptyList();
+    }
+
+    public List<T> getResultList() {
+        if (list == null) {
+            return Collections.emptyList();
+        }
+        return list;
+    }
+
+    public void setResultList(List<T> list) {
+        this.list = list;
     }
 }
