@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.oceancode.cloud.api.ErrorCode;
 import com.oceancode.cloud.api.Result;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.util.ValueUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -77,7 +78,8 @@ public class ResultData<T> implements Result<T> {
 
     @JsonIgnore
     public boolean isSuccess() {
-        return CommonErrorCode.SUCCESS.getShortCode().equals(getCode()) || "0".equals(getCode());
+        return CommonErrorCode.SUCCESS.getShortCode().equals(getCode()) || "0".equals(getCode())
+                || ValueUtil.isEmpty(getCode());
     }
 
     public T getResults() {
