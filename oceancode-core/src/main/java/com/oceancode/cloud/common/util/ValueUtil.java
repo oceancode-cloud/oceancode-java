@@ -446,4 +446,28 @@ public final class ValueUtil {
         }
 
     }
+
+    public static Object getValueByKeyPath(Map<String, Object> map, String keyPaths) {
+        if (isEmpty(keyPaths)) {
+            return null;
+        }
+        String[] split = keyPaths.split("[.]");
+        Object cur = map;
+        int count = 0;
+        while (cur != null) {
+            if (count >= split.length) {
+                break;
+            }
+            if (!(cur instanceof Map<?, ?> m)) {
+                return null;
+            }
+            String key = split[count];
+            cur = m.get(key);
+            count++;
+        }
+        if (count == split.length) {
+            return cur;
+        }
+        return null;
+    }
 }
