@@ -1,6 +1,8 @@
 package com.oceancode.cloud.chart;
 
-public enum MessageLifeCycle {
+import com.oceancode.cloud.api.TypeEnum;
+
+public enum MessageLifeCycle implements TypeEnum<Integer> {
     START(0),
     PROCESS(1),
     FINISH(1),
@@ -14,5 +16,20 @@ public enum MessageLifeCycle {
 
     public int getType() {
         return type;
+    }
+
+    @Override
+    public Integer getValue() {
+        return type;
+    }
+
+    @Override
+    public String getName() {
+        return "";
+    }
+
+    @Override
+    public String getDescription() {
+        return "";
     }
 }
