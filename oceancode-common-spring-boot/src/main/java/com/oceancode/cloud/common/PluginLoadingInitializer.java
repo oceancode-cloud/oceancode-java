@@ -34,7 +34,7 @@ public class PluginLoadingInitializer implements ApplicationContextInitializer<C
             return;
         }
         BeanDefinitionRegistry registry = (BeanDefinitionRegistry) applicationContext.getBeanFactory();
-        String pluginPath = SystemUtil.parsePath(environment.getProperty("oc.plugin.dir", "../plugins"));
+        String pluginPath = SystemUtil.parsePath(environment.getProperty("oc.plugin.dir", "./plugins"));
         LOGGER.info("plugin dir.{}", pluginPath);
         File pluginDir = new File(pluginPath);
         loadDirJars(pluginDir, 0, registry);

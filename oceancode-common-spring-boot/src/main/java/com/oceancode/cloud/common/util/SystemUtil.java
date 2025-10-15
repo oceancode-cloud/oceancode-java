@@ -21,12 +21,16 @@ public final class SystemUtil {
     public static final String OUTPUT_DIR_CONFIG_KEY = "oc.system.output.dir";
 
     private static String getAppBinWorkDir() {
+        return getAppBinWorkFile().getAbsolutePath() + File.separator;
+    }
+
+    private static File getAppBinWorkFile() {
         String dir = System.getProperty("user.dir");
         File file = new File(dir, "bin/startup.sh");
         if (file.exists()) {
-            dir = file.getParentFile().getAbsoluteFile().getAbsolutePath();
+            file = file.getParentFile().getParentFile();
         }
-        return dir + File.separator;
+        return file;
     }
 
     public static boolean isWindow() {
