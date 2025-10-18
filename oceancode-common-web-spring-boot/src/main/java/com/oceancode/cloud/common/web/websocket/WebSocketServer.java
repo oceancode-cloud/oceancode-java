@@ -6,6 +6,7 @@ import com.oceancode.cloud.chart.ChartMessageHandler;
 import com.oceancode.cloud.chart.ChartMessageType;
 import com.oceancode.cloud.chart.RTMessageService;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.SessionUtil;
@@ -26,6 +27,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -42,12 +45,24 @@ public class WebSocketServer {
     private static SessionService sessionService;
 
     private static RTMessageService RTMessageService;
+    private static Map<String, ChartMessageHandler> handlers = new HashMap<>();
 
     @PostConstruct
     public void init() {
         sessionService = ComponentUtil.getBean(SessionService.class);
         RTMessageService = ComponentUtil.getBean(WebsocketRTMessageServiceImpl.class);
         JsonUtil.registerTypeEnum(ChartMessageType.class);
+
+        Collection<ChartMessageHandler> values = ComponentUtil.getBeans(ChartMessageHandler.class).values();
+        for (ChartMessageHandler value : values) {
+            if (ValueUtil.isEmpty(value.getCategory())) {
+                throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "category is required." + value);
+            }
+            if (handlers.containsKey(value.getCategory())) {
+                throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "category already exists." + value);
+            }
+            handlers.put(value.getCategory(), value);
+        }
     }
 
     @OnOpen
@@ -128,9 +143,9 @@ public class WebSocketServer {
 
         chartMessage.setFromUser(userId);
         if (ChartMessageType.MESSAGE.equals(chartMessage.getType())) {
-            ChartMessageHandler messageHandler = ComponentUtil.getBean(ChartMessageHandler.class);
+            ChartMessageHandler messageHandler = handlers.get(chartMessage.getCategory());
             ChartMessage replyMessage = messageHandler.onMessage(chartMessage);
-            processReplyMessage(wsSession, replyMessage);
+            processReplyMessage(wsSession, chartMessage, replyMessage);
             return;
         }
 
@@ -139,10 +154,12 @@ public class WebSocketServer {
         }
     }
 
-    private void processReplyMessage(WsSession wsSession, ChartMessage replyMessage) {
+    private void processReplyMessage(WsSession wsSession, ChartMessage message, ChartMessage replyMessage) {
         if (Objects.isNull(replyMessage) || Objects.isNull(wsSession)) {
             return;
         }
+        replyMessage.setMsgId(message.getMsgId());
+        replyMessage.setType(ChartMessageType.NOTIFIER_MESSAGE);
         wsSession.send(replyMessage);
     }
 

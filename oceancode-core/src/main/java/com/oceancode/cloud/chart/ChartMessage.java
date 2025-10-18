@@ -14,7 +14,6 @@ public class ChartMessage {
     private Long tenantId;
     private String category;
     private String dataId;
-    private String key;
     private MessageLifeCycle lifeCycle = MessageLifeCycle.PROCESS;
 
     private ChartMessage() {
@@ -107,11 +106,6 @@ public class ChartMessage {
         return this;
     }
 
-    public ChartMessage key(String key) {
-        this.key = key;
-        return this;
-    }
-
     public ErrorCode getErrorCode() {
         return errorCode;
     }
@@ -183,14 +177,6 @@ public class ChartMessage {
 
     public void setDataId(String dataId) {
         this.dataId = dataId;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
     }
 
     public MessageLifeCycle getLifeCycle() {

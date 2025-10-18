@@ -69,7 +69,6 @@ public class WsSession {
 
     public void send(ChartMessage message) {
         if (ChartMessageType.NOTIFIER_MESSAGE.equals(message.getType())) {
-            message.setMsgId(null);
             message.setToUser(null);
             message.setFromUser(null);
         } else if (ChartMessageType.MESSAGE.equals(message.getType())) {

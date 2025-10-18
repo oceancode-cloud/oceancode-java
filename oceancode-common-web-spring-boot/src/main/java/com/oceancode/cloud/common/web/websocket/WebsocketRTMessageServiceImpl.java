@@ -68,8 +68,7 @@ public class WebsocketRTMessageServiceImpl implements RTMessageService {
                 if (Objects.nonNull(wsSession) && wsSession.isActive()) {
                     wsSession.send(message);
                     isRecordMessage = false;
-                    fromSession.reply(ChartMessage.notifier().msgId(message.getMsgId())
-                            .errorCode(CommonErrorCode.USER_NOT_ONLINE));
+                    fromSession.reply(ChartMessage.notifier().msgId(message.getMsgId()));
                 }
             }
 
