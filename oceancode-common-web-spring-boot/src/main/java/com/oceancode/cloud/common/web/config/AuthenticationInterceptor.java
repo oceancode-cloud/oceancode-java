@@ -27,13 +27,17 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String requestUrl = request.getRequestURI();
+        boolean ret = true;
         if (requestUrl.startsWith(CommonConst.API_PREFIX)) {
             MDC.put(CommonConst.TRACE_ID, UUID.randomUUID().toString());
             MDC.put(CommonConst.SERVICE_NAME, commonConfig.getServiceName());
             MDC.put(CommonConst.INSTANCE_NAME, commonConfig.getInstanceName());
-            return doApiHandler(request);
+            ret = doApiHandler(request);
         }
-        return true;
+        if (ValueUtil.isEmpty(SessionUtil.requestId())) {
+            SessionUtil.setRequestId(UUID.randomUUID().toString());
+        }
+        return ret;
     }
 
     private boolean doApiHandler(HttpServletRequest request) {

@@ -67,7 +67,6 @@ public class WebSocketServer {
 
     @OnOpen
     public void onOpen(Session session, @PathParam("userId") String uid) {
-
         Long userId = null;
         if (ValueUtil.isNotEmpty(uid)) {
             try {
@@ -83,6 +82,10 @@ public class WebSocketServer {
                 throw new RuntimeException(e);
             }
         }
+        processConnect(userId, session);
+    }
+
+    private synchronized void processConnect(Long userId, Session session) {
         WsSession wsSession = new WsSession(userId, session);
         if (SESSIONS.containsKey(userId)) {
             SESSIONS.remove(userId);
@@ -108,7 +111,7 @@ public class WebSocketServer {
     }
 
     @OnMessage
-    public void onMessage(String message, Session session, @PathParam("userId") Long userId) {
+    public void onMessage(String message, @PathParam("userId") Long userId) {
         try {
             processMessage(message, userId);
         } finally {
