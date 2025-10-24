@@ -5,7 +5,7 @@ import com.oceancode.cloud.api.TypeEnum;
 public enum MessageLifeCycle implements TypeEnum<Integer> {
     START(0),
     PROCESS(1),
-    FINISH(1),
+    FINISH(2),
     ;
 
     private int type;

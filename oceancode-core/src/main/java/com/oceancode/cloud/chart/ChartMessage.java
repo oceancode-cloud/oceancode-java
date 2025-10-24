@@ -2,6 +2,11 @@ package com.oceancode.cloud.chart;
 
 import com.oceancode.cloud.api.ErrorCode;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 public class ChartMessage {
     public static final String CHART_MESSAGE_KEY = "_chart-message";
     private ChartMessageType type;
@@ -14,6 +19,7 @@ public class ChartMessage {
     private Long tenantId;
     private String category;
     private String dataId;
+    private Map<String, Object> extra;
     private MessageLifeCycle lifeCycle = MessageLifeCycle.PROCESS;
 
     private ChartMessage() {
@@ -185,6 +191,30 @@ public class ChartMessage {
 
     public void setLifeCycle(MessageLifeCycle lifeCycle) {
         this.lifeCycle = lifeCycle;
+    }
+
+    public ChartMessage extraData(String key, String value) {
+        setExtra(key, value);
+        return this;
+    }
+
+    public ChartMessage extraData(String key, Number value) {
+        setExtra(key, value);
+        return this;
+    }
+
+    public Map<String, Object> getExtra() {
+        if (Objects.isNull(extra)) {
+            return Collections.emptyMap();
+        }
+        return extra;
+    }
+
+    private void setExtra(String key, Object value) {
+        if (Objects.isNull(extra)) {
+            extra = new HashMap<>();
+        }
+        extra.put(key, value);
     }
 
     @Override

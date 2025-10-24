@@ -36,6 +36,8 @@ public class WsSession {
         } catch (IOException e) {
             LOGGER.error("replay ws message to user({}) failed.", userId, e);
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR);
+        } finally {
+            update();
         }
     }
 
@@ -48,7 +50,7 @@ public class WsSession {
     }
 
     public boolean isTimeout() {
-        return System.currentTimeMillis() - time >= 9000;
+        return System.currentTimeMillis() - time >= 10000;
     }
 
     public void close() {
