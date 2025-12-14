@@ -3,6 +3,7 @@ package com.oceancode.cloud.common;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.SystemUtil;
 import com.oceancode.cloud.function.Plugin;
+import com.oceancode.cloud.function.SimplePlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -76,7 +77,10 @@ public class PluginLoadingInitializer implements ApplicationContextInitializer<C
                     if (clazz.getInterfaces().length == 0 || !Plugin.class.isAssignableFrom(clazz)) {
                         continue;
                     }
-                    Class<?> it = getTargetClass(clazz);
+                    Class<?> it = clazz;
+                    if (!SimplePlugin.class.isAssignableFrom(clazz)) {
+                        it = getTargetClass(clazz);
+                    }
                     if (Objects.isNull(it)) {
                         continue;
                     }
@@ -100,7 +104,7 @@ public class PluginLoadingInitializer implements ApplicationContextInitializer<C
             }
         }
         for (Class<?> it : interfaces) {
-            if (it.equals(Plugin.class)) {
+            if (it.equals(Plugin.class) || it.equals(SimplePlugin.class)) {
                 continue;
             }
             return it;
