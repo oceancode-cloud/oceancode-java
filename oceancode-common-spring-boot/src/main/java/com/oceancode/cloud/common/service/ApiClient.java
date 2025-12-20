@@ -88,7 +88,13 @@ public class ApiClient {
         return this;
     }
 
-    private void addHeader(String key, String value) {
+    public ApiClient authorization(String key, String authorization) {
+        this.authorization = authorization;
+        addHeader(key, authorization);
+        return this;
+    }
+
+    protected void addHeader(String key, String value) {
         header.put(key, value);
     }
 
@@ -149,23 +155,31 @@ public class ApiClient {
         Object code = null;
         Object data = null;
         Object message = null;
+        boolean isResData = true;
         if (Objects.isNull(body)) {
             return resultData;
         }
         if (body.containsKey("code") || body.containsKey("status")) {
             if (body.containsKey("data")) {
                 data = body.get("data");
+                isResData = false;
             } else if (body.containsKey("results")) {
                 data = body.get("results");
+                isResData = false;
             }
             code = body.containsKey("status") ? body.get("status") : body.get("code");
             message = body.containsKey("message") ? body.get("message") : body.get("msg");
         }
         if (Objects.nonNull(code)) {
+            isResData = false;
             resultData.setCode(String.valueOf(code));
         }
         if (Objects.nonNull(message)) {
+            isResData = false;
             resultData.setMessage(String.valueOf(message));
+        }
+        if (isResData) {
+            data = body;
         }
         if (Objects.isNull(data)) {
             if (Map.class.isAssignableFrom(returnType)) {
