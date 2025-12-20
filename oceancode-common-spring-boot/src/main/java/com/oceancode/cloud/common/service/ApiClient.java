@@ -26,7 +26,7 @@ public class ApiClient {
     private Map<String, String> header = new HashMap<>();
     private long maxTimeout = 5 * 60 * 1000;
 
-    private ApiClient(String id) {
+    protected ApiClient(String id) {
         this.id = id;
         clientBuilder = ComponentUtil.getBean(WebClient.Builder.class, false);
 
@@ -146,12 +146,20 @@ public class ApiClient {
         return addData(data, returnType);
     }
 
+    protected <T> boolean parseResult(ResultData<T> resultData, Object data, Class<T> returnType) {
+        return false;
+    }
+
     private <T> ResultData<T> processResult(ResponseEntity<Map> responseEntity, Class<T> returnType) {
         ResultData<T> resultData = ResultData.isOk();
         if (responseEntity.getStatusCode().isError()) {
+            resultData.setStatusCode(responseEntity.getStatusCode().value());
             resultData.setCode(responseEntity.getStatusCode().value() + "");
         }
         Map body = responseEntity.getBody();
+        if (parseResult(resultData, body, returnType)) {
+            return resultData;
+        }
         Object code = null;
         Object data = null;
         Object message = null;

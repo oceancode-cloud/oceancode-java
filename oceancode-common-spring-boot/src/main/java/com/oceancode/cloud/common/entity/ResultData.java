@@ -20,6 +20,8 @@ public class ResultData<T> implements Result<T> {
 
     private String code;
 
+    private Integer statusCode;
+
     private String message;
 
     private Long total;
@@ -128,5 +130,18 @@ public class ResultData<T> implements Result<T> {
 
     public void setResultList(List<T> list) {
         this.list = list;
+    }
+
+    public ResultData<T> statusCode(Integer statusCode) {
+        this.statusCode = statusCode;
+        return this;
+    }
+
+    public Integer getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(Integer statusCode) {
+        this.statusCode = statusCode;
     }
 }
