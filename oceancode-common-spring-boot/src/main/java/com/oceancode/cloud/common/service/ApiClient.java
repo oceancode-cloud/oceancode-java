@@ -53,11 +53,15 @@ public class ApiClient {
         return this;
     }
 
+    protected Map<String, Object> uriVariables() {
+        return Collections.emptyMap();
+    }
+
     public boolean ping() {
         String text = clientBuilder()
                 .build()
                 .get()
-                .uri(getUrl() + "/ping")
+                .uri(getUrl() + "/ping", uriVariables())
                 .retrieve()
                 .bodyToMono(String.class)
                 .block(Duration.ofMillis(getMaxTimeout()));
@@ -120,7 +124,7 @@ public class ApiClient {
     public <T> ResultData<T> request(Object data, Class<T> returnType, WebClient.RequestBodyUriSpec spec) {
         String url = this.getUrl();
         filleHeader(spec);
-        WebClient.RequestBodySpec uri = spec.uri(url);
+        WebClient.RequestBodySpec uri = spec.uri(url, uriVariables());
         if (!(data instanceof MultiValueMap)) {
             uri.contentType(MediaType.APPLICATION_JSON);
         }
@@ -211,7 +215,7 @@ public class ApiClient {
         WebClient.RequestHeadersUriSpec<?> requestHeadersUriSpec = clientBuilder().build().get();
         filleHeader(requestHeadersUriSpec);
         WebClient.RequestHeadersSpec<?> uri = requestHeadersUriSpec
-                .uri(url);
+                .uri(url, uriVariables());
         ResponseEntity<Map> responseEntity = uri
                 .retrieve().toEntity(Map.class)
                 .block(Duration.ofMillis(getMaxTimeout()));
@@ -222,7 +226,7 @@ public class ApiClient {
         WebClient.RequestBodyUriSpec put = clientBuilder().build().put();
         filleHeader(put);
         ResponseEntity<Map> responseEntity = put
-                .uri(getUrl())
+                .uri(getUrl(), uriVariables())
                 .bodyValue(data)
                 .retrieve().toEntity(Map.class)
                 .block(Duration.ofMillis(getMaxTimeout()));
@@ -234,7 +238,7 @@ public class ApiClient {
         WebClient.RequestHeadersUriSpec<?> delete = clientBuilder().build().delete();
         filleHeader(delete);
         ResponseEntity<Map> responseEntity = delete
-                .uri(url)
+                .uri(url, uriVariables())
                 .retrieve().toEntity(Map.class)
                 .block(Duration.ofMillis(getMaxTimeout()));
         return processResult(responseEntity, returnType);

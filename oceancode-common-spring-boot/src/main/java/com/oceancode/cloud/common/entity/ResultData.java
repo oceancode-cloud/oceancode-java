@@ -13,6 +13,7 @@ import com.oceancode.cloud.common.util.ValueUtil;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class ResultData<T> implements Result<T> {
 
@@ -24,6 +25,7 @@ public class ResultData<T> implements Result<T> {
 
     private String message;
 
+    private String requestId;
     private Long total;
     private List<T> list;
 
@@ -80,6 +82,10 @@ public class ResultData<T> implements Result<T> {
 
     @JsonIgnore
     public boolean isSuccess() {
+        boolean ret = Objects.isNull(this.getStatusCode()) || getStatusCode() == 200;
+        if (!ret) {
+            return false;
+        }
         return CommonErrorCode.SUCCESS.getShortCode().equals(getCode()) || "0".equals(getCode())
                 || ValueUtil.isEmpty(getCode());
     }
@@ -143,5 +149,13 @@ public class ResultData<T> implements Result<T> {
 
     public void setStatusCode(Integer statusCode) {
         this.statusCode = statusCode;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 }
