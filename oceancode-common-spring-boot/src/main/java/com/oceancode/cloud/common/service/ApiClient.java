@@ -154,15 +154,22 @@ public class ApiClient {
         return false;
     }
 
-    private <T> ResultData<T> processResult(ResponseEntity<Map> responseEntity, Class<T> returnType) {
+    private <T> ResultData<T> processResult(ResponseEntity<?> responseEntity, Class<T> returnType) {
         ResultData<T> resultData = ResultData.isOk();
         if (responseEntity.getStatusCode().isError()) {
             resultData.setStatusCode(responseEntity.getStatusCode().value());
             resultData.setCode(responseEntity.getStatusCode().value() + "");
         }
-        Map body = responseEntity.getBody();
-        if (parseResult(resultData, body, returnType)) {
+        Object resData = responseEntity.getBody();
+        if (parseResult(resultData, resData, returnType)) {
             return resultData;
+        }
+        Map body = Collections.emptyMap();
+        if (resData instanceof List list) {
+            resultData.setResultList(list);
+            return resultData;
+        } else if (resData instanceof Map map) {
+            body = map;
         }
         Object code = null;
         Object data = null;
@@ -211,11 +218,21 @@ public class ApiClient {
     }
 
     public <T> ResultData<T> getData(Class<T> returnType) {
+        return getData(returnType, false);
+    }
+
+    public <T> ResultData<T> getData(Class<T> returnType, boolean isList) {
         String url = getUrl();
         WebClient.RequestHeadersUriSpec<?> requestHeadersUriSpec = clientBuilder().build().get();
         filleHeader(requestHeadersUriSpec);
         WebClient.RequestHeadersSpec<?> uri = requestHeadersUriSpec
                 .uri(url, uriVariables());
+        if (isList) {
+            ResponseEntity<List> responseEntity = uri
+                    .retrieve().toEntity(List.class)
+                    .block(Duration.ofMillis(getMaxTimeout()));
+            return processResult(responseEntity, returnType);
+        }
         ResponseEntity<Map> responseEntity = uri
                 .retrieve().toEntity(Map.class)
                 .block(Duration.ofMillis(getMaxTimeout()));
