@@ -34,6 +34,9 @@ public final class AutoConfigRequestUtil {
         if (ValueUtil.isEmpty(property)) {
             property = DEFAULT_PROPERTY;
         }
+        if (map.containsKey(property)) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "auto config handler(" + handler.getGroup() + "." + property + " duplicate," + handler.getClass().getName());
+        }
         map.put(property, handler);
     }
 
