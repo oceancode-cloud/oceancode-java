@@ -4,6 +4,9 @@
 
 package com.oceancode.cloud.common.util;
 
+import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
+import org.apache.commons.io.FileUtils;
 import org.springframework.core.env.Environment;
 
 import java.io.BufferedReader;
@@ -179,5 +182,22 @@ public final class SystemUtil {
             // ignore
         }
         return list;
+    }
+
+    public static void deleteDirectory(File directory) {
+        if (Objects.isNull(directory)) {
+            return;
+        }
+        if (!directory.isDirectory()) {
+            return;
+        }
+        if (!directory.exists()) {
+            return;
+        }
+        try {
+            FileUtils.deleteDirectory(directory);
+        } catch (IOException e) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
+        }
     }
 }

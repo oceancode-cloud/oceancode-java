@@ -21,12 +21,16 @@ public class ResultData<T> implements Result<T> {
 
     private String code;
 
+    @JsonIgnore
     private Integer statusCode;
 
     private String message;
 
+    @JsonIgnore
     private String requestId;
     private Long total;
+
+    @JsonIgnore
     private List<T> list;
 
     private ResultData() {
@@ -123,10 +127,12 @@ public class ResultData<T> implements Result<T> {
         this.total = total;
     }
 
+    @JsonIgnore
     public boolean isList() {
         return results == null && list != null && list != Collections.emptyList();
     }
 
+    @JsonIgnore
     public List<T> getResultList() {
         if (list == null) {
             return Collections.emptyList();
@@ -134,27 +140,33 @@ public class ResultData<T> implements Result<T> {
         return list;
     }
 
+    @JsonIgnore
     public void setResultList(List<T> list) {
         this.list = list;
     }
 
+    @JsonIgnore
     public ResultData<T> statusCode(Integer statusCode) {
         this.statusCode = statusCode;
         return this;
     }
 
+    @JsonIgnore
     public Integer getStatusCode() {
         return statusCode;
     }
 
+    @JsonIgnore
     public void setStatusCode(Integer statusCode) {
         this.statusCode = statusCode;
     }
 
+    @JsonIgnore
     public String getRequestId() {
         return requestId;
     }
 
+    @JsonIgnore
     public void setRequestId(String requestId) {
         this.requestId = requestId;
     }
