@@ -25,4 +25,6 @@ public class CommonConst {
     public static final String TENANT_ID = "tenantId";
     public static final String PROJECT_ID = "projectId";
     public static final int DEFAULT_RESULT_RECORDS_SIZE = 3000;
+    public static final String BUSINESS = "business";
+    public static final String MASTER = "master";
 }

@@ -9,6 +9,8 @@ import com.oceancode.cloud.api.permission.Permission;
 import com.oceancode.cloud.api.permission.PermissionConst;
 import com.oceancode.cloud.common.constant.CommonConst;
 import com.oceancode.cloud.common.entity.ResultData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,12 +23,14 @@ import java.util.Set;
 @RequestMapping(CommonConst.API_PREFIX)
 @ConditionalOnBean(AutoConfigService.class)
 public class AutoConfigController {
+    private final static Logger LOGGER = LoggerFactory.getLogger(AutoConfigRequestUtil.class);
     private AutoConfigService autoConfigService;
 
     public AutoConfigController(Set<AutoConfigHandler> handlers, AutoConfigService autoConfigService) {
         this.autoConfigService = autoConfigService;
         for (AutoConfigHandler handler : handlers) {
             AutoConfigRequestUtil.registerHandler(handler);
+            LOGGER.info("auto config handler(group:%s,property%s) register success.%s", handler.getGroup(), handler.getProperty(), handler.getClass().getName());
         }
     }
 
