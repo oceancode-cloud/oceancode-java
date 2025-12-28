@@ -10,7 +10,8 @@ public class AutoConfigRequestItem {
     private String oldValue;
     private String newValue;
     private Map<String, Object> extra;
-
+    private Long timestamp;
+    private String versionId;
 
     public String getNotifier() {
         return notifier;
@@ -67,6 +68,24 @@ public class AutoConfigRequestItem {
     public void setProperty(String property) {
         this.property = property;
     }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getVersionId() {
+        return versionId;
+    }
+
+    public void setVersionId(String versionId) {
+        this.versionId = versionId;
+    }
+
+
 
     @Override
     public String toString() {

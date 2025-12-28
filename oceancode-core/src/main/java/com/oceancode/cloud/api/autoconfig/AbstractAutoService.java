@@ -6,13 +6,24 @@ public abstract class AbstractAutoService implements AutoConfigService {
     @Override
     public AutoConfigResult autoConfig(AutoConfigRequest request) {
         AutoConfigRequestContext context = createAutoConfigRequestContext(request);
+        boolean hasError = false;
         for (AutoConfigValue value : context.getValues()) {
             List<AutoConfigHandler> handlers = getHandlers(context, value);
             for (AutoConfigHandler handler : handlers) {
-                doAutoConfig(context, handler, value);
+                try {
+                    doAutoConfig(context, handler, value);
+                } catch (Exception e) {
+                    context.getResult().setThrowable(e);
+                    context.getResult().setSuccess(false);
+                    hasError = true;
+                    break;
+                }
+            }
+            if (hasError) {
+                break;
             }
         }
-        return null;
+        return context.getResult();
     }
 
     protected List<AutoConfigHandler> getHandlers(AutoConfigRequestContext context, AutoConfigValue value) {
@@ -24,5 +35,5 @@ public abstract class AbstractAutoService implements AutoConfigService {
         return new AutoConfigRequestContext(request);
     }
 
-    protected abstract AutoConfigResult doAutoConfig(AutoConfigRequestContext request, AutoConfigHandler handler, AutoConfigValue value);
+    protected abstract AutoConfigResult doAutoConfig(AutoConfigRequestContext context, AutoConfigHandler handler, AutoConfigValue value);
 }

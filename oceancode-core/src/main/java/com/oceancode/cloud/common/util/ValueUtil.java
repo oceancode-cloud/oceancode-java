@@ -40,12 +40,12 @@ import java.util.zip.GZIPOutputStream;
  * @author qinjiawang
  * @since 1.0
  */
-public final class ValueUtil {
+public class ValueUtil {
     private static Pattern linePattern = Pattern.compile("_(\\w)");
     private static Pattern middleLinePattern = Pattern.compile("-(\\w)");
     private static Pattern humpPattern = Pattern.compile("[A-Z]");
 
-    private ValueUtil() {
+    protected ValueUtil() {
     }
 
     /**
