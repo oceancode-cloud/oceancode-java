@@ -21,6 +21,7 @@ public class ChartMessage {
     private String dataId;
     private Map<String, Object> extra;
     private MessageLifeCycle lifeCycle = MessageLifeCycle.PROCESS;
+    private String sessionId;
 
     private ChartMessage() {
     }
@@ -104,6 +105,11 @@ public class ChartMessage {
 
     public ChartMessage data(Object data) {
         this.data = data;
+        return this;
+    }
+
+    public ChartMessage sessionId(String sessionId) {
+        this.sessionId = sessionId;
         return this;
     }
 
@@ -215,6 +221,14 @@ public class ChartMessage {
             extra = new HashMap<>();
         }
         extra.put(key, value);
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     @Override
