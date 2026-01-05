@@ -144,4 +144,37 @@ public final class FileUtil {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
         }
     }
+
+    public static void deleteDirectory(File directory) {
+        if (Objects.isNull(directory)) {
+            return;
+        }
+        if (!directory.isDirectory()) {
+            return;
+        }
+        if (!directory.exists()) {
+            return;
+        }
+        try {
+            FileUtils.deleteDirectory(directory);
+        } catch (IOException e) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
+        }
+    }
+
+    public static void moveFile(File src, File target, boolean autoCreateDir) {
+        if (Objects.isNull(target)) {
+            return;
+        }
+        if (!target.getParentFile().exists()) {
+            if (autoCreateDir) {
+                target.getParentFile().mkdirs();
+            }
+        }
+        try {
+            FileUtils.moveFile(src, target);
+        } catch (IOException e) {
+            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
+        }
+    }
 }

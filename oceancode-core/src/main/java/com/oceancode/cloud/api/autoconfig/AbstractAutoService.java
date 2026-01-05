@@ -1,5 +1,8 @@
 package com.oceancode.cloud.api.autoconfig;
 
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
+import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
+
 import java.util.List;
 
 public abstract class AbstractAutoService implements AutoConfigService {
@@ -15,6 +18,10 @@ public abstract class AbstractAutoService implements AutoConfigService {
                 } catch (Exception e) {
                     context.getResult().setThrowable(e);
                     context.getResult().setSuccess(false);
+                    if (e instanceof ErrorCodeRuntimeException exception) {
+                        context.getResult().setErrorCode(exception.getErrorCode());
+                        context.getResult().setDetail(exception.getMessage());
+                    }
                     hasError = true;
                     break;
                 }

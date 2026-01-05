@@ -11,6 +11,7 @@ public class AutoConfigResult {
     private Boolean success;
     private String detail;
     private transient Throwable throwable;
+    private String errorCode;
 
     public AutoConfigResult toAdd(AutoConfigResultItem item) {
         if (Objects.isNull(toAdd)) {
@@ -82,5 +83,13 @@ public class AutoConfigResult {
 
     public void setThrowable(Throwable throwable) {
         this.throwable = throwable;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
     }
 }

@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class AutoConfigValue {
@@ -21,7 +20,7 @@ public class AutoConfigValue {
     private final Map<String, Map<String, Object>> updatedValues;
     private final Set<String> deletedValues;
     private final Set<String> updatedDataIds;
-    private String group;
+    private AutoConfigGroupType type;
     private Long timestamp;
     private transient AutoConfigRequestContext context;
 
@@ -29,12 +28,12 @@ public class AutoConfigValue {
     private List<?> updateObjects;
     private List<?> deleteObjects;
 
-    public AutoConfigValue(String group, AutoConfigRequestContext context) {
+    public AutoConfigValue(AutoConfigGroupType group, AutoConfigRequestContext context) {
         this.addedValues = new HashMap<>();
         updatedValues = new HashMap<>();
         deletedValues = new HashSet<>();
         updatedDataIds = new HashSet<>();
-        this.group = group;
+        this.type = group;
         this.context = context;
     }
 
@@ -129,7 +128,7 @@ public class AutoConfigValue {
     }
 
     public String getGroup() {
-        return group;
+        return type.getGroup();
     }
 
     public Long getTimestamp() {
@@ -180,5 +179,9 @@ public class AutoConfigValue {
 
     public void setDeleteObjects(List<?> deleteObjects) {
         this.deleteObjects = deleteObjects;
+    }
+
+    public AutoConfigGroupType getType() {
+        return type;
     }
 }

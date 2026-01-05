@@ -2,15 +2,11 @@ package com.oceancode.cloud.api.autoconfig;
 
 import com.oceancode.cloud.common.util.ValueUtil;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 public class AutoConfigRequestContext {
     private AutoConfigRequest autoConfigRequest;
@@ -38,7 +34,7 @@ public class AutoConfigRequestContext {
         }
         for (int index = 0; index < autoConfigRequest.getItems().size(); index++) {
             AutoConfigRequestItem item = autoConfigRequest.getItems().get(index);
-            String group = getGroup(item);
+            String group = getGroup(item).getGroup();
             AutoConfigValue autoConfigValue = autoConfigValueMap.computeIfAbsent(group, k -> createAutoConfigValue(item));
             autoConfigValue.addRequest(item);
         }
@@ -48,8 +44,19 @@ public class AutoConfigRequestContext {
         });
     }
 
-    public String getGroup(AutoConfigRequestItem item) {
-        return item.getGroup();
+    public AutoConfigGroupType getGroup(AutoConfigRequestItem item) {
+        return new AutoConfigGroupType() {
+
+            @Override
+            public String getGroup() {
+                return item.getGroup();
+            }
+
+            @Override
+            public String getRawGroup() {
+                return item.getGroup();
+            }
+        };
     }
 
     private AutoConfigValue createAutoConfigValue(AutoConfigRequestItem item) {

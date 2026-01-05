@@ -88,17 +88,24 @@ public class CompressUtil {
 
     public static void compressDir(String dir, String key, boolean isPublicKey, String outputFile) {
         String aes = randomAesSecret();
+        boolean hasKey = ValueUtil.isNotEmpty(key);
+        File keyFile = null;
+        if (hasKey) {
+            String encryptKey = isPublicKey ? getRsa2CryptoService().encryptByPublicKey(aes, key) :
+                    getRsa2CryptoService().encryptByPrivateKey(aes, key);
+            keyFile = new File(dir, isPublicKey ? ".public" : ".private");
+            FileUtil.writeStringToFile(keyFile, encryptKey);
+        }
         File dirFile = new File(dir);
-        String encryptKey = isPublicKey ? getRsa2CryptoService().encryptByPublicKey(aes, key) :
-                getRsa2CryptoService().encryptByPrivateKey(aes, key);
-        File keyFile = new File(dir, isPublicKey ? ".public" : ".private");
-        FileUtil.writeStringToFile(keyFile, encryptKey);
 
         ZipParameters parameters = new ZipParameters();
         parameters.setCompressionMethod(CompressionMethod.DEFLATE);
         parameters.setCompressionLevel(CompressionLevel.NORMAL);
-        parameters.setEncryptionMethod(EncryptionMethod.AES);
-        parameters.setEncryptFiles(true);
+        if (hasKey) {
+            parameters.setEncryptionMethod(EncryptionMethod.AES);
+        }
+        parameters.setEncryptFiles(hasKey);
+
 
         try (ZipFile zipFile = new ZipFile(outputFile)) {
             zipFile.setPassword(aes.toCharArray());
@@ -110,12 +117,16 @@ public class CompressUtil {
                     zipFile.addFile(file);
                     continue;
                 }
-                zipFile.addFile(file, parameters);
+                if (file.isDirectory()) {
+                    zipFile.addFolder(file, parameters);
+                } else {
+                    zipFile.addFile(file, parameters);
+                }
             }
         } catch (Exception e) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
         } finally {
-            if (keyFile.exists()) {
+            if (Objects.nonNull(keyFile) && keyFile.exists()) {
                 keyFile.delete();
             }
         }

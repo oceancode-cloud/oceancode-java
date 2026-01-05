@@ -184,20 +184,23 @@ public final class SystemUtil {
         return list;
     }
 
-    public static void deleteDirectory(File directory) {
-        if (Objects.isNull(directory)) {
-            return;
+    public static String resolvePath(String path) {
+        if (ValueUtil.isEmpty(path)) {
+            return null;
         }
-        if (!directory.isDirectory()) {
-            return;
+        String cur = path;
+        if (cur.contains("..")) {
+            cur = cur.replace("..", "");
         }
-        if (!directory.exists()) {
-            return;
+        while (Objects.nonNull(cur)) {
+            boolean ret = cur.startsWith(".") || cur.startsWith("/")
+                    || cur.startsWith("\\");
+            if (ret) {
+                cur = cur.substring(1);
+                continue;
+            }
+            break;
         }
-        try {
-            FileUtils.deleteDirectory(directory);
-        } catch (IOException e) {
-            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
-        }
+        return cur;
     }
 }

@@ -92,7 +92,8 @@ public class DefaultCacheModelCacheServiceImpl implements ModelCacheService {
     public MObject findMObjectById(String id, String versionId, String scope) {
         CacheKey key = buildKey(id, scope, versionId);
         Result<Map<String, Object>> result = cacheService.getMap(key);
-        if (!result.isSuccess()) {
+        boolean ret = true;//!result.isSuccess();
+        if (ret) {
             PersistModelService persistModelService = getPersistModelService(scope);
             MObject mObject = persistModelService.findObjectById(id, versionId);
             if (Objects.nonNull(mObject)) {
@@ -126,7 +127,8 @@ public class DefaultCacheModelCacheServiceImpl implements ModelCacheService {
             cacheService.addSet(key, ids);
             return allObjects;
         };
-        if (!result.isSuccess()) {
+        boolean ret = true;// !result.isSuccess();
+        if (ret) {
             return supplier.get();
         }
         if (ValueUtil.isEmpty(result.getResults())) {
@@ -229,7 +231,8 @@ public class DefaultCacheModelCacheServiceImpl implements ModelCacheService {
         CacheKey key = buildKey(modelId, scope, versionId);
         Result<Map<String, Object>> result = cacheService.getMap(key);
         Map<String, Object> map = result.getResults();
-        if (!result.isSuccess()) {
+        boolean ret = true;// !result.isSuccess();
+        if (ret) {
             map = null;
             PersistModelService persistModelService = getPersistModelService(scope);
             if (Objects.nonNull(persistModelService)) {
@@ -302,7 +305,8 @@ public class DefaultCacheModelCacheServiceImpl implements ModelCacheService {
             }
             return Collections.emptyList();
         };
-        if (!result.isSuccess()) {
+        boolean ret2 = true;// !result.isSuccess();
+        if (ret2) {
             return supplier.get();
         }
 
