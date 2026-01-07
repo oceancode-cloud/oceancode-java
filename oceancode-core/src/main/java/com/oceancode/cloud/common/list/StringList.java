@@ -4,13 +4,12 @@
 
 package com.oceancode.cloud.common.list;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
  * @author qinjiawang
  */
-public class StringList extends ArrayList<String> {
+public class StringList extends WrapperArrayList<String> {
     public StringList() {
     }
 

@@ -4,13 +4,12 @@
 
 package com.oceancode.cloud.common.list;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
  * @author qinjiawang
  */
-public class IntegerList extends ArrayList<Integer> {
+public class IntegerList extends WrapperArrayList<Integer> {
     public IntegerList() {
     }
 
