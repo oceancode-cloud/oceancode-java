@@ -1,5 +1,6 @@
 package com.oceancode.cloud.common.util;
 
+import com.oceancode.cloud.api.TypeEnum;
 import com.oceancode.cloud.common.list.WrapperArrayList;
 import com.oceancode.cloud.entity.Tuple2;
 
@@ -62,6 +63,22 @@ public final class Util extends ValueUtil {
             } else if (value instanceof String val) {
                 targetValue = new BigDecimal(val);
             }
+        } else if (TypeEnum.class.isAssignableFrom(returnType)) {
+            Class<TypeEnum<?>> typeEnumClass = (Class<TypeEnum<?>>) returnType;
+            targetValue = TypeEnum.from(value, typeEnumClass);
+            if (Objects.isNull(targetValue)) {
+                if (value instanceof String val) {
+                    try {
+                        value = Integer.parseInt(val);
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                } else if (value instanceof Integer val) {
+                    value = String.valueOf(val);
+                }
+                targetValue = TypeEnum.from(value, typeEnumClass);
+            }
+
         }
 
         if (value instanceof String val) {
