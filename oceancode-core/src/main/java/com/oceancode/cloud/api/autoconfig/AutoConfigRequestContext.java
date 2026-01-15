@@ -1,10 +1,12 @@
 package com.oceancode.cloud.api.autoconfig;
 
+import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
 import com.oceancode.cloud.common.util.ValueUtil;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -38,10 +40,24 @@ public class AutoConfigRequestContext {
             AutoConfigValue autoConfigValue = autoConfigValueMap.computeIfAbsent(group, k -> createAutoConfigValue(item));
             autoConfigValue.addRequest(item);
         }
-
-        autoConfigValueMap.values().stream().forEach(it -> {
-            AutoConfigRequestUtil.getRules(it).forEach(rule -> rule.apply(it));
-        });
+        Collection<AutoConfigValue> values = autoConfigValueMap.values();
+        for (AutoConfigValue it : values) {
+            List<AutoConfigRule> rules = AutoConfigRequestUtil.getRules(it);
+            for (AutoConfigRule rule : rules) {
+                try {
+                    rule.apply(it);
+                } catch (Exception e) {
+                    AutoConfigResult result = this.getResult();
+                    result.setThrowable(e);
+                    result.setSuccess(false);
+                    if (e instanceof ErrorCodeRuntimeException exception) {
+                        result.setErrorCode(exception.getErrorCode());
+                        result.setDetail(exception.getMessage());
+                    }
+                    return;
+                }
+            }
+        }
     }
 
     public AutoConfigGroupType getGroup(AutoConfigRequestItem item) {
@@ -55,6 +71,11 @@ public class AutoConfigRequestContext {
             @Override
             public String getRawGroup() {
                 return item.getGroup();
+            }
+
+            @Override
+            public boolean isCustom() {
+                return true;
             }
         };
     }

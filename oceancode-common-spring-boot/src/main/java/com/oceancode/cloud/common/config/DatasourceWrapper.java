@@ -1,27 +1,27 @@
 package com.oceancode.cloud.common.config;
 
-import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceWrapper;
 import com.oceancode.cloud.api.security.Rsa2CryptoService;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 
-public class DatasourceWrapper extends DruidDataSource {
-
-    private Rsa2CryptoService rsa2CryptoService;
+public class DatasourceWrapper extends DruidDataSourceWrapper {
     private String datasourceId;
 
-    public DatasourceWrapper(Rsa2CryptoService rsa2CryptoService, String datasourceId) {
-        this.rsa2CryptoService = rsa2CryptoService;
+    public DatasourceWrapper(String datasourceId) {
         this.datasourceId = datasourceId;
     }
 
     @Override
-    public String getPassword() {
+    public void setPassword(String password) {
         CommonConfig commonConfig = ComponentUtil.getBean(CommonConfig.class);
         String publicKey = commonConfig.getValue("spring.datasource." + datasourceId + ".publicKey");
         if (ValueUtil.isEmpty(publicKey)) {
-            return super.getPassword();
+            super.setPassword(password);
+            return;
         }
-        return rsa2CryptoService.decryptByPublicKey(super.getPassword(), publicKey);
+        Rsa2CryptoService rsa2CryptoService = ComponentUtil.getBean(Rsa2CryptoService.class);
+        String pass = rsa2CryptoService.decryptByPublicKey(super.getPassword(), publicKey);
+        super.setPassword(pass);
     }
 }

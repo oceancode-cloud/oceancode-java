@@ -6,6 +6,7 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -183,5 +184,13 @@ public class AutoConfigValue {
 
     public AutoConfigGroupType getType() {
         return type;
+    }
+
+    public List<String> collectAddValues(String key) {
+        List<String> list = addedValues.get(key);
+        if (Objects.isNull(list)) {
+            return Collections.emptyList();
+        }
+        return list;
     }
 }
