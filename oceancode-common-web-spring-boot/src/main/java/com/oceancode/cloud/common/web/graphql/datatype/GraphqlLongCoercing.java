@@ -64,7 +64,11 @@ public class GraphqlLongCoercing implements Coercing<Long, Long> {
     @Override
     public Long parseLiteral(Object input) throws CoercingParseLiteralException {
         if (input instanceof StringValue) {
-            return Long.parseLong(((StringValue) input).getValue());
+            String str = ((StringValue) input).getValue();
+            if (str.trim().isEmpty()) {
+                return null;
+            }
+            return Long.parseLong(str);
         } else if (input instanceof IntValue) {
             return ((IntValue) input).getValue().longValue();
         }
