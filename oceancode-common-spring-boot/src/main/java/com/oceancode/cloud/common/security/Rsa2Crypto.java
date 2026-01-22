@@ -14,16 +14,20 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.OAEPParameterSpec;
+import javax.crypto.spec.PSource;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 
 public class Rsa2Crypto implements Rsa2CryptoService {
+    private static final String MGF1_PARAMS = "SHA-256";
 
     @Override
     public String encrypt(String input, String key) {
@@ -70,12 +74,17 @@ public class Rsa2Crypto implements Rsa2CryptoService {
                 KeyFactory rsa = KeyFactory.getInstance("RSA");
                 PublicKey publicKey = rsa.generatePublic(publicKeySpec);
                 Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
-                cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+                OAEPParameterSpec oaepParams = new OAEPParameterSpec(
+                        "SHA-256",
+                        "MGF1",
+                        new MGF1ParameterSpec(MGF1_PARAMS),
+                        PSource.PSpecified.DEFAULT
+                );
+                cipher.init(Cipher.ENCRYPT_MODE, publicKey, oaepParams);
                 buffer = cipher.doFinal(bytes);
                 result = org.apache.commons.codec.binary.Base64.encodeBase64String(buffer);
             }
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidKeyException |
-                 IllegalBlockSizeException | BadPaddingException e) {
+        } catch (Exception e) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
         }
         return result;
@@ -114,12 +123,17 @@ public class Rsa2Crypto implements Rsa2CryptoService {
             KeyFactory rsa = KeyFactory.getInstance("RSA");
             PrivateKey privateKey = rsa.generatePrivate(pkcs8EncodedKeySpec);
             Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
-            cipher.init(Cipher.DECRYPT_MODE, privateKey);
+            OAEPParameterSpec oaepParams = new OAEPParameterSpec(
+                    "SHA-256",
+                    "MGF1",
+                    new MGF1ParameterSpec(MGF1_PARAMS),
+                    PSource.PSpecified.DEFAULT
+            );
+            cipher.init(Cipher.DECRYPT_MODE, privateKey, oaepParams);
             buffer = cipher.doFinal(bytes);
 
             result = new String(buffer, StandardCharsets.UTF_8);
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidKeyException |
-                 IllegalBlockSizeException | BadPaddingException e) {
+        } catch (Exception e) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
         }
         return result;

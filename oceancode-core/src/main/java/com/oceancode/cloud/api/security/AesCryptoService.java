@@ -6,4 +6,6 @@ public interface AesCryptoService extends CryptoService<String, String> {
     default boolean isSupport(String type) {
         return "aes".equalsIgnoreCase(type);
     }
+
+    String generatorKey();
 }

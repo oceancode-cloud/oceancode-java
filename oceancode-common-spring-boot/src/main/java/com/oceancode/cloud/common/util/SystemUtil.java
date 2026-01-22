@@ -84,10 +84,10 @@ public final class SystemUtil {
 
     public static String tempDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        String tempDir = environment.getProperty("oc.tmp.dir", "../data/tmp");
+        String tempDir = environment.getProperty("oc.tmp.dir", "./data/tmp");
         if (ValueUtil.isEmpty(tempDir)) {
             try {
-                return Path.of(dataDir(), "../data/tmp").toFile().getCanonicalPath();
+                return Path.of(dataDir(), "./data/tmp").toFile().getCanonicalPath();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -109,12 +109,12 @@ public final class SystemUtil {
 
     public static String htmlDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        return parsePath(environment.getProperty("oc.web.html", "../data/web/html"));
+        return parsePath(environment.getProperty("oc.web.html", "./data/web/html"));
     }
 
     public static String publicDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        return parsePath(environment.getProperty("oc.web.resource.public", "../data/web/public"));
+        return parsePath(environment.getProperty("oc.web.resource.public", "./data/web/public"));
     }
 
     public static String pluginDir() {
@@ -124,7 +124,7 @@ public final class SystemUtil {
 
     public static String privateResourceDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        return parsePath(environment.getProperty("oc.web.resource.private", "../data/web/private"));
+        return parsePath(environment.getProperty("oc.web.resource.private", "./data/web/private"));
     }
 
     public static String privateResourceUrlPrefix() {
