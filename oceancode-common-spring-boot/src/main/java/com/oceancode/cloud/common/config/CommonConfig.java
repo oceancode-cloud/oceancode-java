@@ -245,4 +245,12 @@ public class CommonConfig {
     public boolean isTest() {
         return "test".equals(activeProfile);
     }
+
+    public String getPublicKey() {
+        return getValue("oc.security.rsa.public-key");
+    }
+
+    public String getPrivateKey() {
+        return getValue("oc.security.rsa.private-key");
+    }
 }
