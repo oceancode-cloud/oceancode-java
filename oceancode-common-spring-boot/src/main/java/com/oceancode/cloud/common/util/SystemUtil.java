@@ -27,6 +27,10 @@ public final class SystemUtil {
         return getAppBinWorkFile().getAbsolutePath() + File.separator;
     }
 
+    public static String getAppHome() {
+        return getAppBinWorkDir();
+    }
+
     private static File getAppBinWorkFile() {
         String dir = System.getProperty("user.dir");
         File file = new File(dir, "bin/startup.sh");
