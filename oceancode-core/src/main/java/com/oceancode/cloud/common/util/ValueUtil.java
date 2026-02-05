@@ -21,6 +21,7 @@ import java.time.LocalTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -493,5 +494,15 @@ public class ValueUtil {
         }
         String rtrim = s.substring(0, i + 1);
         return rtrim;
+    }
+
+    public static String varName(String name) {
+        if (ValueUtil.isEmpty(name)) {
+            return null;
+        }
+        if (name.length() > 1) {
+            return name.substring(0, 1).toLowerCase(Locale.ROOT) + name.substring(1);
+        }
+        return name.toLowerCase(Locale.ROOT);
     }
 }

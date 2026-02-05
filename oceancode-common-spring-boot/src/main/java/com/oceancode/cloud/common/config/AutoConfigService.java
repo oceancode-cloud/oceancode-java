@@ -4,6 +4,7 @@ import com.oceancode.cloud.api.cache.CacheService;
 import com.oceancode.cloud.api.cache.LocalCacheService;
 import com.oceancode.cloud.api.cache.LockService;
 import com.oceancode.cloud.api.cache.RedisCacheService;
+import com.oceancode.cloud.api.express.ExpressExecute;
 import com.oceancode.cloud.api.file.FileService;
 import com.oceancode.cloud.api.mq.Consumer;
 import com.oceancode.cloud.api.mq.Producer;
@@ -13,6 +14,7 @@ import com.oceancode.cloud.common.cache.LockServiceImpl;
 import com.oceancode.cloud.common.cache.caffeine.CaffeineLockServiceImpl;
 import com.oceancode.cloud.common.cache.redis.RedisLockServiceImpl;
 import com.oceancode.cloud.common.excel.FileServiceImpl;
+import com.oceancode.cloud.common.express.ExpressEnginManager;
 import com.oceancode.cloud.common.id.RedisIncrementIdGenerator;
 import com.oceancode.cloud.common.mq.local.LocalConsumer;
 import com.oceancode.cloud.common.mq.local.LocalProducer;
@@ -27,6 +29,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.util.Set;
 
 @Configuration
 public class AutoConfigService {
@@ -103,5 +107,11 @@ public class AutoConfigService {
     @ConditionalOnMissingBean(LockService.class)
     public LockService lockService() {
         return new LockServiceImpl();
+    }
+
+    @Bean
+    @ConditionalOnBean(ExpressExecute.class)
+    public ExpressEnginManager expressEnginManager(Set<ExpressExecute> executes) {
+        return new ExpressEnginManager(executes);
     }
 }
