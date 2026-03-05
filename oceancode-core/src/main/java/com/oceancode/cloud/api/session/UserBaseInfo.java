@@ -9,7 +9,16 @@ public class UserBaseInfo {
     private String openid;
     private UserType userType;
     private Map<String, Object> data;
+    private String role;
+    private transient RoleType roleType;
 
+    public RoleType role() {
+        if (Objects.nonNull(roleType)) {
+            return roleType;
+        }
+        roleType = RoleType.from(role);
+        return roleType;
+    }
 
     public Long getUserId() {
         return userId;
@@ -80,5 +89,13 @@ public class UserBaseInfo {
             return null;
         }
         return data.get(key);
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

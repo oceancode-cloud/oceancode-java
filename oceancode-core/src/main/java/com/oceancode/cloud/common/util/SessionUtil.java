@@ -4,6 +4,8 @@
 
 package com.oceancode.cloud.common.util;
 
+import com.oceancode.cloud.api.session.RoleType;
+import com.oceancode.cloud.api.session.UserBaseInfo;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 
@@ -17,6 +19,7 @@ import java.util.Objects;
  */
 public final class SessionUtil {
     private final static InheritableThreadLocal<Long> USER_ID = new InheritableThreadLocal<>();
+    private final static InheritableThreadLocal<UserBaseInfo> USER_INFO = new InheritableThreadLocal<>();
     private final static InheritableThreadLocal<Long> PROJECT_ID = new InheritableThreadLocal<>();
     private final static InheritableThreadLocal<Long> TENANT_ID = new InheritableThreadLocal<>();
     private final static InheritableThreadLocal<String> BRANCH = new InheritableThreadLocal<>();
@@ -57,6 +60,22 @@ public final class SessionUtil {
 
     public static String requestId() {
         return REQUEST_ID.get();
+    }
+
+    public static void setUserinfo(UserBaseInfo userinfo) {
+        USER_INFO.set(userinfo);
+    }
+
+    public static RoleType getUserRole() {
+        UserBaseInfo userBaseInfo = getUserInfo();
+        if (Objects.isNull(userBaseInfo)) {
+            return null;
+        }
+        return userBaseInfo.role();
+    }
+
+    public static UserBaseInfo getUserInfo() {
+        return USER_INFO.get();
     }
 
     public static void setRequestId(String id) {
@@ -145,14 +164,15 @@ public final class SessionUtil {
         CLIENT_ID.remove();
         REQUEST_ID.remove();
         CURSOR.remove();
+        USER_INFO.remove();
     }
 
     public static List<Object> getValues() {
-        return Collections.unmodifiableList(Arrays.asList(tenantId(), projectId(), userId(), branch(), clientId(), requestId(), cursor()));
+        return Collections.unmodifiableList(Arrays.asList(tenantId(), projectId(), userId(), branch(), clientId(), requestId(), cursor(), getUserInfo()));
     }
 
     public static void setValues(List<Object> values) {
-        if (ValueUtil.isEmpty(values) || values.size() < 7) {
+        if (ValueUtil.isEmpty(values) || values.size() < 8) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "invalid");
         }
         setTenantId((Long) values.get(0));
@@ -168,6 +188,10 @@ public final class SessionUtil {
         String cursor = (String) values.get(6);
         if (!Objects.equals(cursor(), cursor)) {
             setCursor(cursor);
+        }
+        Object object = values.get(7);
+        if (object instanceof UserBaseInfo userBaseInfo) {
+            setUserinfo(userBaseInfo);
         }
     }
 }

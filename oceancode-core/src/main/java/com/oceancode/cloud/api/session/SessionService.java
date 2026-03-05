@@ -45,6 +45,14 @@ public interface SessionService {
 
     void setUserInfo(Long userId, UserBaseInfo userInfo);
 
+    default void setUserRole(Long userId, RoleType roleType) {
+        setUserRole(userId, roleType.getValue());
+    }
+
+    default void setUserRole(Long userId, String role) {
+        setUserProperty(userId, "role", role);
+    }
+
     /**
      * logout
      */

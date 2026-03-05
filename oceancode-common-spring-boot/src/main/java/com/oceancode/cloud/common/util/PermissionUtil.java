@@ -43,7 +43,7 @@ public final class PermissionUtil {
         if (Objects.isNull(permissionResourceService)) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, PermissionResourceService.class.getName() + " not found implementation.");
         }
-        return permissionResourceService.checkPermission(permission, PermissionConst.PRIVATE_TOKEN);
+        return permissionResourceService.checkPermission(permission.resourceId(), permission.resourceType(), PermissionConst.PRIVATE_TOKEN);
     }
 
     public static boolean checkPermission(Permission permission) {
@@ -63,7 +63,7 @@ public final class PermissionUtil {
             if (Objects.isNull(permissionResourceService)) {
                 return false;
             }
-            if (permissionResourceService.checkPermission(permission, authority)) {
+            if (permissionResourceService.checkPermission(permission.resourceId(), permission.resourceType(), authority)) {
                 matchCount++;
                 if (!isAnd) {
                     return true;

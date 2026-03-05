@@ -22,37 +22,15 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Objects;
 import java.util.Set;
 
-@RestController
-@RequestMapping(CommonConst.API_PREFIX)
-@ConditionalOnBean(AutoConfigRule.class)
-public class AutoConfigController {
+//@RestController
+//@RequestMapping(CommonConst.API_PREFIX)
+//@ConditionalOnBean(com.oceancode.cloud.api.autoconfig.v2.AutoConfigRule.class)
+public class AutoConfigV2Controller {
     private final static Logger LOGGER = LoggerFactory.getLogger(AutoConfigRequestUtil.class);
-    private AutoConfigService autoConfigService;
     private com.oceancode.cloud.api.autoconfig.v2.AutoConfigService autoConfigService2;
 
-    public AutoConfigController(Set<AutoConfigHandler> handlers, Set<AutoConfigRule> rules, AutoConfigService autoConfigService, com.oceancode.cloud.api.autoconfig.v2.AutoConfigService autoConfigService2) {
-        this.autoConfigService = autoConfigService;
+    public AutoConfigV2Controller(com.oceancode.cloud.api.autoconfig.v2.AutoConfigService autoConfigService2) {
         this.autoConfigService2 = autoConfigService2;
-        for (AutoConfigHandler handler : handlers) {
-            AutoConfigRequestUtil.registerHandler(handler);
-            LOGGER.info("auto config handler(group:%s,property%s) register success.%s", handler.getGroup(), handler.getProperty(), handler.getClass().getName());
-        }
-
-        for (AutoConfigRule rule : rules) {
-            AutoConfigRequestUtil.registerRule(rule);
-            LOGGER.info("register rule", rule);
-        }
-    }
-
-    @Permission(resourceId = "autoConfig", authorities = {PermissionConst.AUTHORITY_LOGIN})
-    @PostMapping("/autoConfig")
-    public ResultData<AutoConfigResult> autoConfig(@RequestBody AutoConfigRequest autoConfigRequest) {
-        AutoConfigResult autoConfigResult = autoConfigService.autoConfig(autoConfigRequest);
-        if (Objects.nonNull(autoConfigResult.getThrowable())) {
-            LOGGER.error("auto config failed", autoConfigResult.getThrowable());
-            autoConfigResult.setThrowable(null);
-        }
-        return ResultData.isOk(autoConfigResult);
     }
 
     @Permission(resourceId = "autoConfig1", authorities = {PermissionConst.AUTHORITY_LOGIN})

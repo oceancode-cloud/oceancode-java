@@ -16,6 +16,8 @@ import com.oceancode.cloud.common.util.SessionUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.common.web.util.*;
 import jakarta.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,6 +26,7 @@ import java.util.Objects;
 
 public class RedisSessionServiceImpl implements SessionService {
     private CacheService redisCacheService;
+    private final static Logger LOGGER = LoggerFactory.getLogger(RedisSessionServiceImpl.class);
     @Resource
     private CommonConfig commonConfig;
 
@@ -37,7 +40,13 @@ public class RedisSessionServiceImpl implements SessionService {
 
     @Override
     public boolean isLogin(String token) {
-        TokenInfo tokenInfo = TokenUtil.parseToken(token);
+        TokenInfo tokenInfo = null;
+        try {
+            tokenInfo = TokenUtil.parseToken(token);
+        } catch (Exception e) {
+            LOGGER.error("parse token invalid.", e);
+            return false;
+        }
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
         String userId = redisCacheService.getString(cacheKey).getResults();
         if (ValueUtil.isEmpty(userId)) {
@@ -84,6 +93,10 @@ public class RedisSessionServiceImpl implements SessionService {
         }
         Object userType = map.get("userType");
         userBaseInfo.setUserType(TypeEnum.from(userType, UserType.class));
+        Object role = map.get("role");
+        if (Objects.nonNull(role)) {
+            userBaseInfo.setRole(role.toString());
+        }
         return userBaseInfo;
     }
 
@@ -146,6 +159,9 @@ public class RedisSessionServiceImpl implements SessionService {
         } else {
             map.remove("userType");
         }
+        if (Objects.nonNull(userInfo.getRole())) {
+            map.put("role", userInfo.getRole());
+        }
         redisCacheService.setMap(cacheKey, map);
         redisCacheService.setString(userTokenKey, tokenInfo.getSessionId());
         redisCacheService.setString(tokenKey, String.valueOf(userInfo.getUserId()));
@@ -169,6 +185,9 @@ public class RedisSessionServiceImpl implements SessionService {
             map.put("userType", userInfo.getUserType().getValue());
         } else {
             map.remove("userType");
+        }
+        if (Objects.nonNull(userInfo.getRole())) {
+            map.put("role", userInfo.getRole());
         }
         redisCacheService.setMap(cacheKey, map);
     }

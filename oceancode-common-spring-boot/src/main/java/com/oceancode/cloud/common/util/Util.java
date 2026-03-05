@@ -1,15 +1,24 @@
 package com.oceancode.cloud.common.util;
 
 import com.oceancode.cloud.api.TypeEnum;
+import com.oceancode.cloud.common.errorcode.CommonErrorCode;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.list.WrapperArrayList;
 import com.oceancode.cloud.entity.Tuple2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.util.ReflectionUtils;
 
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public final class Util extends ValueUtil {
+    private final static Logger LOGGER = LoggerFactory.getLogger(Util.class);
 
     private Util() {
     }
@@ -123,5 +132,59 @@ public final class Util extends ValueUtil {
             }
             source.put(key, newValue);
         }
+    }
+
+    public static <T> boolean assign(T source, Map<String, Object> target) {
+        return assignWithVersion(source, target, "versionId");
+    }
+
+    public static <T> boolean assignWithVersion(T source, Map<String, Object> target, String versionPropertyName) {
+        if (ValueUtil.isEmpty(target)) {
+            return false;
+        }
+        PropertyDescriptor[] propertyDescriptors = BeanUtils.getPropertyDescriptors(source.getClass());
+        PropertyDescriptor versionProperty = null;
+        if (isNotEmpty(versionPropertyName)) {
+            for (PropertyDescriptor item : propertyDescriptors) {
+                if (item.getName().equals(versionPropertyName)) {
+                    versionProperty = item;
+                    break;
+                }
+            }
+            if (Objects.nonNull(versionProperty)) {
+                Object version = convert(target.get(versionPropertyName), versionProperty.getPropertyType());
+                if (Objects.isNull(version)) {
+                    throw new BusinessRuntimeException(CommonErrorCode.VERSION_ID_INVALID, "version invalid");
+                }
+                if (Long.class.equals(versionProperty.getPropertyType())) {
+                    Method readMethod = versionProperty.getReadMethod();
+                    ReflectionUtils.makeAccessible(readMethod);
+                    try {
+                        Object oldVersion = readMethod.invoke(source);
+                        if (!Objects.equals(oldVersion, version)) {
+                            throw new BusinessRuntimeException(CommonErrorCode.VERSION_ID_INVALID, "version invalid");
+                        }
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        for (PropertyDescriptor item : propertyDescriptors) {
+            if (!target.containsKey(item.getName())) {
+                continue;
+            }
+            Method writeMethod = item.getWriteMethod();
+            try {
+                Object value = convert(target.get(item.getName()), item.getPropertyType());
+                ReflectionUtils.makeAccessible(writeMethod);
+                writeMethod.invoke(source, value);
+            } catch (Exception e) {
+                LOGGER.error("assign error", e);
+                return false;
+            }
+        }
+        return true;
     }
 }

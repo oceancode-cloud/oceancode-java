@@ -1,9 +1,11 @@
 package com.oceancode.cloud.common.web.handler;
 
 import com.oceancode.cloud.api.ApplicationLifeCycleService;
+import com.oceancode.cloud.api.interceptor.FunctionInterceptor;
 import com.oceancode.cloud.api.permission.ResourcePermissionService;
 import com.oceancode.cloud.api.permission.Permission;
 import com.oceancode.cloud.api.permission.PermissionConst;
+import com.oceancode.cloud.api.session.RoleType;
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.api.session.UserBaseInfo;
 import com.oceancode.cloud.api.session.UserType;
@@ -19,6 +21,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -30,6 +33,8 @@ public class PermissionHandler implements ApplicationLifeCycleService {
 
     private static ResourcePermissionService resourcePermissionService;
     private static SessionService sessionService;
+    @Autowired(required = false)
+    FunctionInterceptor functionInterceptor;
 
     @Override
     public void onReady() {
@@ -56,8 +61,26 @@ public class PermissionHandler implements ApplicationLifeCycleService {
         MethodSignature signature = (MethodSignature) proceedingJoinPoint.getSignature();
         Method method = signature.getMethod();
         Permission permission = method.getAnnotation(Permission.class);
+        String token = ApiUtil.getToken();
+        if (sessionService.isLogin(token)) {
+            if (Objects.isNull(SessionUtil.getUserInfo())) {
+                SessionUtil.setUserinfo(sessionService.getUserInfo(token));
+            }
+        }
+        if (Objects.nonNull(functionInterceptor)) {
+            functionInterceptor.before(permission.resourceId(), permission.resourceType());
+        }
         if (doCheckPermission(permission)) {
-            return proceedingJoinPoint.proceed();
+            Object proceed = null;
+            try {
+                proceed = proceedingJoinPoint.proceed();
+            } finally {
+                if (Objects.nonNull(functionInterceptor)) {
+                    functionInterceptor.after(permission.resourceId(), permission.resourceType());
+                }
+            }
+
+            return proceed;
         } else {
             throw new BusinessRuntimeException(CommonErrorCode.PERMISSION_DENIED);
         }
@@ -76,13 +99,16 @@ public class PermissionHandler implements ApplicationLifeCycleService {
             }
         }
 
+        boolean isLogin = sessionService.isLogin(token);
+
         int count = 0;
+        RoleType userRole = SessionUtil.getUserRole();
         for (String authority : authorities) {
             if (PermissionConst.AUTHORITY_LOGIN.equals(authority)) {
                 if (ValueUtil.isEmpty(token)) {
                     return false;
                 }
-                if (!sessionService.isLogin(token)) {
+                if (!isLogin) {
                     throw new BusinessRuntimeException(CommonErrorCode.NOT_LOGIN);
                 }
                 checkedLoginAuth = true;
@@ -103,13 +129,9 @@ public class PermissionHandler implements ApplicationLifeCycleService {
         }
 
         if (!checkedLoginAuth) {
-            if (!sessionService.isLogin(token)) {
+            if (!isLogin) {
                 throw new BusinessRuntimeException(CommonErrorCode.NOT_LOGIN);
             }
-        }
-
-        if (resourcePermissionService != null) {
-            return resourcePermissionService.permission(permission);
         }
 
         if (permission.authorities().length > count) {

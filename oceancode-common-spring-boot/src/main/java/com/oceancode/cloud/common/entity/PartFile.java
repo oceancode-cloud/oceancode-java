@@ -92,7 +92,7 @@ public class PartFile {
     }
 
     @JsonIgnore
-    public boolean isExcle() {
+    public boolean isExcel() {
         return FileType.XLS.equals(getFileType()) ||
                 FileType.XLSX.equals(getFileType());
     }

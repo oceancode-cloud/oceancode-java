@@ -5,11 +5,14 @@
 package com.oceancode.cloud.common.web.config;
 
 import com.oceancode.cloud.api.ApiClient;
+import com.oceancode.cloud.api.permission.PermissionResourceService;
+import com.oceancode.cloud.api.permission.ResourcePermissionService;
 import com.oceancode.cloud.common.ApiClientImpl;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.util.SystemUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.common.web.convert.PartFileConvert;
+import com.oceancode.cloud.common.web.handler.ResourcePermissionServiceImpl;
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
 import io.undertow.servlet.api.SecurityConstraint;
@@ -33,6 +36,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,6 +69,12 @@ public class WebConfig implements WebMvcConfigurer {
 //        return new CustomErrorController();
 //    }
 
+    @Bean
+    @ConditionalOnMissingBean(ResourcePermissionService.class)
+    public PermissionResourceService permissionResourceService() {
+        return new ResourcePermissionServiceImpl();
+    }
+
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
@@ -81,6 +91,14 @@ public class WebConfig implements WebMvcConfigurer {
         }
         List<String> dirs = new ArrayList<>();
         dirs.add("classpath:/static/");
+        File htmlDir = new File(SystemUtil.htmlDir());
+        if (!htmlDir.exists()) {
+            htmlDir.mkdirs();
+        }
+        File publicDir = new File(SystemUtil.publicDir());
+        if (!publicDir.exists()) {
+            publicDir.mkdirs();
+        }
         addResourceDir(dirs, SystemUtil.htmlDir());
         addResourceDir(dirs, SystemUtil.publicDir());
         addResourceDir(dirs, SystemUtil.privateResourceDir());

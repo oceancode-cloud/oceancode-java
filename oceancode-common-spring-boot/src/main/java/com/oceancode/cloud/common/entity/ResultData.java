@@ -12,7 +12,9 @@ import com.oceancode.cloud.api.security.EncryptValue;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.security.EncryptData;
 import com.oceancode.cloud.common.util.ValueUtil;
+import org.springframework.http.HttpHeaders;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -34,6 +36,10 @@ public class ResultData<T> implements Result<T> {
 
     @JsonIgnore
     private List<T> list;
+
+    @JsonIgnore
+    private transient HttpHeaders headers;
+
 
     private ResultData() {
     }
@@ -171,5 +177,30 @@ public class ResultData<T> implements Result<T> {
     @JsonIgnore
     public void setRequestId(String requestId) {
         this.requestId = requestId;
+    }
+
+    @JsonIgnore
+    public void setHeader(HttpHeaders httpHeaders) {
+        this.headers = httpHeaders;
+    }
+
+    @JsonIgnore
+    @Override
+    public List<String> getHeader(String key) {
+        if (Objects.isNull(this.headers)) {
+            return Collections.emptyList();
+        }
+        return this.headers.get(key);
+    }
+
+    @Override
+    public boolean isAccessDenied() {
+        if (Result.super.isAccessDenied()) {
+            return true;
+        }
+        if (Objects.isNull(getStatusCode())) {
+            return false;
+        }
+        return (HttpServletResponse.SC_UNAUTHORIZED + "").equals(this.getStatusCode().toString());
     }
 }
