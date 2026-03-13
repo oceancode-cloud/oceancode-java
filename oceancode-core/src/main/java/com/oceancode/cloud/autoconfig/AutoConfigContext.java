@@ -57,7 +57,7 @@ public class AutoConfigContext {
                     return;
                 }
             }
-            AutoConfigGroup autoConfigGroup = configGroupMap.computeIfAbsent(notifier, k -> new AutoConfigGroup(notifier, this));
+            AutoConfigGroup autoConfigGroup = configGroupMap.computeIfAbsent(notifier, k -> new AutoConfigGroup(notifier,item.getGroup(), this));
             autoConfigGroup.add(item);
 
         }

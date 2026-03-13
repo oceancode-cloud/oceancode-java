@@ -8,12 +8,14 @@ import java.util.Objects;
 
 public class AutoConfigGroup {
     private String notifier;
+    private String group;
     private AutoConfigContext context;
     private AutoConfigRule rule;
     private Map<String, TypeGroup> typeGroupMap = new HashMap<>();
 
-    public AutoConfigGroup(String notifier, AutoConfigContext context) {
+    public AutoConfigGroup(String notifier, String group, AutoConfigContext context) {
         this.notifier = notifier;
+        this.group = group;
         this.context = context;
     }
 
@@ -29,6 +31,10 @@ public class AutoConfigGroup {
 
     public void apply() {
         rule.apply(this);
+    }
+
+    public String getGroup() {
+        return group;
     }
 
     public TypeGroup getRemoveGroup() {

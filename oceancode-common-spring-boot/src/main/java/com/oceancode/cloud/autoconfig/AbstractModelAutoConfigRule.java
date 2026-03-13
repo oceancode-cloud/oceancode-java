@@ -2,14 +2,15 @@ package com.oceancode.cloud.autoconfig;
 
 import com.oceancode.cloud.api.autoconfig.v2.AutoConfig;
 import com.oceancode.cloud.api.autoconfig.v2.AutoConfigResponse;
+import com.oceancode.cloud.api.autoconfig.v2.AutoConfigResult;
 import com.oceancode.cloud.common.util.JsonUtil;
+import com.oceancode.cloud.common.util.ValueUtil;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +27,9 @@ public abstract class AbstractModelAutoConfigRule<NOTIFIER, ADD, UPDATE, INFO> i
         processRemoveGroup(group.getRemoveManyGroup(), removeNotifiers);
 
         List<UPDATE> updatedList = new ArrayList<>();
-        processUpdateGroup(group.getUpdateGroup(), updatedList);
-        processUpdateGroup(group.getUpdateManyGroup(), updatedList);
+        List<AutoConfig> updatePropertyList = new ArrayList<>();
+        processUpdateGroup(group.getUpdateGroup(), updatedList, updatePropertyList);
+        processUpdateGroup(group.getUpdateManyGroup(), updatedList, updatePropertyList);
 
         List<ADD> addedList = new ArrayList<>();
         processAddGroup(group.getAddGroup(), addedList);
@@ -35,19 +37,47 @@ public abstract class AbstractModelAutoConfigRule<NOTIFIER, ADD, UPDATE, INFO> i
 
         AutoConfigResponse result = group.getContext().getResult();
         result.setSuccess(false);
+        String groupValue = group.getGroup();
+        AutoConfigContext context = group.getContext();
         doWithTransaction(() -> {
             if (!removeNotifiers.isEmpty()) {
-                delete(group.getContext(), removeNotifiers);
+                delete(context, removeNotifiers);
+            }
+            if (!updatePropertyList.isEmpty()) {
+                updateProperty(context, updatePropertyList);
             }
             if (!updatedList.isEmpty()) {
-                update(group.getContext(), updatedList);
+                update(context, updatedList);
             }
             if (!addedList.isEmpty()) {
-                add(group.getContext(), addedList);
+                add(context, addedList);
             }
             onCustom(group);
             result.setSuccess(true);
         });
+        TypeGroup addGroup = group.getAddGroup();
+        fillGroup(groupValue, context.getResult().getToAdd(), addGroup);
+        fillGroup(groupValue, context.getResult().getToUpdate());
+        fillGroup(groupValue, context.getResult().getToDelete());
+    }
+
+    private void fillGroup(String groupValue, List<AutoConfigResult> list) {
+        fillGroup(groupValue, list, null);
+    }
+
+    private void fillGroup(String groupValue, List<AutoConfigResult> list, TypeGroup typeGroup) {
+        for (int index = 0; index < list.size(); index++) {
+            AutoConfigResult result = list.get(index);
+            result.setGroup(groupValue);
+        }
+        if (list.size() == 1 && Objects.nonNull(typeGroup)) {
+            if (typeGroup.getItems().size() == 1) {
+                for (AutoConfig item : typeGroup.getItems()) {
+                    item.setSourceId(list.getFirst().getSourceId());
+                }
+            }
+        }
+
     }
 
     protected void doWithTransaction(Runnable runnable) {
@@ -107,7 +137,7 @@ public abstract class AbstractModelAutoConfigRule<NOTIFIER, ADD, UPDATE, INFO> i
         return Collections.emptyList();
     }
 
-    private void processUpdateGroup(TypeGroup group, List<UPDATE> list) {
+    private void processUpdateGroup(TypeGroup group, List<UPDATE> list, List<AutoConfig> updatePropertyList) {
         if (Objects.isNull(group)) {
             return;
         }
@@ -124,11 +154,11 @@ public abstract class AbstractModelAutoConfigRule<NOTIFIER, ADD, UPDATE, INFO> i
                 continue;
             }
             Map<String, Object> map = null;
-            if (item.getNewValue().startsWith("{")) {
+            if (ValueUtil.isEmpty(item.getProperty()) && item.getNewValue().startsWith("{")) {
                 map = JsonUtil.toBean(item.getNewValue(), Map.class);
             } else {
-                map = new HashMap<>();
-                map.put(item.getProperty(), item.getNewValue());
+                updatePropertyList.add(item);
+                continue;
             }
             map.put("updatedAt", item.getExtra());
             map.put("versionId", item.getVersionId());
@@ -161,6 +191,17 @@ public abstract class AbstractModelAutoConfigRule<NOTIFIER, ADD, UPDATE, INFO> i
         }
     }
 
+    protected NOTIFIER convertNotifier(String notifier) {
+        if (ValueUtil.isEmpty(notifier)) {
+            return null;
+        }
+        Class<NOTIFIER> notifierType = getNotifierType();
+        if (String.class.equals(notifierType)) {
+            return notifierType.cast(notifier);
+        }
+        return JsonUtil.toBean(notifier, notifierType);
+    }
+
     private Class<NOTIFIER> getNotifierType() {
         return getTypeClass(0);
     }
@@ -172,7 +213,22 @@ public abstract class AbstractModelAutoConfigRule<NOTIFIER, ADD, UPDATE, INFO> i
 
     protected abstract void update(AutoConfigContext context, List<UPDATE> list);
 
+    protected void updateProperty(AutoConfigContext context, List<AutoConfig> list) {
+
+    }
+
     protected abstract void delete(AutoConfigContext context, Set<NOTIFIER> list);
 
     protected abstract List<INFO> list(Set<NOTIFIER> list);
+
+    protected INFO getById(NOTIFIER id) {
+        if (Objects.isNull(id)) {
+            return null;
+        }
+        List<INFO> list = list(Set.of(id));
+        if (ValueUtil.isEmpty(list)) {
+            return null;
+        }
+        return list.getFirst();
+    }
 }

@@ -13,6 +13,7 @@ import org.springframework.util.ReflectionUtils;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,7 +61,12 @@ public final class Util extends ValueUtil {
             return returnType.cast(value);
         }
         Object targetValue = value;
-        if (Long.class.equals(returnType)) {
+        if (Boolean.class.equals(returnType)) {
+            if (value instanceof Boolean val) {
+                return val;
+            }
+            return Boolean.parseBoolean(value.toString());
+        } else if (Long.class.equals(returnType)) {
             if (value instanceof String val) {
                 targetValue = Long.parseLong(val);
             } else if (value instanceof Integer val) {
@@ -134,6 +140,12 @@ public final class Util extends ValueUtil {
         }
     }
 
+    public static <T> boolean assignProperty(T source, String property, Object value) {
+        Map<String, Object> map = new HashMap<>();
+        map.put(property, value);
+        return assignWithVersion(source, map, null);
+    }
+
     public static <T> boolean assign(T source, Map<String, Object> target) {
         return assignWithVersion(source, target, "versionId");
     }
@@ -178,6 +190,13 @@ public final class Util extends ValueUtil {
             Method writeMethod = item.getWriteMethod();
             try {
                 Object value = convert(target.get(item.getName()), item.getPropertyType());
+                if (value instanceof Map map) {
+                    Object invoke = item.getReadMethod().invoke(source);
+                    if (invoke instanceof Map<?, ?> m) {
+                        mergeMap((Map<String, Object>) m, map);
+                        value = m;
+                    }
+                }
                 ReflectionUtils.makeAccessible(writeMethod);
                 writeMethod.invoke(source, value);
             } catch (Exception e) {
