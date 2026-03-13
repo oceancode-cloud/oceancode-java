@@ -18,7 +18,6 @@ import java.util.Objects;
 import java.util.Set;
 
 public abstract class AbstractModelAutoConfigRule<NOTIFIER, ADD, UPDATE, INFO> implements AutoConfigRule {
-    private static List<Class<?>> typeClass;
 
     @Override
     public void apply(AutoConfigGroup group) {
@@ -113,13 +112,11 @@ public abstract class AbstractModelAutoConfigRule<NOTIFIER, ADD, UPDATE, INFO> i
     }
 
     private <T> Class<T> getTypeClass(int index) {
-        if (Objects.isNull(typeClass)) {
-            typeClass = getTypeClasses();
-        }
-        if (index >= typeClass.size()) {
+        List<Class<?>> typeClasses = getTypeClasses();
+        if (index >= typeClasses.size()) {
             return null;
         }
-        Class<?> cls = typeClass.get(index);
+        Class<?> cls = typeClasses.get(index);
         if (Objects.isNull(cls)) {
             return null;
         }
