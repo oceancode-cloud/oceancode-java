@@ -3,13 +3,15 @@ package com.oceancode.cloud.plugin.api.object;
 import java.util.List;
 
 public interface GContext {
+
+    GObjectDescriptor getDescriptor();
+
     default <T extends GObject> List<T> findAll(Class<T> gClass) {
         return findAll(gClass.getName())
                 .stream().filter(gClass::isInstance)
                 .map(gClass::cast)
                 .toList();
     }
-
 
 
     List<GObject> findAll(String gClassName);

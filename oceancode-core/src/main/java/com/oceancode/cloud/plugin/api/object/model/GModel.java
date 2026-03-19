@@ -10,4 +10,8 @@ public class GModel<T> extends GTypeObject<T> implements GDescription, GName {
     public GModel(T object) {
         super(object);
     }
+
+    public String modelId() {
+        return propAsString("modelId");
+    }
 }
