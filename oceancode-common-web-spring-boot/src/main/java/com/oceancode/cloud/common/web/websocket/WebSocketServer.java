@@ -154,6 +154,11 @@ public class WebSocketServer {
 
         if (ValueUtil.isNotEmpty(chartMessage.getToUser())) {
             RTMessageService.sendTo(chartMessage.getToUser(), chartMessage);
+            ChartMessage replyMessage = ChartMessage.notifier();
+            replyMessage.setMsgId(chartMessage.getMsgId());
+            replyMessage.setToUser(chartMessage.getToUser());
+            replyMessage.setType(ChartMessageType.NOTIFIER_MESSAGE_PUSHED);
+            wsSession.reply(replyMessage);
         }
     }
 
@@ -162,7 +167,7 @@ public class WebSocketServer {
             return;
         }
         replyMessage.setMsgId(message.getMsgId());
-        replyMessage.setType(ChartMessageType.NOTIFIER_MESSAGE);
+        replyMessage.setType(ChartMessageType.NOTIFIER_MESSAGE_PUSHED);
         wsSession.send(replyMessage);
     }
 
