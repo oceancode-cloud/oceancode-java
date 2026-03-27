@@ -8,12 +8,14 @@ import java.util.Objects;
 
 public class GObject {
     private transient GContext context;
+    private boolean isValidate;
 
     public Map<String, Object> get() {
         return Collections.emptyMap();
     }
 
     public Long sourceId() {
+        validate();
         return propAsLong("id");
     }
 
@@ -116,4 +118,19 @@ public class GObject {
         this.context = context;
     }
 
+    public String getGroup() {
+        return ValueUtil.camelTo(this.getClass().getSimpleName(), "_");
+    }
+
+    public void validate() {
+        if (isValidate) {
+            return;
+        }
+        isValidate = true;
+        doValidate();
+    }
+
+    protected void doValidate() {
+
+    }
 }

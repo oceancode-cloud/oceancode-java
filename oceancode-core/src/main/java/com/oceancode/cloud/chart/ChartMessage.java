@@ -22,6 +22,7 @@ public class ChartMessage {
     private Map<String, Object> extra;
     private MessageLifeCycle lifeCycle = MessageLifeCycle.PROCESS;
     private String sessionId;
+    private String uid;
 
     private ChartMessage() {
     }
@@ -229,6 +230,14 @@ public class ChartMessage {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     @Override

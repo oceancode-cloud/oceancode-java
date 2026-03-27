@@ -2,6 +2,7 @@ package com.oceancode.cloud.common.web.websocket;
 
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.chart.ChartMessage;
+import com.oceancode.cloud.chart.ChartMessageCallback;
 import com.oceancode.cloud.chart.ChartMessageHandler;
 import com.oceancode.cloud.chart.ChartMessageType;
 import com.oceancode.cloud.chart.RTMessageService;
@@ -46,23 +47,14 @@ public class WebSocketServer {
 
     private static RTMessageService RTMessageService;
     private static Map<String, ChartMessageHandler> handlers = new HashMap<>();
+    private static ChartMessageHandler chartMessageHandler;
 
     @PostConstruct
     public void init() {
         sessionService = ComponentUtil.getBean(SessionService.class);
         RTMessageService = ComponentUtil.getBean(WebsocketRTMessageServiceImpl.class);
         JsonUtil.registerTypeEnum(ChartMessageType.class);
-
-        Collection<ChartMessageHandler> values = ComponentUtil.getBeans(ChartMessageHandler.class).values();
-        for (ChartMessageHandler value : values) {
-            if (ValueUtil.isEmpty(value.getCategory())) {
-                throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "category is required." + value);
-            }
-            if (handlers.containsKey(value.getCategory())) {
-                throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "category already exists." + value);
-            }
-            handlers.put(value.getCategory(), value);
-        }
+        chartMessageHandler = ComponentUtil.getBean(ChartMessageHandler.class, false);
     }
 
     @OnOpen
@@ -145,10 +137,13 @@ public class WebSocketServer {
         SessionUtil.setUserId(userId);
 
         chartMessage.setFromUser(userId);
-        if (ChartMessageType.MESSAGE.equals(chartMessage.getType())) {
-            ChartMessageHandler messageHandler = handlers.get(chartMessage.getCategory());
-            ChartMessage replyMessage = messageHandler.onMessage(chartMessage);
-            processReplyMessage(wsSession, chartMessage, replyMessage);
+        if (Objects.nonNull(chartMessageHandler)) {
+            ChartMessageCallback callback = (data) -> {
+                ChartMessage notifier = ChartMessage.notifier();
+                notifier.setMsgId(chartMessage.getMsgId());
+                wsSession.reply(notifier);
+            };
+            chartMessageHandler.onMessage(chartMessage, callback);
             return;
         }
 
