@@ -1,4 +1,4 @@
-package com.oceancode.cloud.common.plugin;
+package com.oceancode.cloud.common.object;
 
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.ValueUtil;

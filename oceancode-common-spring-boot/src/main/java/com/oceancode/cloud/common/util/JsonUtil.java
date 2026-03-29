@@ -209,14 +209,22 @@ public final class JsonUtil {
     }
 
     public static <T> T mapToBean(Map map, Class<T> typeClass) {
+        return mapToBean(map, typeClass, true);
+    }
+
+    public static <T> T mapToBean(Map map, Class<T> typeClass, boolean ignoreEmpty) {
         if (Objects.isNull(typeClass)) {
             return null;
         }
         if (Map.class.isAssignableFrom(typeClass)) {
             return (T) map;
         }
-        if (ValueUtil.isEmpty(map)) {
+        if (Objects.isNull(map)) {
             return null;
+        } else {
+            if (ignoreEmpty && map.isEmpty()) {
+                return null;
+            }
         }
         return OBJECT_MAPPER.convertValue(map, typeClass);
     }

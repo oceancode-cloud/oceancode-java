@@ -14,8 +14,11 @@ public class GObject {
         return Collections.emptyMap();
     }
 
+    public boolean isValidate() {
+        return isValidate;
+    }
+
     public Long sourceId() {
-        validate();
         return propAsLong("id");
     }
 
