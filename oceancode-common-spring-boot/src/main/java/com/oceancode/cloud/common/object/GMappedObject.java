@@ -19,12 +19,16 @@ public abstract class GMappedObject<T> extends GTypeObject<T> {
 
     @Override
     public T object() {
-        if (Objects.isNull(object)) {
+        if (Objects.isNull(getObject())) {
             Map<String, Object> map = get();
             if (ValueUtil.isNotEmpty(map)) {
                 object = JsonUtil.mapToBean(map, getTypeClass());
             }
         }
+        return object;
+    }
+
+    protected T getObject() {
         return object;
     }
 
