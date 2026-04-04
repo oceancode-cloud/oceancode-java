@@ -72,7 +72,7 @@ public abstract class AbstractModelAutoConfigRule<NOTIFIER, ADD, UPDATE, INFO> i
         if (list.size() == 1 && Objects.nonNull(typeGroup)) {
             if (typeGroup.getItems().size() == 1) {
                 for (AutoConfig item : typeGroup.getItems()) {
-                    item.setSourceId(list.getFirst().getSourceId());
+                    list.getFirst().setSourceId(item.getSourceId());
                 }
             }
         }

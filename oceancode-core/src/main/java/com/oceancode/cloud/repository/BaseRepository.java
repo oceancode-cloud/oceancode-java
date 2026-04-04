@@ -8,6 +8,8 @@ public interface BaseRepository<T, PK> {
 
     List<T> findByIds(Set<PK> ids);
 
+    List<T> findByIds(PK id, PK... ids);
+
     boolean addOne(T entity);
 
     boolean addBatch(List<T> list);
@@ -19,4 +21,6 @@ public interface BaseRepository<T, PK> {
     boolean updateById(T entity);
 
     boolean updateBatchById(List<T> list);
+
+
 }
