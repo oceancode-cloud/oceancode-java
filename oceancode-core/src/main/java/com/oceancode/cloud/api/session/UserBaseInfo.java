@@ -56,6 +56,11 @@ public class UserBaseInfo {
         if (Objects.isNull(this.data)) {
             this.data = new HashMap<>();
         }
+        if ("username".equals(key)) {
+            if (value instanceof char[]) {
+                value = String.valueOf(value);
+            }
+        }
         this.data.put(key, value);
         return this;
     }

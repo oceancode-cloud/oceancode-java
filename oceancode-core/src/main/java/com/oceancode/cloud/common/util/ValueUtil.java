@@ -505,4 +505,14 @@ public class ValueUtil {
         }
         return name.toLowerCase(Locale.ROOT);
     }
+
+    public static Integer min(Integer val1, Integer val2) {
+        if (Objects.isNull(val1)) {
+            return val2;
+        }
+        if (Objects.isNull(val2)) {
+            return val1;
+        }
+        return Math.min(val1, val2);
+    }
 }
