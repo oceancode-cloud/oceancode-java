@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class GObject implements Identifier {
+public class GObject implements Identifier, GClass {
     private transient GContext context;
     private boolean isValidate;
     private transient Map<String, Object> extraMap;
