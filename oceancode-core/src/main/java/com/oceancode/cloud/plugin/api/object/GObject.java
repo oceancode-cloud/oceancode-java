@@ -3,12 +3,14 @@ package com.oceancode.cloud.plugin.api.object;
 import com.oceancode.cloud.common.util.ValueUtil;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class GObject {
+public class GObject implements Identifier {
     private transient GContext context;
     private boolean isValidate;
+    private transient Map<String, Object> extraMap;
 
     public Map<String, Object> get() {
         return Collections.emptyMap();
@@ -135,5 +137,68 @@ public class GObject {
 
     protected void doValidate() {
 
+    }
+
+    public void save() {
+
+    }
+
+    public void save(Runnable runnable) {
+        runnable.run();
+    }
+
+    public void delete() {
+
+    }
+
+    public void oSetExtra(String key, Object value) {
+        if (Objects.isNull(extraMap)) {
+            extraMap = new HashMap<>();
+        }
+        extraMap.put(key, value);
+    }
+
+    public Object oGetExtra(String key) {
+        if (Objects.isNull(extraMap)) {
+            return null;
+        }
+        return extraMap.get(key);
+    }
+
+    public Map<String, Object> oGetAllExtra() {
+        if (Objects.isNull(extraMap)) {
+            return Collections.emptyMap();
+        }
+        return extraMap;
+    }
+
+    public void setProperty(String key, Object value) {
+
+    }
+
+    public void setProperties(Map<String, Object> values) {
+
+    }
+
+    public void reload() {
+
+    }
+
+    @Override
+    public void oSetId(String id) {
+        setProperty("id", id);
+    }
+
+    @Override
+    public String oGetId() {
+        Long id = sourceId();
+        if (Objects.isNull(id)) {
+            return null;
+        }
+        return id.toString();
+    }
+
+    public Object getInfo() {
+        return null;
     }
 }

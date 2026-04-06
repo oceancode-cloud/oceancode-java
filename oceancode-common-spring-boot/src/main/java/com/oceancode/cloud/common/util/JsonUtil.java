@@ -173,6 +173,9 @@ public final class JsonUtil {
     }
 
     public static Map<String, Object> beanToMap(Object obj) {
+        if (Objects.isNull(obj)) {
+            return null;
+        }
         try {
             return OBJECT_MAPPER.readValue(toJson(obj), Map.class);
         } catch (JsonProcessingException e) {

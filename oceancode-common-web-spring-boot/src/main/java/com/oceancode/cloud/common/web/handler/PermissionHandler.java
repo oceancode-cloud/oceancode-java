@@ -21,6 +21,8 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +32,7 @@ import java.util.Objects;
 @Aspect
 @Component
 public class PermissionHandler implements ApplicationLifeCycleService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PermissionHandler.class);
 
     private static ResourcePermissionService resourcePermissionService;
     private static SessionService sessionService;
@@ -74,6 +77,8 @@ public class PermissionHandler implements ApplicationLifeCycleService {
             Object proceed = null;
             try {
                 proceed = proceedingJoinPoint.proceed();
+            } catch (Throwable e) {
+                throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
             } finally {
                 if (Objects.nonNull(functionInterceptor)) {
                     functionInterceptor.after(permission.resourceId(), permission.resourceType());

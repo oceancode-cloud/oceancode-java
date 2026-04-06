@@ -7,20 +7,25 @@ import com.oceancode.cloud.common.util.Util;
 import com.oceancode.cloud.common.util.ValueUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
+@Primary
 @Component
 public class DefaultAutoConfigServiceImpl implements AutoConfigService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultAutoConfigServiceImpl.class);
 
     private Map<String, AutoConfigRule> ruleMap = new HashMap<>();
+    private AutoConfigService autoConfigService;
 
-    public DefaultAutoConfigServiceImpl(Set<AutoConfigRule> rules) {
+    public DefaultAutoConfigServiceImpl(Set<AutoConfigRule> rules, AutoConfigService autoConfigService) {
+        this.autoConfigService = autoConfigService;
         for (AutoConfigRule rule : rules) {
             if (ValueUtil.isEmpty(rule.getGroup())) {
                 LOGGER.error("group is empty.{}", rule.getClass().getName());
@@ -38,6 +43,13 @@ public class DefaultAutoConfigServiceImpl implements AutoConfigService {
 
     @Override
     public AutoConfigResponse autoConfig(AutoConfigRequest autoConfigRequest) {
+        try {
+            if (Objects.nonNull(autoConfigService)) {
+                return autoConfigService.autoConfig(autoConfigRequest);
+            }
+        } catch (Exception e) {
+            LOGGER.warn("user custom autoConfig service", e);
+        }
         AutoConfigContext context = new DefaultAutoConfigContext(autoConfigRequest);
         context.setRuleMap(ruleMap);
         Collection<AutoConfigGroup> items = context.getConfigGroups();
