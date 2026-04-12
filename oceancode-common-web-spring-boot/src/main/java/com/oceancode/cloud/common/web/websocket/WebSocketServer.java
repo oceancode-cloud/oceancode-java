@@ -6,6 +6,7 @@ import com.oceancode.cloud.chart.ChartMessageCallback;
 import com.oceancode.cloud.chart.ChartMessageHandler;
 import com.oceancode.cloud.chart.ChartMessageType;
 import com.oceancode.cloud.chart.RTMessageService;
+import com.oceancode.cloud.chat.ChatMessageResponse;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
@@ -138,9 +139,17 @@ public class WebSocketServer {
 
         chartMessage.setFromUser(userId);
         if (Objects.nonNull(chartMessageHandler)) {
-            ChartMessageCallback callback = (data) -> {
+            ChartMessageCallback callback = data -> {
                 ChartMessage notifier = ChartMessage.notifier();
                 notifier.setMsgId(chartMessage.getMsgId());
+                notifier.setData(data);
+                notifier.toUser(chartMessage.getFromUser());
+                notifier.fromUser(chartMessage.getToUser());
+                notifier.setFrom(chartMessage.getTo());
+                notifier.setTo(chartMessage.getFrom());
+                if (data instanceof ChatMessageResponse) {
+                    notifier.setType(ChartMessageType.STREAM_MESSAGE);
+                }
                 wsSession.reply(notifier);
             };
             chartMessageHandler.onMessage(chartMessage, callback);

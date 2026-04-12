@@ -1,103 +1,72 @@
 package com.oceancode.cloud.common.plugin.ai;
 
-import com.oceancode.cloud.api.ai.AiMessage;
-import com.oceancode.cloud.api.ai.AiMessageContent;
 import com.oceancode.cloud.api.ai.AiResponse;
-import com.oceancode.cloud.api.ai.AiService;
-import com.oceancode.cloud.chart.ChartMessageCallback;
-import com.oceancode.cloud.common.config.CommonConfig;
-import com.oceancode.cloud.common.util.ValueUtil;
+import com.oceancode.cloud.chat.ChatCallback;
+import com.oceancode.cloud.chat.ChatMessageChoice;
+import com.oceancode.cloud.chat.ChatMessageInput;
+import com.oceancode.cloud.chat.ChatMessageResponse;
+import com.oceancode.cloud.chat.ChatMessageResponseContent;
+import com.oceancode.cloud.chat.ChatService;
 import jakarta.annotation.Resource;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 @Primary
 @Component
-public class DefaultAiServiceImpl implements AiService {
-    private Map<String, AiService> serviceMap;
-
+@ConditionalOnClass(ChatClient.class)
+public class DefaultAiServiceImpl implements ChatService {
     @Resource
-    private CommonConfig commonConfig;
-
-    public DefaultAiServiceImpl(Set<AiService> services) {
-        serviceMap = new HashMap<>(services.size());
-        for (AiService service : services) {
-            serviceMap.put(service.getType(), service);
-        }
-    }
+    private ChatClient chatClient;
 
     @Override
     public String getType() {
-        return "default";
+        return "";
     }
 
     @Override
-    public AiResponse chart(AiMessage message, ChartMessageCallback callback) {
-        if (ValueUtil.isEmpty(message.getContents())) {
-            return null;
-        }
-        AiService aiService = serviceMap.get(message.getId());
-        if (Objects.nonNull(aiService)) {
-            return aiService.chart(message, callback);
-        }
-        String id = message.getId();
-        String baseUrl = commonConfig.getValue("oc.ai." + id + ".base-url");
-        String authorization = "Bearer " + commonConfig.getValue("oc.ai." + id + ".api-key");
+    public AiResponse chat(ChatMessageInput message, ChatCallback callback) {
+        Prompt prompt = new PromptTemplate("执行初始化服务: 1.初始化缓存.").create();
+        chatClient.prompt(prompt)
+                .stream()
+                .chatResponse()
+                .subscribe(data -> {
+                    ChatMessageResponse response = new ChatMessageResponse();
+                    response.setId(data.getMetadata().getId());
+                    response.setModel(data.getMetadata().getModel());
+                    Object object = data.getMetadata().get("created");
+                    if (Objects.nonNull(object)) {
+                        Long timestamp = Long.parseLong(String.valueOf(object));
+                        if (String.valueOf(timestamp).length() == 10) {
+                            timestamp = timestamp * 1000;
+                        }
+                        response.setCreated(timestamp);
+                    }
+                    AssistantMessage output = data.getResult().getOutput();
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("model", message.getModel());
-        String temperature = commonConfig.getValue("oc.ai.options.temperature");
-        if (ValueUtil.isNotEmpty(temperature)) {
-            params.put("temperature", temperature);
-        }
-        params.put("stream", true);
+                    response.setChoices(new ArrayList<>());
 
-        List<Map<String, Object>> messages = new ArrayList<>();
-        params.put("messages", messages);
-        for (AiMessageContent content : message.getContents()) {
-            Map<String, Object> msgItem = new HashMap<>();
-            messages.add(msgItem);
-            String role = content.getRole();
-            if (ValueUtil.isEmpty(role)) {
-                role = "user";
-            }
-            msgItem.put("role", role);
-            List<Map<String, Object>> contents = new ArrayList<>();
-            msgItem.put("content", contents);
+                    ChatMessageChoice choice = new ChatMessageChoice();
+                    response.getChoices().add(choice);
+                    choice.setRole(output.getMessageType().getValue());
+                    choice.setMessage(new ChatMessageResponseContent());
 
-            Map<String, Object> contentItem = new HashMap<>();
-            String type = content.getType();
-            if (ValueUtil.isEmpty(type)) {
-                type = "text";
-            }
-            contentItem.put("type", type);
-            contentItem.put("text", content.getContent());
-            contents.add(contentItem);
-        }
+                    choice.getMessage().setContent(output.getText());
 
-        String url = baseUrl;
-        if (!url.endsWith("/")) {
-            url += "/";
-        }
-        url += "chat/completions";
-        Flux<String> flux = WebClient.create(url)
-                .post()
-                .header("Authorization", authorization)
-                .bodyValue(params)
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve().bodyToFlux(String.class);
-        flux.subscribe(callback::call);
+                    Object index = output.getMetadata().get("index");
+                    if (Objects.nonNull(index)) {
+                        Integer target = index instanceof Integer val ? val : Integer.parseInt(String.valueOf(index));
+                        choice.getMessage().setIndex(target);
+                    }
+                    callback.call(choice);
+                });
         return null;
     }
 }

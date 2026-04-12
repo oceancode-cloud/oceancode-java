@@ -12,6 +12,7 @@ public enum ChartMessageType implements TypeEnum<Integer> {
     // 聊天消息
     CHART_MESSAGE(3, null, null),
     NOTIFIER_MESSAGE_PUSHED(4, null, null),
+    STREAM_MESSAGE(5, null, null),
     ;
     private int value;
     private String name;

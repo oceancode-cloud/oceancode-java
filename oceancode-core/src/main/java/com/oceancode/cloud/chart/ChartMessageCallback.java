@@ -1,5 +1,5 @@
 package com.oceancode.cloud.chart;
 
 public interface ChartMessageCallback {
-    void call(Object data);
+    void reply(Object data);
 }

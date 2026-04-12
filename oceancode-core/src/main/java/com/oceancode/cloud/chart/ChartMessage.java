@@ -13,6 +13,8 @@ public class ChartMessage {
     private Object data;
     private Long fromUser;
     private Long toUser;
+    private String from;
+    private String to;
     private String msgId;
     private ErrorCode errorCode;
     private Long projectId;
@@ -238,6 +240,22 @@ public class ChartMessage {
 
     public void setUid(String uid) {
         this.uid = uid;
+    }
+
+    public String getFrom() {
+        return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public String getTo() {
+        return to;
+    }
+
+    public void setTo(String to) {
+        this.to = to;
     }
 
     @Override
