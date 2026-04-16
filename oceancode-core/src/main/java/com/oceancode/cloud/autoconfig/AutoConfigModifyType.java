@@ -2,7 +2,7 @@ package com.oceancode.cloud.autoconfig;
 
 import com.oceancode.cloud.api.TypeEnum;
 
-public enum DefaultAutoConfigType implements AutoConfigType {
+public enum AutoConfigModifyType implements ModifyType {
     ADD(1, "新增", "新增一条记录"),
     ADD_MANY(2, "批量新增", "新增多条记录"),
     UPDATE(3, "修改", "修改一条记录"),
@@ -17,14 +17,14 @@ public enum DefaultAutoConfigType implements AutoConfigType {
     private String name;
     private String description;
 
-    DefaultAutoConfigType(int type, String name, String description) {
+    AutoConfigModifyType(int type, String name, String description) {
         this.type = type;
         this.name = name;
         this.description = description;
     }
 
-    public static AutoConfigType from(Integer type) {
-        return TypeEnum.from(type, DefaultAutoConfigType.class);
+    public static ModifyType from(Integer type) {
+        return TypeEnum.from(type, AutoConfigModifyType.class);
     }
 
     @Override

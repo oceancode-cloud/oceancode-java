@@ -63,7 +63,7 @@ public class DefaultAiServiceImpl implements ChatService {
                     Object index = output.getMetadata().get("index");
                     if (Objects.nonNull(index)) {
                         Integer target = index instanceof Integer val ? val : Integer.parseInt(String.valueOf(index));
-                        choice.getMessage().setIndex(target);
+                        choice.setIndex(target);
                     }
                     callback.call(choice);
                 });

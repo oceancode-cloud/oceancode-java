@@ -1,64 +1,32 @@
 package com.oceancode.cloud.common.web;
 
-import com.oceancode.cloud.api.autoconfig.AutoConfigHandler;
-import com.oceancode.cloud.api.autoconfig.AutoConfigRequest;
-import com.oceancode.cloud.api.autoconfig.AutoConfigRequestUtil;
-import com.oceancode.cloud.api.autoconfig.AutoConfigResult;
-import com.oceancode.cloud.api.autoconfig.AutoConfigRule;
-import com.oceancode.cloud.api.autoconfig.AutoConfigService;
-import com.oceancode.cloud.api.autoconfig.v2.AutoConfigResponse;
+import com.oceancode.cloud.autoconfig.AutoConfigRequest;
+import com.oceancode.cloud.autoconfig.AutoConfigResponse;
 import com.oceancode.cloud.api.permission.Permission;
 import com.oceancode.cloud.api.permission.PermissionConst;
+import com.oceancode.cloud.autoconfig.AutoConfigService;
 import com.oceancode.cloud.common.constant.CommonConst;
 import com.oceancode.cloud.common.entity.ResultData;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Objects;
-import java.util.Set;
-
 @RestController
 @RequestMapping(CommonConst.API_PREFIX)
-@ConditionalOnBean(AutoConfigRule.class)
+@ConditionalOnBean(AutoConfigService.class)
 public class AutoConfigController {
-    private final static Logger LOGGER = LoggerFactory.getLogger(AutoConfigRequestUtil.class);
     private AutoConfigService autoConfigService;
-    private com.oceancode.cloud.api.autoconfig.v2.AutoConfigService autoConfigService2;
 
-    public AutoConfigController(Set<AutoConfigHandler> handlers, Set<AutoConfigRule> rules, AutoConfigService autoConfigService, com.oceancode.cloud.api.autoconfig.v2.AutoConfigService autoConfigService2) {
+    public AutoConfigController(AutoConfigService autoConfigService) {
         this.autoConfigService = autoConfigService;
-        this.autoConfigService2 = autoConfigService2;
-        for (AutoConfigHandler handler : handlers) {
-            AutoConfigRequestUtil.registerHandler(handler);
-            LOGGER.info("auto config handler(group:%s,property%s) register success.%s", handler.getGroup(), handler.getProperty(), handler.getClass().getName());
-        }
-
-        for (AutoConfigRule rule : rules) {
-            AutoConfigRequestUtil.registerRule(rule);
-            LOGGER.info("register rule", rule);
-        }
     }
 
     @Permission(resourceId = "autoConfig", authorities = {PermissionConst.AUTHORITY_LOGIN})
     @PostMapping("/autoConfig")
-    public ResultData<AutoConfigResult> autoConfig(@RequestBody AutoConfigRequest autoConfigRequest) {
-        AutoConfigResult autoConfigResult = autoConfigService.autoConfig(autoConfigRequest);
-        if (Objects.nonNull(autoConfigResult.getThrowable())) {
-            LOGGER.error("auto config failed", autoConfigResult.getThrowable());
-            autoConfigResult.setThrowable(null);
-        }
-        return ResultData.isOk(autoConfigResult);
-    }
-
-    @Permission(resourceId = "autoConfig1", authorities = {PermissionConst.AUTHORITY_LOGIN})
-    @PostMapping("/v1/autoConfig")
-    public ResultData<?> autoConfig2(@RequestBody com.oceancode.cloud.api.autoconfig.v2.AutoConfigRequest autoConfigRequest) {
-        AutoConfigResponse autoConfigResponse = autoConfigService2.autoConfig(autoConfigRequest);
-        return ResultData.isOk(autoConfigResponse);
+    public ResultData<?> autoConfig2(@RequestBody AutoConfigRequest autoConfigRequest) {
+        AutoConfigResponse result = autoConfigService.autoConfig(autoConfigRequest);
+        return ResultData.isOk(result);
     }
 }

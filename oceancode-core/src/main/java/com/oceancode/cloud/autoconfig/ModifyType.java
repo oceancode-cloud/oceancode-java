@@ -2,7 +2,7 @@ package com.oceancode.cloud.autoconfig;
 
 import com.oceancode.cloud.api.TypeEnum;
 
-public interface AutoConfigType extends TypeEnum<Integer> {
+public interface ModifyType extends TypeEnum<Integer> {
     default Integer getType() {
         return getValue();
     }

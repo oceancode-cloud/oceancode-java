@@ -1,4 +1,4 @@
-package com.oceancode.cloud.api.autoconfig.v2;
+package com.oceancode.cloud.autoconfig;
 
 import java.util.Map;
 
