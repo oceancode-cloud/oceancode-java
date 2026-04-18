@@ -5,26 +5,14 @@
 package com.oceancode.cloud.common.web.config;
 
 import com.oceancode.cloud.api.ApiClient;
-import com.oceancode.cloud.api.permission.PermissionResourceService;
-import com.oceancode.cloud.api.permission.ResourcePermissionService;
 import com.oceancode.cloud.common.ApiClientImpl;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.util.SystemUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.common.web.convert.PartFileConvert;
-import com.oceancode.cloud.common.web.handler.ResourcePermissionServiceImpl;
-import io.undertow.Undertow;
-import io.undertow.UndertowOptions;
-import io.undertow.servlet.api.SecurityConstraint;
-import io.undertow.servlet.api.SecurityInfo;
-import io.undertow.servlet.api.TransportGuaranteeType;
-import io.undertow.servlet.api.WebResourceCollection;
-import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.*;
-import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
-import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
