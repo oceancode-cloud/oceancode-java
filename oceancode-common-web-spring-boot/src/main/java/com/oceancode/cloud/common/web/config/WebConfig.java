@@ -150,23 +150,5 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
 
-    @Bean
-    @ConditionalOnExpression(value = "'${server.ssl.enabled}'=='true'")
-    public ServletWebServerFactory undertowFactory() {
-        UndertowServletWebServerFactory undertowFactory = new UndertowServletWebServerFactory();
 
-        undertowFactory.addBuilderCustomizers((Undertow.Builder builder) -> {
-            builder.addHttpListener(commonConfig.getPort(), "0.0.0.0");
-            builder.setServerOption(UndertowOptions.ENABLE_HTTP2, true);
-        });
-        undertowFactory.addDeploymentInfoCustomizers(deploymentInfo -> {
-            deploymentInfo.addSecurityConstraint(new SecurityConstraint()
-                            .addWebResourceCollection(new WebResourceCollection().addUrlPattern("/*"))
-                            .setTransportGuaranteeType(TransportGuaranteeType.CONFIDENTIAL)
-                            .setEmptyRoleSemantic(SecurityInfo.EmptyRoleSemantic.PERMIT))
-                    .setConfidentialPortManager(exchange -> commonConfig.getHttpsPort());
-        });
-
-        return undertowFactory;
-    }
 }
