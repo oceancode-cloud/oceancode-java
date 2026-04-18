@@ -11,11 +11,15 @@ import graphql.ExecutionResult;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 
 public final class GraphUtil {
+    private final static Logger LOGGER = LoggerFactory.getLogger(GraphUtil.class);
+
     private GraphUtil() {
     }
 
@@ -24,8 +28,10 @@ public final class GraphUtil {
             return result.getData();
         }
         for (GraphQLError error : result.getErrors()) {
+
             if (error instanceof ExceptionWhileDataFetching) {
                 ExceptionWhileDataFetching ex = (ExceptionWhileDataFetching) error;
+                LOGGER.error("error", ex.getException());
                 if (Objects.nonNull(ex.getException()) && Objects.nonNull(ex.getException().getCause())) {
                     Throwable throwable = ex.getException().getCause();
                     if (throwable instanceof BusinessRuntimeException) {

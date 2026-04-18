@@ -206,9 +206,12 @@ public class GraphQlProvider {
     }
 
     public GraphQLOutputType createOutField(List<Runnable> cbs, Map<String, GraphQLOutputType> typeMapping, Class type) {
-        GraphQLObjectType.Builder builder = GraphQLObjectType.newObject().name(type.getSimpleName());
         List<Field> fields = new ArrayList<>();
         collectClassAllFields(fields, new HashSet<>(), type);
+        if (fields.isEmpty()) {
+            return null;
+        }
+        GraphQLObjectType.Builder builder = GraphQLObjectType.newObject().name(type.getSimpleName());
         for (Field field : fields) {
             String name = field.getName();
             JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
@@ -236,6 +239,9 @@ public class GraphQlProvider {
                 } else {
                     typeMapping.put(fieldKey, outputType);
                     outputType = createOutField(cbs, typeMapping, field.getType());
+                    if (Objects.isNull(outputType)) {
+                        continue;
+                    }
                     typeMapping.put(fieldKey, outputType);
                 }
                 builder.field(GraphQLFieldDefinition.newFieldDefinition().name(name).type(outputType).build());
@@ -268,6 +274,9 @@ public class GraphQlProvider {
                 } else {
                     typeMapping.put(fieldKey, outputType);
                     outputType = createOutField(cbs, typeMapping, targetClass);
+                    if (Objects.isNull(outputType)) {
+                        continue;
+                    }
                     typeMapping.put(fieldKey, outputType);
                 }
                 builder.field(GraphQLFieldDefinition.newFieldDefinition().name(name).type(GraphQLList.list(outputType)).build());

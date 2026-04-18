@@ -69,11 +69,11 @@ public class WebConfig implements WebMvcConfigurer {
 //        return new CustomErrorController();
 //    }
 
-    @Bean
-    @ConditionalOnMissingBean(ResourcePermissionService.class)
-    public PermissionResourceService permissionResourceService() {
-        return new ResourcePermissionServiceImpl();
-    }
+//    @Bean
+//    @ConditionalOnMissingBean(ResourcePermissionService.class)
+//    public PermissionResourceService permissionResourceService() {
+//        return new ResourcePermissionServiceImpl();
+//    }
 
 
     @Override

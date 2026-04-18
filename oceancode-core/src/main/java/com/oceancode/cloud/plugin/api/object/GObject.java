@@ -201,4 +201,8 @@ public class GObject implements Identifier, GClass {
     public Object getInfo() {
         return null;
     }
+
+    public Object convertToObject(String key, Object value) {
+        return value;
+    }
 }

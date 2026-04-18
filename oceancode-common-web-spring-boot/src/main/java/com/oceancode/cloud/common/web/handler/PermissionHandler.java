@@ -73,7 +73,11 @@ public class PermissionHandler implements ApplicationLifeCycleService {
         if (Objects.nonNull(functionInterceptor)) {
             functionInterceptor.before(permission.resourceId(), permission.resourceType());
         }
-        if (doCheckPermission(permission)) {
+        boolean ret = doCheckPermission(permission);
+        if (!ret) {
+            ret = PermissionUtil.checkPrivateToken(permission);
+        }
+        if (ret) {
             Object proceed = null;
             try {
                 proceed = proceedingJoinPoint.proceed();
@@ -98,6 +102,9 @@ public class PermissionHandler implements ApplicationLifeCycleService {
 
         String token = ApiUtil.getToken();
         if (permission.resourceType() != PermissionConst.RESOURCE_TYPE_QUERY && permission.resourceType() != PermissionConst.RESOURCE_TYPE_ANY) {
+            if (ValueUtil.isEmpty(token)) {
+                return false;
+            }
             UserBaseInfo userBaseInfo = sessionService.getUserInfo(token);
             if (Objects.nonNull(userBaseInfo) && UserType.EXAMPLE.equals(userBaseInfo.getUserType())) {
                 return false;

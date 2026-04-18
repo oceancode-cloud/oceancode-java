@@ -41,7 +41,7 @@ public final class PermissionUtil {
 
     public static boolean checkPrivateToken(Permission permission) {
         if (Objects.isNull(permissionResourceService)) {
-            throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, PermissionResourceService.class.getName() + " not found implementation.");
+            return false;
         }
         return permissionResourceService.checkPermission(permission.resourceId(), permission.resourceType(), PermissionConst.PRIVATE_TOKEN);
     }
