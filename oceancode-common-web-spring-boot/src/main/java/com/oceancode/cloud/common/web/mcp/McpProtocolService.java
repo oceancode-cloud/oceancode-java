@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -68,7 +69,7 @@ public class McpProtocolService {
     // 2. 定义工具列表
     private JsonRpcResponse handleListTools(JsonRpcRequest request) {
         List<Map<String, Object>> list = toolManager.getTools();
-        List<Map<String, Object>> resultList = toolManager.getTools();
+        List<Map<String, Object>> resultList = new ArrayList<>();
         if (Objects.nonNull(list)) {
             resultList.addAll(list);
         }
