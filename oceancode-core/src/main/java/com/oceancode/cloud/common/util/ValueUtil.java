@@ -340,6 +340,13 @@ public class ValueUtil {
         return Objects.isNull(value) || !value;
     }
 
+    public static boolean isTrue(String text) {
+        if (Objects.isNull(text)) {
+            return false;
+        }
+        return "1".equals(text.trim()) || "true".equalsIgnoreCase(text.trim());
+    }
+
     public static <K, V> Map<K, V> putMapElements(Map<K, V> sourceMap, Map<K, V> dataMap) {
         if (Objects.isNull(dataMap)) {
             return sourceMap;

@@ -27,4 +27,5 @@ public class CommonConst {
     public static final int DEFAULT_RESULT_RECORDS_SIZE = 3000;
     public static final String BUSINESS = "business";
     public static final String MASTER = "master";
+    public static final String PRIVATE_TOKEN = "PRIVATE-TOKEN";
 }

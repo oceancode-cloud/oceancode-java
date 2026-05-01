@@ -174,7 +174,7 @@ public final class ApiUtil {
     }
 
     public static String getPrivateToken() {
-        return getRequest().getHeader("PRIVATE-TOKEN");
+        return getRequest().getHeader(CommonConst.PRIVATE_TOKEN);
     }
 
     private static String getContentTypeByFileType(String fileType) {

@@ -203,6 +203,34 @@ public class GObject implements Identifier, GClass {
     }
 
     public Object convertToObject(String key, Object value) {
+        return convertToObject(null, key, value);
+    }
+
+    public Object convertToObject(String notifier, String key, Object value) {
         return value;
+    }
+
+    public void setUuid(String uuid) {
+        this.setProperty("uuid", uuid);
+    }
+
+    public String uuid() {
+        return (String) get().get("uuid");
+    }
+
+    public void setParentUuid(String uuid) {
+        this.setProperty("parentUuid", uuid);
+    }
+
+    public String parentUuid() {
+        return (String) get().get("parentUuid");
+    }
+
+    public String gOid() {
+        Long id = sourceId();
+        if (Objects.isNull(id)) {
+            return id.toString();
+        }
+        return null;
     }
 }
