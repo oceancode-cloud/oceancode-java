@@ -1,16 +1,12 @@
 package com.oceancode.cloud.api.tool;
 
-import com.oceancode.cloud.common.util.ValueUtil;
-
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class ToolManager {
     public List<Map<String, Object>> getTools() {
-        List<Map<String, Object>> list = new ArrayList<>();
-
-        return list;
+        return Collections.emptyList();
     }
 
     public Object execute(String name, Map<String, Object> arguments) {
@@ -33,5 +29,9 @@ public class ToolManager {
             return true;
         }
         return false;
+    }
+
+    public boolean hasOutputSchema(String name) {
+        return true;
     }
 }

@@ -1,7 +1,9 @@
 package com.oceancode.cloud.common.web.mcp;
 
+import com.oceancode.cloud.api.tool.ToolLoader;
 import com.oceancode.cloud.api.tool.ToolManager;
 import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
+import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import org.slf4j.Logger;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +68,23 @@ public class McpProtocolService {
     // 2. 定义工具列表
     private JsonRpcResponse handleListTools(JsonRpcRequest request) {
         List<Map<String, Object>> list = toolManager.getTools();
-        return JsonRpcResponse.success(request.id(), Map.of("tools", list));
+        List<Map<String, Object>> resultList = toolManager.getTools();
+        if (Objects.nonNull(list)) {
+            resultList.addAll(list);
+        }
+        try {
+            Map<String, ToolLoader> beans = ComponentUtil.getBeans(ToolLoader.class);
+            Collection<ToolLoader> values = beans.values();
+            for (ToolLoader value : values) {
+                List<Map<String, Object>> tools = value.getTools();
+                if (Objects.nonNull(tools)) {
+                    resultList.addAll(tools);
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return JsonRpcResponse.success(request.id(), Map.of("tools", resultList));
     }
 
     private Object handleCallTool(JsonRpcRequest request) {
