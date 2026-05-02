@@ -46,6 +46,13 @@ public final class PermissionUtil {
         return permissionResourceService.checkPermission(permission.resourceId(), permission.resourceType(), PermissionConst.PRIVATE_TOKEN);
     }
 
+    public static boolean checkCustomPermission(Permission permission) {
+        if (Objects.isNull(permissionResourceService)) {
+            return true;
+        }
+        return permissionResourceService.checkPermission(permission.resourceId(), permission.resourceType(), PermissionConst.CUSTOM_PERMISSION);
+    }
+
     public static boolean checkPermission(Permission permission) {
         boolean isAnd = PermissionConst.OPERATION_OR.equals(getOperator(permission.resourceId())) || PermissionConst.OPERATION_OR.equals(permission.operation());
         String[] authorities = permission.authorities();
@@ -72,5 +79,6 @@ public final class PermissionUtil {
         }
         return matchCount == authorities.length;
     }
+
 
 }

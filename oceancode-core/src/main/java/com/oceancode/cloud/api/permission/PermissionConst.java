@@ -6,6 +6,7 @@ public class PermissionConst {
     public static final String AUTHORITY_LOGIN = "login";
     public static final String PRIVATE_TOKEN = "PRIVATE-TOKEN";
     public static final String AUTHORITY_UN_LOGIN = "unlogin";
+    public static final String CUSTOM_PERMISSION = "custom_permission";
 
     /**
      * 用户相关权限

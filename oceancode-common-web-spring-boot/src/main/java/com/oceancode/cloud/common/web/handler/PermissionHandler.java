@@ -73,7 +73,7 @@ public class PermissionHandler implements ApplicationLifeCycleService {
         if (Objects.nonNull(functionInterceptor)) {
             functionInterceptor.before(permission.resourceId(), permission.resourceType());
         }
-        boolean ret = doCheckPermission(permission);
+        boolean ret = doCheckPermission(permission) && PermissionUtil.checkCustomPermission(permission);
         if (!ret) {
             ret = PermissionUtil.checkPrivateToken(permission);
         }
