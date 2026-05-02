@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -109,27 +109,23 @@ public class McpProtocolService {
 
             return JsonRpcResponse.success(request.id(), content);
         }
-
         Object result = toolManager.execute(name, arguments);
-        // MCP 要求的返回格式 content: [{type: "text", text: "..."}]
-        String type = "text";
-        String dataKey = "text";
-        boolean needToJson = true;
-        if (Objects.isNull(result) || result instanceof String || result instanceof Number) {
-            needToJson = false;
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("code", 200);
+        data.put("message", "");
+        data.put("data", result);
+        int total = 1;
+        if (Objects.isNull(result)) {
+            total = 0;
+        } else if (result instanceof List list) {
+            total = list.size();
         }
-        if (needToJson) {
-            result = JsonUtil.toJson(result);
-        }
+        data.put("total", total);
         Map<String, Object> content = Map.of(
-                "content", List.of(Map.of("type", type, dataKey, result))
+                "content", List.of(Map.of("type", "text", "text", JsonUtil.toJson(data)))
         );
-
-        return JsonRpcResponse.success(request.id(), content);
+        return JsonRpcResponse.success(request.id(),
+                content);
     }
-
-    public static Map<String, Object> textContent(String text) {
-        return Map.of("type", "text", "text", text);
-    }
-
 }
