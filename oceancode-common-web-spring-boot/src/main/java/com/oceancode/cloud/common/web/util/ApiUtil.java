@@ -170,7 +170,11 @@ public final class ApiUtil {
     }
 
     public static String getToken() {
-        return getAuthorizationToken();
+        String token = getAuthorizationToken();
+        if (ValueUtil.isEmpty(token)) {
+            token = getRequest().getParameter(CommonConst.TOKEN);
+        }
+        return token;
     }
 
     public static String getPrivateToken() {

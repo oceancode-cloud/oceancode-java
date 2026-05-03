@@ -28,4 +28,5 @@ public class CommonConst {
     public static final String BUSINESS = "business";
     public static final String MASTER = "master";
     public static final String PRIVATE_TOKEN = "PRIVATE-TOKEN";
+    public static final String TOKEN = "token";
 }
