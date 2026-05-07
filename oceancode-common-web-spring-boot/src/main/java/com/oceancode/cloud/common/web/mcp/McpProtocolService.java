@@ -114,7 +114,7 @@ public class McpProtocolService {
         Map<String, Object> data = new HashMap<>();
         data.put("code", 200);
         data.put("message", "");
-        data.put("data", result);
+        data.put("results", result);
         int total = 1;
         if (Objects.isNull(result)) {
             total = 0;
@@ -123,7 +123,8 @@ public class McpProtocolService {
         }
         data.put("total", total);
         Map<String, Object> content = Map.of(
-                "content", List.of(Map.of("type", "text", "text", JsonUtil.toJson(data)))
+                "content", List.of(Map.of("type", "text", "text", JsonUtil.toJson(result))),
+                "structuredContent", data
         );
         return JsonRpcResponse.success(request.id(),
                 content);
