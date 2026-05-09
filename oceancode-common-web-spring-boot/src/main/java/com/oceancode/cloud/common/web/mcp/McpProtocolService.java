@@ -1,7 +1,9 @@
 package com.oceancode.cloud.common.web.mcp;
 
+import com.oceancode.cloud.api.ErrorCode;
 import com.oceancode.cloud.api.tool.ToolLoader;
 import com.oceancode.cloud.api.tool.ToolManager;
+import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
@@ -45,13 +47,17 @@ public class McpProtocolService {
                 case "tools/call" -> handleCallTool(request);
                 case "ping" -> JsonRpcResponse.success(request.id(), Map.of());
                 case "notifications/initialized" -> null;
-                default -> JsonRpcResponse.error(request.id(), -32600, "Method not found");
+                default -> JsonRpcResponse.error(request.id(), -32600, "method(" + request.method() + ") not found");
             };
         } catch (Exception ex) {
             String message = ex.getMessage();
-            if (ex instanceof ErrorCodeRuntimeException e) {
+            if (ex instanceof BusinessRuntimeException runtimeException) {
+                ErrorCode code = runtimeException.getCode();
+                message = code.getMessage();
+            } else if (ex instanceof ErrorCodeRuntimeException e) {
                 message = e.getErrorCode() + " - " + e.getMessage();
             }
+            LOGGER.error("err", ex);
             return JsonRpcResponse.error(request.id(), -32600, message);
         }
     }
@@ -110,7 +116,6 @@ public class McpProtocolService {
             return JsonRpcResponse.success(request.id(), content);
         }
         Object result = toolManager.execute(name, arguments);
-
         Map<String, Object> data = new HashMap<>();
         data.put("code", 200);
         data.put("message", "");
@@ -122,10 +127,20 @@ public class McpProtocolService {
             total = list.size();
         }
         data.put("total", total);
-        Map<String, Object> content = Map.of(
-                "content", List.of(Map.of("type", "text", "text", JsonUtil.toJson(result))),
-                "structuredContent", data
-        );
+        Map<String, Object> content = new HashMap<>();
+
+
+        String text = JsonUtil.toJson(result);
+
+        List<Map<String, Object>> contentList = new ArrayList<>();
+        if (Objects.nonNull(text)) {
+            Map<String, Object> contentDataMap = new HashMap<>();
+            contentList.add(contentDataMap);
+            contentDataMap.put("type", "text");
+            contentDataMap.put("text", text);
+        }
+        content.put("content", contentList);
+        content.put("structuredContent", data);
         return JsonRpcResponse.success(request.id(),
                 content);
     }

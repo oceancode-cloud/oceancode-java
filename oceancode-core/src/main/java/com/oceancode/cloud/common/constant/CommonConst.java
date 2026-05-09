@@ -29,4 +29,6 @@ public class CommonConst {
     public static final String MASTER = "master";
     public static final String PRIVATE_TOKEN = "PRIVATE-TOKEN";
     public static final String TOKEN = "token";
+    public static final String USER_SOURCE = "user";
+    public static final String MCP_SOURCE = "mcp";
 }

@@ -46,6 +46,13 @@ public final class PermissionUtil {
         return permissionResourceService.checkPermission(permission.resourceId(), permission.resourceType(), PermissionConst.PRIVATE_TOKEN);
     }
 
+    public static boolean checkPrivateToken(String resourceId, int resourceType) {
+        if (Objects.isNull(permissionResourceService)) {
+            return false;
+        }
+        return permissionResourceService.checkPermission(resourceId, resourceType, PermissionConst.PRIVATE_TOKEN);
+    }
+
     public static boolean checkCustomPermission(Permission permission) {
         if (Objects.isNull(permissionResourceService)) {
             return true;

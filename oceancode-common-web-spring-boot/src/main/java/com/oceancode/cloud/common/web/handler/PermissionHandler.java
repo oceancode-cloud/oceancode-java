@@ -24,6 +24,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -64,6 +65,20 @@ public class PermissionHandler implements ApplicationLifeCycleService {
         MethodSignature signature = (MethodSignature) proceedingJoinPoint.getSignature();
         Method method = signature.getMethod();
         Permission permission = method.getAnnotation(Permission.class);
+
+        boolean isSse = PermissionConst.RESOURCE_SSE == permission.resourceType();
+        if (isSse) {
+            try {
+                return processDoPermissionCheck(permission, proceedingJoinPoint);
+            } catch (Exception e) {
+                LOGGER.error("error", e);
+                return ResponseEntity.badRequest().build();
+            }
+        }
+        return processDoPermissionCheck(permission, proceedingJoinPoint);
+    }
+
+    private Object processDoPermissionCheck(Permission permission, ProceedingJoinPoint proceedingJoinPoint) {
         String token = ApiUtil.getToken();
         if (sessionService.isLogin(token)) {
             if (Objects.isNull(SessionUtil.getUserInfo())) {

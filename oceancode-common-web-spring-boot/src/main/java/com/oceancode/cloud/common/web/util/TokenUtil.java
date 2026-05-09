@@ -176,7 +176,7 @@ public final class TokenUtil {
 
     public static TokenInfo parseToken(String token) {
         if (ValueUtil.isEmpty(token)) {
-            throw new BusinessRuntimeException(CommonErrorCode.AUTHORIZATION_INVALID);
+            return null;
         }
 
         TokenGenerator generator = tokenGenerator();

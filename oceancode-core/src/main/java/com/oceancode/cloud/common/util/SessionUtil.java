@@ -6,6 +6,7 @@ package com.oceancode.cloud.common.util;
 
 import com.oceancode.cloud.api.session.RoleType;
 import com.oceancode.cloud.api.session.UserBaseInfo;
+import com.oceancode.cloud.common.constant.CommonConst;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 
@@ -26,6 +27,7 @@ public final class SessionUtil {
     private final static InheritableThreadLocal<String> CLIENT_ID = new InheritableThreadLocal<>();
     private final static InheritableThreadLocal<String> REQUEST_ID = new InheritableThreadLocal<>();
     private final static InheritableThreadLocal<String> CURSOR = new InheritableThreadLocal<>();
+    private final static InheritableThreadLocal<String> SOURCE = new InheritableThreadLocal<>();
 
     private SessionUtil() {
     }
@@ -165,14 +167,35 @@ public final class SessionUtil {
         REQUEST_ID.remove();
         CURSOR.remove();
         USER_INFO.remove();
+        SOURCE.remove();
+    }
+
+    public static String source() {
+        return SOURCE.get();
+    }
+
+    public static void setSource(String source) {
+        SOURCE.set(source);
+    }
+
+    public static boolean isUser() {
+        return CommonConst.USER_SOURCE.equals(source());
+    }
+
+    public static boolean isMcp() {
+        return CommonConst.MCP_SOURCE.equals(source());
+    }
+
+    public static boolean isAi() {
+        return isMcp();
     }
 
     public static List<Object> getValues() {
-        return Collections.unmodifiableList(Arrays.asList(tenantId(), projectId(), userId(), branch(), clientId(), requestId(), cursor(), getUserInfo()));
+        return Collections.unmodifiableList(Arrays.asList(tenantId(), projectId(), userId(), branch(), clientId(), requestId(), cursor(), getUserInfo(), source()));
     }
 
     public static void setValues(List<Object> values) {
-        if (ValueUtil.isEmpty(values) || values.size() < 8) {
+        if (ValueUtil.isEmpty(values) || values.size() < 9) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "invalid");
         }
         setTenantId((Long) values.get(0));
@@ -193,5 +216,10 @@ public final class SessionUtil {
         if (object instanceof UserBaseInfo userBaseInfo) {
             setUserinfo(userBaseInfo);
         }
+        Object source = values.get(8);
+        if (source instanceof String str) {
+            setSource(str);
+        }
     }
+
 }

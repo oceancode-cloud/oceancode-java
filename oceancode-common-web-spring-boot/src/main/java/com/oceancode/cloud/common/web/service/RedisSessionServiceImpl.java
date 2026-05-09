@@ -47,6 +47,10 @@ public class RedisSessionServiceImpl implements SessionService {
             LOGGER.error("parse token invalid.", e);
             return false;
         }
+        if (Objects.isNull(tokenInfo)) {
+            LOGGER.error("parse token invalid.");
+            return false;
+        }
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
         String userId = redisCacheService.getString(cacheKey).getResults();
         if (ValueUtil.isEmpty(userId)) {
@@ -66,6 +70,9 @@ public class RedisSessionServiceImpl implements SessionService {
     @Override
     public UserBaseInfo getUserInfo(String token) {
         TokenInfo tokenInfo = TokenUtil.parseToken(token);
+        if (Objects.isNull(tokenInfo)) {
+            return null;
+        }
         CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
         String userId = redisCacheService.getString(cacheKey).getResults();
         if (ValueUtil.isEmpty(userId)) {
@@ -195,6 +202,9 @@ public class RedisSessionServiceImpl implements SessionService {
     @Override
     public void logout(String token) {
         TokenInfo tokenInfo = TokenUtil.parseToken(token);
+        if(Objects.isNull(tokenInfo)){
+            return;
+        }
         CacheKey tokenKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
         CacheKey userTokenKey = KeyParam.of(this.sessionKey()).express("_u:id:" + SessionUtil.userId(true));
 
