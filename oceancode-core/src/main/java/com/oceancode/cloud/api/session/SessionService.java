@@ -43,6 +43,8 @@ public interface SessionService {
      */
     void setUserInfo(String token, UserBaseInfo userInfo);
 
+    void setSecurityKey(Long userId, String security);
+
     void setUserInfo(Long userId, UserBaseInfo userInfo);
 
     default void setUserRole(Long userId, RoleType roleType) {

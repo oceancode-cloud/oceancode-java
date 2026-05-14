@@ -5,8 +5,18 @@ import java.util.List;
 import java.util.Map;
 
 public class ToolManager {
+    private String name;
+
     public List<Map<String, Object>> getTools() {
         return Collections.emptyList();
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public Object execute(String name, Map<String, Object> arguments) {

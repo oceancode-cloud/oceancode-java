@@ -4,6 +4,7 @@
 
 package com.oceancode.cloud.common.web.util;
 
+import com.oceancode.cloud.annotation.PublicApi;
 import com.oceancode.cloud.common.constant.CommonConst;
 import com.oceancode.cloud.common.entity.PartFile;
 import com.oceancode.cloud.common.entity.ResultData;
@@ -175,6 +176,14 @@ public final class ApiUtil {
             token = getRequest().getParameter(CommonConst.TOKEN);
         }
         return token;
+    }
+
+    public static String getSecurityKey() {
+        return getRequest().getHeader(CommonConst.SECURITY_KEY);
+    }
+
+    public static String getSecurityRefreshKey() {
+        return getRequest().getHeader(CommonConst.SECURITY_REFRESH_KEY);
     }
 
     public static String getPrivateToken() {

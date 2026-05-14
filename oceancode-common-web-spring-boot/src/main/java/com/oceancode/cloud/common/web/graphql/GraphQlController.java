@@ -1,6 +1,7 @@
 package com.oceancode.cloud.common.web.graphql;
 
 import com.oceancode.cloud.common.constant.CommonConst;
+import com.oceancode.cloud.common.web.security.EncryptResponse;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ public class GraphQlController {
     }
 
     @PostMapping("${oc.query.api:/graphql/query}")
+    @EncryptResponse
     public Object query(@RequestBody QueryRequest param) {
         ExecutionResult result = this.graphQL.execute(param.getQuery());
         return GraphUtil.getData(result);

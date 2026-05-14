@@ -34,6 +34,7 @@ public class McpProtocolService {
 
     public McpProtocolService(ToolManager toolManager) {
         this.toolManager = toolManager;
+        toolManager.setName(name);
     }
 
     public Object handler(JsonRpcRequest request) {

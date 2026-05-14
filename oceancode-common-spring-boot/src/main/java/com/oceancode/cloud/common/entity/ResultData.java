@@ -9,8 +9,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.oceancode.cloud.api.ErrorCode;
 import com.oceancode.cloud.api.Result;
 import com.oceancode.cloud.api.security.EncryptValue;
+import com.oceancode.cloud.api.session.UserBaseInfo;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.security.EncryptData;
+import com.oceancode.cloud.common.util.JsonUtil;
+import com.oceancode.cloud.common.util.SessionUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import org.springframework.http.HttpHeaders;
 
@@ -37,6 +40,7 @@ public class ResultData<T> implements Result<T> {
     @JsonIgnore
     private List<T> list;
 
+    private Boolean encrypt;
     @JsonIgnore
     private transient HttpHeaders headers;
 
@@ -193,6 +197,7 @@ public class ResultData<T> implements Result<T> {
         return this.headers.get(key);
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccessDenied() {
         if (Result.super.isAccessDenied()) {
@@ -202,5 +207,13 @@ public class ResultData<T> implements Result<T> {
             return false;
         }
         return (HttpServletResponse.SC_UNAUTHORIZED + "").equals(this.getStatusCode().toString());
+    }
+
+    public Boolean getEncrypt() {
+        return encrypt;
+    }
+
+    public void setEncrypt(Boolean encrypt) {
+        this.encrypt = encrypt;
     }
 }

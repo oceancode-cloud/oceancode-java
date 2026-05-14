@@ -1,5 +1,7 @@
 package com.oceancode.cloud.api.session;
 
+import com.oceancode.cloud.common.util.ValueUtil;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -10,6 +12,7 @@ public class UserBaseInfo {
     private UserType userType;
     private Map<String, Object> data;
     private String role;
+    private String securityKey;
     private transient RoleType roleType;
 
     public RoleType role() {
@@ -103,4 +106,16 @@ public class UserBaseInfo {
     public void setRole(String role) {
         this.role = role;
     }
+
+    public String getSecurityKey() {
+        if (ValueUtil.isEmpty(securityKey) && Objects.nonNull(data)) {
+            securityKey = data.get("_securityKey").toString();
+        }
+        return securityKey;
+    }
+
+    public void setSecurityKey(String securityKey) {
+        this.securityKey = securityKey;
+    }
+
 }

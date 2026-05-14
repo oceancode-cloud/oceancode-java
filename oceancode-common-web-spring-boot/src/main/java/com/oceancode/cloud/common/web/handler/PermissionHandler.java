@@ -5,17 +5,23 @@ import com.oceancode.cloud.api.interceptor.FunctionInterceptor;
 import com.oceancode.cloud.api.permission.ResourcePermissionService;
 import com.oceancode.cloud.api.permission.Permission;
 import com.oceancode.cloud.api.permission.PermissionConst;
+import com.oceancode.cloud.api.security.AesCryptoService;
+import com.oceancode.cloud.api.security.Rsa2CryptoService;
 import com.oceancode.cloud.api.session.RoleType;
 import com.oceancode.cloud.api.session.SessionService;
 import com.oceancode.cloud.api.session.UserBaseInfo;
 import com.oceancode.cloud.api.session.UserType;
+import com.oceancode.cloud.common.config.CommonConfig;
+import com.oceancode.cloud.common.entity.ResultData;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
+import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.PermissionUtil;
 import com.oceancode.cloud.common.util.SessionUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import com.oceancode.cloud.common.web.util.ApiUtil;
+import jakarta.annotation.Resource;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -28,6 +34,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Aspect
@@ -39,6 +47,16 @@ public class PermissionHandler implements ApplicationLifeCycleService {
     private static SessionService sessionService;
     @Autowired(required = false)
     FunctionInterceptor functionInterceptor;
+
+    @Resource
+    private AesCryptoService aesCryptoService;
+
+    @Resource
+    private CommonConfig commonConfig;
+
+    @Resource
+    private Rsa2CryptoService rsa2CryptoService;
+
 
     @Override
     public void onReady() {
@@ -103,7 +121,6 @@ public class PermissionHandler implements ApplicationLifeCycleService {
                     functionInterceptor.after(permission.resourceId(), permission.resourceType());
                 }
             }
-
             return proceed;
         } else {
             throw new BusinessRuntimeException(CommonErrorCode.PERMISSION_DENIED);

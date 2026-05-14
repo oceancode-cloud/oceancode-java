@@ -40,24 +40,12 @@ public class RedisSessionServiceImpl implements SessionService {
 
     @Override
     public boolean isLogin(String token) {
-        TokenInfo tokenInfo = null;
-        try {
-            tokenInfo = TokenUtil.parseToken(token);
-        } catch (Exception e) {
-            LOGGER.error("parse token invalid.", e);
-            return false;
+        UserBaseInfo userInfo = getUserInfo(token);
+        if (Objects.nonNull(userInfo) && Objects.nonNull(userInfo.getUserId())) {
+            SessionUtil.setUserId(userInfo.getUserId());
+            return true;
         }
-        if (Objects.isNull(tokenInfo)) {
-            LOGGER.error("parse token invalid.");
-            return false;
-        }
-        CacheKey cacheKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());
-        String userId = redisCacheService.getString(cacheKey).getResults();
-        if (ValueUtil.isEmpty(userId)) {
-            return false;
-        }
-        SessionUtil.setUserId(Long.valueOf(userId));
-        return true;
+        return false;
     }
 
     @Override
@@ -136,6 +124,11 @@ public class RedisSessionServiceImpl implements SessionService {
     }
 
     @Override
+    public void setSecurityKey(Long userId, String security) {
+        setUserProperty(userId, "_securityKey", security);
+    }
+
+    @Override
     public void setUserInfo(String token, UserBaseInfo userInfo) {
         if (ValueUtil.isEmpty(userInfo.getUserId())) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "userId is required.");
@@ -160,6 +153,7 @@ public class RedisSessionServiceImpl implements SessionService {
         } else {
             map.remove("openid");
         }
+        map.put("_securityKey", userInfo.getSecurityKey());
 
         if (Objects.nonNull(userInfo.getUserType())) {
             map.put("userType", userInfo.getUserType().getValue());
@@ -202,7 +196,7 @@ public class RedisSessionServiceImpl implements SessionService {
     @Override
     public void logout(String token) {
         TokenInfo tokenInfo = TokenUtil.parseToken(token);
-        if(Objects.isNull(tokenInfo)){
+        if (Objects.isNull(tokenInfo)) {
             return;
         }
         CacheKey tokenKey = KeyParam.of(this.sessionKey()).express("_u:" + tokenInfo.getSessionId());

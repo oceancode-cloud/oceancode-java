@@ -39,6 +39,8 @@ public class GlobalExceptionHandler {
                 ApiUtil.getResponse().setStatus(HttpServletResponse.SC_FORBIDDEN);
             } else if (CommonErrorCode.API_NOT_FOUND.equals(businessRuntimeException.getCode())) {
                 ApiUtil.getResponse().setStatus(HttpServletResponse.SC_NOT_FOUND);
+            } else if (CommonErrorCode.TOKEN_VALID.equals(businessRuntimeException.getCode())) {
+                ApiUtil.getResponse().setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             } else {
                 ApiUtil.getResponse().setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }

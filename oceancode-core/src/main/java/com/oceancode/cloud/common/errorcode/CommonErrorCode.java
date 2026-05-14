@@ -52,6 +52,7 @@ public enum CommonErrorCode implements ErrorCode {
      * some resource must be some authorization but user not login.
      */
     NOT_LOGIN(CommonConst.CLIENT_ERROR_CODE_PREFIX + "not_login", "Denied access"),
+    TOKEN_VALID(CommonConst.CLIENT_ERROR_CODE_PREFIX + "token.invalid", "Token Invalid"),
 
     /**
      * username or password invalid when user login.
