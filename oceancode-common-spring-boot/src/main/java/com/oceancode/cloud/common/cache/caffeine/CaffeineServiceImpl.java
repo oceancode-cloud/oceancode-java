@@ -12,12 +12,14 @@ import com.oceancode.cloud.api.cache.CacheKey;
 import com.oceancode.cloud.api.cache.LocalCacheService;
 import com.oceancode.cloud.api.cache.entity.SortedValue;
 import com.oceancode.cloud.common.cache.CacheResult;
+import com.oceancode.cloud.common.cache.KeyParam;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.config.Config;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.CacheUtil;
 import com.oceancode.cloud.common.util.ComponentUtil;
+import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -61,6 +63,11 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
+    public void setString(String cacheId, Map<String, Object> params, Object value) {
+        setString(KeyParam.of(cacheId).addParams(params), value);
+    }
+
+    @Override
     public void setString(CacheKey keyParam, Object value) {
         long expire = keyParam.expire();
         if (value == null) {
@@ -70,6 +77,7 @@ public final class CaffeineServiceImpl implements LocalCacheService {
             value = CacheUtil.emptyValue(keyParam.key());
             expire = CacheUtil.emptyExpire(keyParam.key());
         }
+        value = JsonUtil.toJson(value);
         putVal(keyParam, value);
         Object finalValue = value;
         long finalExpire = expire;
@@ -85,6 +93,15 @@ public final class CaffeineServiceImpl implements LocalCacheService {
         getCache(keyParam).policy().expireVariably().ifPresent(e -> {
             e.put(keyParam.parseKey(), value, keyParam.expire(), TimeUnit.MILLISECONDS);
         });
+    }
+
+    @Override
+    public String getString(String cacheId, Map<String, Object> params) {
+        Result<String> result = getString(KeyParam.of(cacheId).addParams(params));
+        if (result.isSuccess()) {
+            return result.getResults();
+        }
+        return null;
     }
 
     @Override
@@ -138,6 +155,11 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
+    public void setMap(String cacheId, Map<String, Object> value) {
+        setMap(KeyParam.of(cacheId).addParams(value), value);
+    }
+
+    @Override
     public void setMap(CacheKey keyParam, Map<String, Object> value) {
         if (value == null) {
             if (!CacheUtil.emptyEnabled(keyParam.key())) {
@@ -149,12 +171,30 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
+    public Map<String, Object> getMap(String cacheId, Map<String, Object> params) {
+        Result<Map<String, Object>> result = getMap(KeyParam.of(cacheId));
+        if (result.isSuccess()) {
+            return result.getResults();
+        }
+        return null;
+    }
+
+    @Override
     public Result<Map<String, Object>> getMap(CacheKey keyParam) {
         Map<String, Object> map = getVal(keyParam);
         if (map == null) {
             return CacheResult.NULL;
         }
         return new CacheResult<>(map);
+    }
+
+    @Override
+    public Map<String, Object> getMapValues(String cacheId, List<String> fields) {
+        Result<Map<String, Object>> result = getMapValues(KeyParam.of(cacheId), fields);
+        if (result.isSuccess()) {
+            return result.getResults();
+        }
+        return null;
     }
 
     @Override
@@ -188,6 +228,11 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
+    public void setMapValues(String cacheId, Map<String, Object> value) {
+        setMapValues(KeyParam.of(cacheId), value);
+    }
+
+    @Override
     public void setMapValues(CacheKey keyParam, Map<String, Object> value) {
         if (value == null || value.isEmpty()) {
             return;
@@ -199,6 +244,11 @@ public final class CaffeineServiceImpl implements LocalCacheService {
         }
         map.putAll(value);
         setMap(keyParam, map);
+    }
+
+    @Override
+    public void deleteMap(String cacheId, Map<String, Object> params) {
+        deleteMap(KeyParam.of(cacheId));
     }
 
     @Override
@@ -386,6 +436,11 @@ public final class CaffeineServiceImpl implements LocalCacheService {
             putVal(keyParam, value);
             return new CacheResult<>(value);
         }
+    }
+
+    @Override
+    public void delete(String cacheId) {
+        delete(KeyParam.of(cacheId));
     }
 
     @Override

@@ -12,7 +12,11 @@ import java.util.Set;
 
 public interface CacheService {
 
+    void setString(String cacheId, Map<String, Object> params, Object value);
+
     void setString(CacheKey keyParam, Object value);
+
+    String getString(String cacheId, Map<String, Object> params);
 
     Result<String> getString(CacheKey keyParam);
 
@@ -20,15 +24,25 @@ public interface CacheService {
 
     void setStringAsList(CacheKey key, List<?> list);
 
+    void setMap(String cacheId, Map<String, Object> value);
+
     void setMap(CacheKey keyParam, Map<String, Object> value);
+
+    Map<String, Object> getMap(String cacheId, Map<String, Object> params);
 
     Result<Map<String, Object>> getMap(CacheKey keyParam);
 
+    Map<String, Object> getMapValues(String cacheId, List<String> fields);
+
     Result<Map<String, Object>> getMapValues(CacheKey keyParam, List<String> fields);
+
+    void setMapValues(String cacheId, Map<String, Object> value);
 
     void setMapValue(CacheKey keyParam, String key, Object value);
 
     void setMapValues(CacheKey keyParam, Map<String, Object> value);
+
+    void deleteMap(String cacheId, Map<String, Object> params);
 
     void deleteMap(CacheKey keyParam);
 
@@ -66,6 +80,8 @@ public interface CacheService {
     Result<Long> setExpire(CacheKey keyParam, long timeout);
 
     Result<Long> increment(CacheKey keyParam, long delta);
+
+    void delete(String cacheId);
 
     void delete(CacheKey key);
 

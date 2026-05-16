@@ -176,6 +176,9 @@ public final class JsonUtil {
         if (Objects.isNull(obj)) {
             return null;
         }
+        if (obj instanceof Map map) {
+            return map;
+        }
         try {
             return OBJECT_MAPPER.readValue(toJson(obj), Map.class);
         } catch (JsonProcessingException e) {

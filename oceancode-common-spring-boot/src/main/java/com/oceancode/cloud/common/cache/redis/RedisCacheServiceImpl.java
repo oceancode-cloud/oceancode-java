@@ -9,6 +9,7 @@ import com.oceancode.cloud.api.cache.CacheKey;
 import com.oceancode.cloud.api.cache.RedisCacheService;
 import com.oceancode.cloud.api.cache.entity.SortedValue;
 import com.oceancode.cloud.common.cache.CacheResult;
+import com.oceancode.cloud.common.cache.KeyParam;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.CacheUtil;
@@ -38,6 +39,11 @@ public class RedisCacheServiceImpl implements RedisCacheService {
 
     private static RedisTemplate<String, Object> redisTemplate(String sourceKey) {
         return RedisUtil.getTemplate(sourceKey);
+    }
+
+    @Override
+    public void setString(String cacheId, Map<String, Object> params, Object value) {
+        setString(KeyParam.of(cacheId).addParams(params), value);
     }
 
     @Override
@@ -94,6 +100,14 @@ public class RedisCacheServiceImpl implements RedisCacheService {
         }
     }
 
+    @Override
+    public String getString(String cacheId, Map<String, Object> params) {
+        Result<String> result = getString(KeyParam.of(cacheId).addParams(params));
+        if (result.isSuccess()) {
+            return result.getResults();
+        }
+        return null;
+    }
 
     @Override
     public Result<String> getString(CacheKey keyParam) {
@@ -162,6 +176,11 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
+    public void setMap(String cacheId, Map<String, Object> value) {
+        setMap(KeyParam.of(cacheId).addParams(value), value);
+    }
+
+    @Override
     public void setMap(CacheKey keyParam, Map<String, Object> value) {
         if (ValueUtil.isEmpty(value)) {
             throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, "value is required");
@@ -202,6 +221,15 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
+    public Map<String, Object> getMap(String cacheId, Map<String, Object> params) {
+        Result<Map<String, Object>> result = getMap(KeyParam.of(cacheId));
+        if (result.isSuccess()) {
+            return result.getResults();
+        }
+        return null;
+    }
+
+    @Override
     public Result<Map<String, Object>> getMap(CacheKey keyParam) {
         RedisTemplate<String, Object> redisTemplate = redisTemplate(keyParam.sourceKey());
         Cursor<Map.Entry<Object, Object>> cursor = redisTemplate.opsForHash().scan(keyParam.parseKey(), ScanOptions.scanOptions().match("*").count(MAX_MAP_ELEMENTS_COUNT + 1).build());
@@ -219,6 +247,15 @@ public class RedisCacheServiceImpl implements RedisCacheService {
             return CacheResult.NULL;
         }
         return new CacheResult<>(resultMap);
+    }
+
+    @Override
+    public Map<String, Object> getMapValues(String cacheId, List<String> fields) {
+        Result<Map<String, Object>> result = getMapValues(KeyParam.of(cacheId), fields);
+        if (result.isSuccess()) {
+            return result.getResults();
+        }
+        return null;
     }
 
     @Override
@@ -242,6 +279,11 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
+    public void setMapValues(String cacheId, Map<String, Object> value) {
+        setMapValues(KeyParam.of(cacheId), value);
+    }
+
+    @Override
     public void setMapValue(CacheKey keyParam, String key, Object value) {
         RedisTemplate<String, Object> redisTemplate = redisTemplate(keyParam.sourceKey());
         if (Objects.isNull(value)) {
@@ -259,6 +301,11 @@ public class RedisCacheServiceImpl implements RedisCacheService {
         for (Map.Entry<String, Object> item : value.entrySet()) {
             setMapValue(keyParam, item.getKey(), item.getValue());
         }
+    }
+
+    @Override
+    public void deleteMap(String cacheId, Map<String, Object> params) {
+        deleteMap(KeyParam.of(cacheId).addParams(params));
     }
 
     @Override
@@ -433,6 +480,11 @@ public class RedisCacheServiceImpl implements RedisCacheService {
 
         Object result = executeScript(keyParam, "if (redis.call('EXISTS', KEYS[1]) == 0) then\n" + "    redis.call('SET', KEYS[1], ARGV[2]);\n" + "    redis.call('PEXPIRE', KEYS[1], ARGV[1]);\n" + "    return redis.call('GET', KEYS[1]);\n" + "end\n" + "redis.call('SET', KEYS[1], redis.call('GET', KEYS[1]) + ARGV[2]);\n" + "return redis.call('GET', KEYS[1]);", Object.class, keys, values);
         return new CacheResult<>(Long.parseLong(result + ""));
+    }
+
+    @Override
+    public void delete(String cacheId) {
+        delete(KeyParam.of(cacheId));
     }
 
     @Override

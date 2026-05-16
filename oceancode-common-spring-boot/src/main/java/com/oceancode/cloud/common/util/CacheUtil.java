@@ -8,8 +8,10 @@ import com.oceancode.cloud.api.cache.CacheService;
 import com.oceancode.cloud.api.cache.CacheType;
 import com.oceancode.cloud.common.config.CommonConfig;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 public final class CacheUtil {
     private static CommonConfig commonConfig;
@@ -47,7 +49,7 @@ public final class CacheUtil {
         return commonConfig.getValue("oc.cache." + keyId + ".empty.value", "nil");
     }
 
-    public static String pattern(String keyId){
+    public static String pattern(String keyId) {
         return commonConfig.getValue("oc.cache." + keyId + ".key-pattern");
     }
 
