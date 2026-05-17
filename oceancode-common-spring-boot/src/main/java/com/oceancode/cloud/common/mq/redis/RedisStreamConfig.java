@@ -1,6 +1,5 @@
 package com.oceancode.cloud.common.mq.redis;
 
-import com.oceancode.cloud.api.mq.Producer;
 import com.oceancode.cloud.chart.ChartMessage;
 import com.oceancode.cloud.common.cache.KeyParam;
 import com.oceancode.cloud.common.config.CommonConfig;
@@ -8,7 +7,6 @@ import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.RedisUtil;
 import com.oceancode.cloud.common.util.VersionUtil;
-import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -16,7 +14,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -40,6 +37,7 @@ import java.util.Properties;
 
 @Configuration
 @ConditionalOnClass(StreamListener.class)
+@ConditionalOnBean(RedisTemplate.class)
 public class RedisStreamConfig implements InitializingBean, DisposableBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisStreamConfig.class);
     private final RedisTemplate<String, Object> redisTemplate;

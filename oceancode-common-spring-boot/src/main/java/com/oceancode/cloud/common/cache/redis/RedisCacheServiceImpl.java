@@ -13,11 +13,11 @@ import com.oceancode.cloud.common.cache.KeyParam;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.CacheUtil;
-import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.RedisUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.Cursor;
@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 @Primary
 @ConditionalOnClass({RedisTemplate.class,})
+@ConditionalOnProperty(name = "spring.redis.enabled", havingValue = "true")
 public class RedisCacheServiceImpl implements RedisCacheService {
     private static final int MAX_MAP_ELEMENTS_COUNT = 30;
 
