@@ -56,7 +56,7 @@ public class AutoConfigService {
 
     @Bean
     @ConditionalOnMissingBean(Producer.class)
-    @ConditionalOnClass(RedisTemplate.class)
+    @ConditionalOnBean(RedisCacheService.class)
     public RedisProducer redisProducer() {
         return new RedisProducer();
     }
