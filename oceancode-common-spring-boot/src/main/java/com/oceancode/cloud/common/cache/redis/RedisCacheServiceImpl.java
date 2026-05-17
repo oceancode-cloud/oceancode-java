@@ -483,6 +483,11 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
+    public void delete(String cacheId, Map<String, Object> param) {
+        delete(KeyParam.of(cacheId).addParams(param));
+    }
+
+    @Override
     public void delete(String cacheId) {
         delete(KeyParam.of(cacheId));
     }
@@ -493,9 +498,15 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
-    public void deleteByPrefix(CacheKey key) {
-        RedisTemplate<String, Object> redisTemplate = redisTemplate(key.sourceKey());
-        Cursor<String> cursor = redisTemplate.scan(ScanOptions.scanOptions().match(key.parseKey() + "*").count(1000).build());
+    public void deleteByPrefix(String source, String prefix) {
+        if (ValueUtil.isEmpty(prefix)) {
+            return;
+        }
+        if (!prefix.endsWith("*")) {
+            prefix += "*";
+        }
+        RedisTemplate<String, Object> redisTemplate = redisTemplate(source);
+        Cursor<String> cursor = redisTemplate.scan(ScanOptions.scanOptions().match(prefix).count(1000).build());
         List<String> keys = new ArrayList<>();
         while (cursor.hasNext()) {
             keys.add(cursor.next());
@@ -507,5 +518,11 @@ public class RedisCacheServiceImpl implements RedisCacheService {
         if (!keys.isEmpty()) {
             redisTemplate.delete(keys);
         }
+    }
+
+
+    @Override
+    public void deleteByPrefix(CacheKey key) {
+        deleteByPrefix(key.sourceKey(), key.parseKey());
     }
 }

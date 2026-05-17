@@ -439,6 +439,11 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     }
 
     @Override
+    public void delete(String cacheId, Map<String, Object> param) {
+        delete(KeyParam.of(cacheId).addParams(param));
+    }
+
+    @Override
     public void delete(String cacheId) {
         delete(KeyParam.of(cacheId));
     }
@@ -446,6 +451,24 @@ public final class CaffeineServiceImpl implements LocalCacheService {
     @Override
     public void delete(CacheKey key) {
         getCache(key).asMap().remove(key.parseKey());
+    }
+
+
+    @Override
+    public void deleteByPrefix(String source, String prefix) {
+        Cache<String, Object> cache = null;
+        if (sessionKey.equals(source)) {
+            cache = sessionCache;
+        } else {
+            cache = ComponentUtil.getBean("caffeineDefaultCache", Cache.class);
+        }
+        ConcurrentMap<String, Object> map = cache.asMap();
+        String rKey = prefix;
+        List<String> keys = map.keySet().stream().filter(e -> e.startsWith(rKey))
+                .collect(Collectors.toList());
+        for (String mKey : keys) {
+            map.remove(mKey);
+        }
     }
 
     @Override

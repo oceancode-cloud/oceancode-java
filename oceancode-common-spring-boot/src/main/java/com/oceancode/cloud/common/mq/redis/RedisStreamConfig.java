@@ -60,7 +60,7 @@ public class RedisStreamConfig implements InitializingBean, DisposableBean {
     }
 
     @Bean
-    @ConditionalOnMissingBean(Producer.class)
+//    @ConditionalOnMissingBean(Producer.class)
     @ConditionalOnClass(RedisTemplate.class)
     @ConditionalOnBean(com.oceancode.cloud.api.mq.Consumer.class)
     public RedisConsumer redisConsumer() {
@@ -145,8 +145,11 @@ public class RedisStreamConfig implements InitializingBean, DisposableBean {
         }
         checkRedisVersion();
         StreamOperations<String, Object, Object> streamOperations = redisTemplate.opsForStream();
-        if (Boolean.FALSE.equals(redisTemplate.hasKey(streamName))) {
+        try {
             streamOperations.createGroup(streamName, ReadOffset.from("0"), userEventGroup);
+        } catch (Exception e) {
+            LOGGER.error("create group error.", e);
         }
     }
+
 }

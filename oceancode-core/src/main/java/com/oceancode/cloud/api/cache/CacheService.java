@@ -81,9 +81,13 @@ public interface CacheService {
 
     Result<Long> increment(CacheKey keyParam, long delta);
 
+    void delete(String cacheId, Map<String, Object> param);
+
     void delete(String cacheId);
 
     void delete(CacheKey key);
 
     void deleteByPrefix(CacheKey key);
+
+    void deleteByPrefix(String source, String prefix);
 }
