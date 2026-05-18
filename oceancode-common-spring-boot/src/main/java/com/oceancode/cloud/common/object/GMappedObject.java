@@ -74,7 +74,15 @@ public abstract class GMappedObject<T> extends GTypeObject<T> {
         if (genericSuperclass instanceof ParameterizedType parameterizedType) {
             Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
             if (actualTypeArguments.length == 1) {
-                dataTypeClass = (Class<?>) actualTypeArguments[0];
+                Type actualTypeArgument = actualTypeArguments[0];
+                if (actualTypeArgument instanceof Class<?> cls) {
+                    dataTypeClass = cls;
+                } else {
+                    cur = this.getClass().getSuperclass();
+                    if (cur.getGenericSuperclass() instanceof ParameterizedType pt) {
+                        dataTypeClass = (Class<?>) pt.getActualTypeArguments()[0];
+                    }
+                }
             }
         }
         return dataTypeClass;
