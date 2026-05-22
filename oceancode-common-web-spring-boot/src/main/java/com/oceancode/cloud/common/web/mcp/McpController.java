@@ -1,6 +1,5 @@
 package com.oceancode.cloud.common.web.mcp;
 
-import com.oceancode.cloud.api.permission.Permission;
 import com.oceancode.cloud.api.permission.PermissionConst;
 import com.oceancode.cloud.api.tool.ToolManager;
 import com.oceancode.cloud.common.constant.CommonConst;
@@ -11,6 +10,7 @@ import com.oceancode.cloud.entity.Tuple2;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping(CommonConst.API_PREFIX)
+@ConditionalOnBean(ToolManager.class)
 public class McpController {
     private final static Logger LOGGER = LoggerFactory.getLogger(McpController.class);
     private McpProtocolService mcpProtocolService;

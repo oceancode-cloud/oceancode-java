@@ -11,10 +11,10 @@ import com.oceancode.cloud.common.util.ValueUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component
+@ConditionalOnBean(ToolManager.class)
 public class McpProtocolService {
     @Value("${oc.mcp.name:idesign}")
     private String name;

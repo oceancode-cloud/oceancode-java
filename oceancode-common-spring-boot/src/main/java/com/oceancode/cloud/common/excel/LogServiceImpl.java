@@ -2,6 +2,7 @@ package com.oceancode.cloud.common.excel;
 
 import com.oceancode.cloud.api.file.ExportFileContext;
 import com.oceancode.cloud.api.file.FileContext;
+import com.oceancode.cloud.api.file.FileInfo;
 import com.oceancode.cloud.api.file.FileService;
 import com.oceancode.cloud.api.file.ParseCallback;
 import com.oceancode.cloud.api.file.ParseFileContext;
@@ -16,7 +17,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public class LogServiceImpl implements FileService {
-    @Override
+//    @Override
     public <T extends ParseFileContext> void parse(T context, ParseCallback callback) {
         File file = new File(context.getFilePath());
         FileContext fileContext = new FileContext();
@@ -27,12 +28,12 @@ public class LogServiceImpl implements FileService {
         }
     }
 
-    @Override
+//    @Override
     public <T extends ExportFileContext> void write(T context, WriteCallback callback) {
 
     }
 
-    @Override
+//    @Override
     public void readTemplate(File templateFile, Consumer<TemplateInputStream> consumer) {
 
     }
@@ -63,5 +64,10 @@ public class LogServiceImpl implements FileService {
             callback.parse(fileContext, byteRow);
             leftBytes = byteRow.getLeftBytes();
         }
+    }
+
+    @Override
+    public void save(FileInfo fileInfo) {
+
     }
 }

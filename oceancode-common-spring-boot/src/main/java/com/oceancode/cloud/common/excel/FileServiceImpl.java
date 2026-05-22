@@ -3,6 +3,7 @@ package com.oceancode.cloud.common.excel;
 import com.oceancode.cloud.api.file.DataRow;
 import com.oceancode.cloud.api.file.ExportFileContext;
 import com.oceancode.cloud.api.file.FileContext;
+import com.oceancode.cloud.api.file.FileInfo;
 import com.oceancode.cloud.api.file.FileService;
 import com.oceancode.cloud.api.file.ParseCallback;
 import com.oceancode.cloud.api.file.ParseFileContext;
@@ -40,7 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class FileServiceImpl implements FileService {
-    @Override
     public <T extends ParseFileContext> void parse(T context, ParseCallback callback) {
         parse(context, callback, true);
     }
@@ -106,7 +106,6 @@ public class FileServiceImpl implements FileService {
     }
 
 
-    @Override
     public <T extends ExportFileContext> void write(T context, WriteCallback callback) {
         InnerFileContext innerFileContext = new InnerFileContext();
         String templatePath = context.getTemplateFile();
@@ -187,6 +186,11 @@ public class FileServiceImpl implements FileService {
             rowMap.put(row.getIndex(), row);
         }
         runnable.run();
+    }
+
+    @Override
+    public void save(FileInfo fileInfo) {
+
     }
 
     private static class InnerFileContext extends ParseFileContext {
@@ -448,7 +452,7 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    @Override
+//    @Override
     public void readTemplate(File templateFile, Consumer<TemplateInputStream> consumer) {
         try (TemplateInputStream templateInputStream = new TemplateInputStream(templateFile)) {
             consumer.accept(templateInputStream);

@@ -21,10 +21,13 @@ import com.oceancode.cloud.common.mq.local.LocalProducer;
 import com.oceancode.cloud.common.mq.redis.RedisProducer;
 import com.oceancode.cloud.common.security.AesCrypto;
 import com.oceancode.cloud.common.security.Rsa2Crypto;
+import com.oceancode.cloud.file.LocalFileServiceImpl;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -113,5 +116,11 @@ public class AutoConfigService {
     @ConditionalOnBean(ExpressExecute.class)
     public ExpressEnginManager expressEnginManager(Set<ExpressExecute> executes) {
         return new ExpressEnginManager(executes);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(FileService.class)
+    public LocalFileServiceImpl localFileService() {
+        return new LocalFileServiceImpl();
     }
 }

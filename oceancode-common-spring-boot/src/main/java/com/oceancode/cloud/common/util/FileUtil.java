@@ -4,6 +4,7 @@
 
 package com.oceancode.cloud.common.util;
 
+import com.oceancode.cloud.api.file.FileInfo;
 import com.oceancode.cloud.api.security.Rsa2CryptoService;
 import com.oceancode.cloud.common.entity.PartFile;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
@@ -14,6 +15,7 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;

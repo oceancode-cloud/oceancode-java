@@ -7,6 +7,7 @@ import com.oceancode.cloud.api.permission.PermissionConst;
 import com.oceancode.cloud.autoconfig.AutoConfigService;
 import com.oceancode.cloud.common.constant.CommonConst;
 import com.oceancode.cloud.common.entity.ResultData;
+import com.oceancode.cloud.common.web.security.EncryptResponse;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,7 +26,8 @@ public class AutoConfigController {
 
     @Permission(resourceId = "autoConfig", authorities = {PermissionConst.AUTHORITY_LOGIN})
     @PostMapping("/autoConfig")
-    public ResultData<?> autoConfig2(@RequestBody AutoConfigRequest autoConfigRequest) {
+    @EncryptResponse
+    public ResultData<?> autoConfig(@RequestBody AutoConfigRequest autoConfigRequest) {
         AutoConfigResponse result = autoConfigService.autoConfig(autoConfigRequest);
         return ResultData.isOk(result);
     }
