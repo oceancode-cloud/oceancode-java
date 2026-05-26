@@ -93,6 +93,7 @@ public class McpProtocolService {
         } catch (Exception e) {
             // ignore
         }
+        LOGGER.info("tools/list count={}", resultList.size());
         return JsonRpcResponse.success(request.id(), Map.of("tools", resultList));
     }
 

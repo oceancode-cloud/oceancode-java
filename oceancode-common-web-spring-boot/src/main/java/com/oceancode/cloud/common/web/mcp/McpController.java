@@ -35,10 +35,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * MCP HTTP transport:
+ * MCP HTTP 传输层：协议由 {@link McpProtocolService#handler(JsonRpcRequest)} 处理。
  * <ul>
- *   <li>Streamable HTTP (2025+): single endpoint {@code POST/GET/DELETE /mcp}</li>
- *   <li>Legacy HTTP+SSE (2024-11): {@code GET /mcp/sse} + {@code POST /mcp/messages}</li>
+ *   <li>Streamable HTTP: POST/GET/DELETE {@code /mcp}</li>
+ *   <li>Legacy: GET {@code /mcp/sse} + POST {@code /mcp/messages}</li>
  * </ul>
  */
 @RestController
@@ -48,15 +48,12 @@ public class McpController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(McpController.class);
 
-    /** Streamable HTTP session header (MCP spec). */
     public static final String MCP_SESSION_ID_HEADER = "Mcp-Session-Id";
 
     private static final String METHOD_INITIALIZE = "initialize";
+    private static final String INVALID_SESSION_MARKER = "\0INVALID_SESSION\0";
 
-    /** Legacy SSE: sessionId -> (emitter, userId). */
     private static final Map<String, Tuple2<SseEmitter, Long>> LEGACY_SESSION_MAP = new ConcurrentHashMap<>();
-
-    /** Streamable HTTP: sessionId -> (optional GET stream emitter, userId). */
     private static final Map<String, Tuple2<SseEmitter, Long>> STREAMABLE_SESSION_MAP = new ConcurrentHashMap<>();
 
     private final McpProtocolService mcpProtocolService;
@@ -67,21 +64,17 @@ public class McpController {
         this.toolManager = toolManager;
     }
 
-    // -------------------------------------------------------------------------
-    // Streamable HTTP (Cursor / MCP 2025-03+)
-    // -------------------------------------------------------------------------
+    // ======================== Streamable HTTP ========================
 
     @CrossOrigin
     @PostMapping(
             value = "/mcp",
             consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_EVENT_STREAM_VALUE}
+            produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Object streamableHttp(
+    public ResponseEntity<?> streamableHttp(
             @RequestBody Object body,
-            @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String accept,
-            @RequestHeader(value = MCP_SESSION_ID_HEADER, required = false) String mcpSessionId,
-            HttpServletRequest servletRequest) {
+            @RequestHeader(value = MCP_SESSION_ID_HEADER, required = false) String mcpSessionId) {
 
         if (!checkMcpToken("mcp")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -93,40 +86,43 @@ public class McpController {
             return ResponseEntity.badRequest().build();
         }
 
-        boolean hasRequest = messages.stream().anyMatch(this::isJsonRpcRequest);
-        if (!hasRequest) {
-            for (JsonRpcRequest msg : messages) {
-                mcpProtocolService.handler(msg);
+        List<JsonRpcRequest> notifications = new ArrayList<>();
+        List<JsonRpcRequest> requests = new ArrayList<>();
+        for (JsonRpcRequest msg : messages) {
+            if (isJsonRpcRequest(msg)) {
+                requests.add(msg);
+            } else {
+                notifications.add(msg);
             }
+        }
+
+        for (JsonRpcRequest notification : notifications) {
+            LOGGER.info("MCP notification method={}", notification.method());
+            mcpProtocolService.handler(notification);
+        }
+        if (requests.isEmpty()) {
             return ResponseEntity.status(HttpStatus.ACCEPTED).build();
         }
 
-        String sessionId = resolveStreamableSession(messages, mcpSessionId);
-        if (sessionId == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        boolean preferSse = acceptsEventStream(accept);
-        if (preferSse && messages.size() == 1 && isJsonRpcRequest(messages.get(0))) {
-            return streamablePostAsSse(messages.get(0), sessionId);
+        String sessionId = resolveStreamableSession(requests, mcpSessionId);
+        if (INVALID_SESSION_MARKER.equals(sessionId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         List<Object> results = new ArrayList<>();
-        for (JsonRpcRequest msg : messages) {
-            if (!isJsonRpcRequest(msg)) {
-                mcpProtocolService.handler(msg);
-                continue;
+        for (JsonRpcRequest request : requests) {
+            LOGGER.info("MCP request method={}, id={}", request.method(), request.id());
+            Object res = mcpProtocolService.handler(request);
+            if (res == null) {
+                LOGGER.error("handler returned null for method={}", request.method());
+                res = JsonRpcResponse.error(request.id(), -32603, "empty handler response");
             }
-            Object res = mcpProtocolService.handler(msg);
-            if (res != null) {
-                results.add(res);
-            }
+            results.add(res);
         }
 
-        ResponseEntity.BodyBuilder builder = ResponseEntity.ok();
-        builder.header(MCP_SESSION_ID_HEADER, sessionId);
-        if (results.isEmpty()) {
-            return builder.build();
+        ResponseEntity.BodyBuilder builder = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON);
+        if (StringUtils.hasText(sessionId)) {
+            builder.header(MCP_SESSION_ID_HEADER, sessionId);
         }
         if (results.size() == 1) {
             return builder.body(results.get(0));
@@ -141,7 +137,7 @@ public class McpController {
             @RequestHeader(value = MCP_SESSION_ID_HEADER, required = false) String mcpSessionId,
             @RequestHeader(value = "Last-Event-ID", required = false) String lastEventId) {
 
-        if (!acceptsEventStream(accept)) {
+        if (!StringUtils.hasText(accept) || !accept.contains(MediaType.TEXT_EVENT_STREAM_VALUE)) {
             return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
         }
         if (!checkMcpToken("mcp")) {
@@ -151,19 +147,12 @@ public class McpController {
         }
 
         SessionUtil.setSource(CommonConst.MCP_SOURCE);
-        Long userId = SessionUtil.userId();
-        if (userId == null) {
-            LOGGER.error("not login");
-            SseEmitter denied = new SseEmitter(0L);
-            denied.complete();
-            return denied;
+        if (!StringUtils.hasText(mcpSessionId)) {
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
         }
-
-        if (!StringUtils.hasText(mcpSessionId) || !isValidStreamableSession(mcpSessionId, userId)) {
-            LOGGER.error("invalid or missing {}", MCP_SESSION_ID_HEADER);
-            SseEmitter denied = new SseEmitter(0L);
-            denied.complete();
-            return denied;
+        Long userId = SessionUtil.userId();
+        if (!isValidStreamableSession(mcpSessionId, userId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         SseEmitter emitter = new SseEmitter(0L);
@@ -172,7 +161,6 @@ public class McpController {
         emitter.onCompletion(cleanup);
         emitter.onTimeout(cleanup);
         emitter.onError(e -> cleanup.run());
-
         try {
             if (StringUtils.hasText(lastEventId)) {
                 emitter.send(SseEmitter.event().id(lastEventId).comment("resume"));
@@ -200,44 +188,33 @@ public class McpController {
         return ResponseEntity.noContent().build();
     }
 
-    // -------------------------------------------------------------------------
-    // Legacy HTTP+SSE (MCP 2024-11, backwards compatibility)
-    // -------------------------------------------------------------------------
+    // ======================== Legacy HTTP+SSE ========================
 
     @CrossOrigin
     @GetMapping(value = "/mcp/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter legacySse() {
         SseEmitter emitter = new SseEmitter(0L);
-        try {
-            if (!checkMcpToken("mcp_message")) {
-                LOGGER.error("sessionId invalid");
-                emitter.complete();
-                return emitter;
-            }
-        } catch (Exception e) {
-            LOGGER.error("sessionId invalid", e);
+        if (!checkMcpToken("mcp", "mcp_message")) {
             emitter.complete();
             return emitter;
         }
 
-        Long id = SessionUtil.userId();
         SessionUtil.setSource(CommonConst.MCP_SOURCE);
-        if (Objects.isNull(id)) {
-            LOGGER.error("not login");
+        Long userId = SessionUtil.userId();
+        if (userId == null) {
+            LOGGER.error("legacy sse: not login");
             emitter.complete();
             return emitter;
         }
 
         String sessionId = UUID.randomUUID().toString();
-        LEGACY_SESSION_MAP.put(sessionId, new Tuple2<>(emitter, id));
-        Runnable runnable = () -> LEGACY_SESSION_MAP.remove(sessionId);
-        emitter.onCompletion(runnable);
-        emitter.onTimeout(runnable);
-        emitter.onError(e -> runnable.run());
-
+        LEGACY_SESSION_MAP.put(sessionId, new Tuple2<>(emitter, userId));
+        Runnable cleanup = () -> LEGACY_SESSION_MAP.remove(sessionId);
+        emitter.onCompletion(cleanup);
+        emitter.onTimeout(cleanup);
+        emitter.onError(e -> cleanup.run());
         try {
-            String endpointUrl = legacyMessagesEndpoint(sessionId);
-            emitter.send(SseEmitter.event().name("endpoint").data(endpointUrl));
+            emitter.send(SseEmitter.event().name("endpoint").data(legacyMessagesEndpoint(sessionId)));
         } catch (IOException e) {
             LEGACY_SESSION_MAP.remove(sessionId);
             emitter.complete();
@@ -252,101 +229,78 @@ public class McpController {
             @RequestBody JsonRpcRequest request) {
 
         String sessionId = httpServletRequest.getParameter("sessionId");
-        try {
-            if (!checkMcpToken("mcp_message")) {
-                LOGGER.error("sessionId invalid");
-                return ResponseEntity.badRequest().build();
-            }
-        } catch (Exception e) {
-            LOGGER.error("sessionId invalid", e);
+        if (!checkMcpToken("mcp", "mcp_message")) {
             return ResponseEntity.badRequest().build();
         }
 
         SessionUtil.setSource(CommonConst.MCP_SOURCE);
         Tuple2<SseEmitter, Long> item = LEGACY_SESSION_MAP.get(sessionId);
-        if (Objects.isNull(item) || !Objects.equals(item.getSecond(), SessionUtil.userId())) {
-            LOGGER.error("sessionId invalid");
+        Long currentUser = SessionUtil.userId();
+        if (item == null || !sessionUserMatches(item.getSecond(), currentUser)) {
+            return ResponseEntity.badRequest().build();
+        }
+        SseEmitter out = item.getFirst();
+        if (out == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        SseEmitter out = item.getFirst();
-        if (Objects.isNull(out)) {
-            LOGGER.error("sessionId invalid");
-            return ResponseEntity.badRequest().build();
+        LOGGER.info("legacy MCP method={}", request.method());
+        if (!isJsonRpcRequest(request)) {
+            mcpProtocolService.handler(request);
+            return ResponseEntity.accepted().build();
         }
 
         Object res = mcpProtocolService.handler(request);
-        if (Objects.nonNull(res)) {
-            try {
-                String line = JsonUtil.toJson(res);
-                synchronized (out) {
-                    SseEmitter.SseEventBuilder builder = SseEmitter.event();
-                    builder.name(toolManager.getEventName(request.method()));
-                    out.send(builder.data(line, MediaType.APPLICATION_JSON));
+        if (res == null) {
+            return ResponseEntity.accepted().build();
+        }
+        try {
+            String line = JsonUtil.toJson(res);
+            synchronized (out) {
+                SseEmitter.SseEventBuilder builder = SseEmitter.event();
+                String eventName = toolManager.getEventName(request.method());
+                if (StringUtils.hasText(eventName)) {
+                    builder.name(eventName);
                 }
-            } catch (Exception e) {
-                LEGACY_SESSION_MAP.remove(sessionId);
-                LOGGER.error("error.", e);
+                out.send(builder.data(line, MediaType.APPLICATION_JSON));
             }
+        } catch (Exception e) {
+            LEGACY_SESSION_MAP.remove(sessionId);
+            LOGGER.error("legacy SSE send error, method={}", request.method(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
         return ResponseEntity.accepted().build();
     }
 
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
+    // ======================== Helpers ========================
 
-    private SseEmitter streamablePostAsSse(JsonRpcRequest request, String sessionId) {
-        SseEmitter emitter = new SseEmitter(0L);
-        Runnable cleanup = () -> { /* POST stream is short-lived; no map entry */ };
-        emitter.onCompletion(cleanup);
-        emitter.onTimeout(cleanup);
-        emitter.onError(e -> cleanup.run());
-
-        try {
-            Object res = mcpProtocolService.handler(request);
-            if (res != null) {
-                String line = JsonUtil.toJson(res);
-                emitter.send(SseEmitter.event().data(line, MediaType.APPLICATION_JSON));
-            }
-            emitter.complete();
-        } catch (Exception e) {
-            LOGGER.error("streamable POST SSE error", e);
-            emitter.completeWithError(e);
-        }
-        return emitter;
-    }
-
-    private String resolveStreamableSession(List<JsonRpcRequest> messages, String headerSessionId) {
-        boolean initializing = messages.stream()
-                .anyMatch(m -> METHOD_INITIALIZE.equals(m.method()));
-
+    private String resolveStreamableSession(List<JsonRpcRequest> requests, String headerSessionId) {
+        boolean initializing = requests.stream()
+                .anyMatch(r -> METHOD_INITIALIZE.equalsIgnoreCase(r.method()));
         Long userId = SessionUtil.userId();
-        if (userId == null) {
-            LOGGER.error("not login");
-            return null;
-        }
 
         if (initializing) {
             String sessionId = UUID.randomUUID().toString();
             STREAMABLE_SESSION_MAP.put(sessionId, new Tuple2<>(null, userId));
+            LOGGER.info("MCP session created: {}", sessionId);
             return sessionId;
         }
-
         if (!StringUtils.hasText(headerSessionId)) {
-            LOGGER.error("missing {} for non-initialize request", MCP_SESSION_ID_HEADER);
             return null;
         }
         if (!isValidStreamableSession(headerSessionId, userId)) {
-            LOGGER.error("invalid {}", MCP_SESSION_ID_HEADER);
-            return null;
+            return INVALID_SESSION_MARKER;
         }
         return headerSessionId;
     }
 
     private boolean isValidStreamableSession(String sessionId, Long userId) {
         Tuple2<SseEmitter, Long> item = STREAMABLE_SESSION_MAP.get(sessionId);
-        return item != null && Objects.equals(item.getSecond(), userId);
+        if (item == null) {
+            return false;
+        }
+        Long bound = item.getSecond();
+        return bound == null || userId == null || Objects.equals(bound, userId);
     }
 
     private void removeStreamableEmitter(String sessionId, SseEmitter emitter) {
@@ -356,27 +310,29 @@ public class McpController {
         }
     }
 
-    private boolean checkMcpToken(String resource) {
-        boolean ret = PermissionUtil.checkPrivateToken(resource, PermissionConst.RESOURCE_SSE);
-        if (!ret) {
-            LOGGER.error("permission denied for {}", resource);
+    private boolean checkMcpToken(String... resources) {
+        for (String resource : resources) {
+            if (PermissionUtil.checkPrivateToken(resource, PermissionConst.RESOURCE_SSE)) {
+                return true;
+            }
         }
-        return ret;
+        LOGGER.error("permission denied for {}", String.join(",", resources));
+        return false;
     }
 
-    private static boolean acceptsEventStream(String accept) {
-        if (!StringUtils.hasText(accept)) {
-            return true;
-        }
-        return accept.contains(MediaType.TEXT_EVENT_STREAM_VALUE);
+    private boolean sessionUserMatches(Long sessionUser, Long currentUser) {
+        return sessionUser == null || currentUser == null || Objects.equals(sessionUser, currentUser);
     }
 
-    /** JSON-RPC request: has method and id; notification has method but no id. */
+    /** JSON-RPC request：有 id，或 initialize（可无 id） */
     private boolean isJsonRpcRequest(JsonRpcRequest msg) {
         if (msg == null || !StringUtils.hasText(msg.method())) {
             return false;
         }
-        return msg.id() != null;
+        if (METHOD_INITIALIZE.equalsIgnoreCase(msg.method())) {
+            return true;
+        }
+        return msg.id() != null && !msg.id().isNull();
     }
 
     @SuppressWarnings("unchecked")
