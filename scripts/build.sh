@@ -3,23 +3,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 DIR=$(realpath "$(dirname "$0")")
-cd $DIR/../
+cd "$DIR/../"
 WORKDIR=$(pwd)
-output_path=$WORKDIR/output
+output_path="$WORKDIR/output"
 function build_model() {
-    cd $WORKDIR/$1
+    cd "$WORKDIR/$1"
     mvn clean
     mvn install
     if [ -d "./target" ]; then
-        cp target/*.jar $output_path
+        cp "target/*.jar $output_path"
     fi
-    cd $WORKDIR
+    cd "$WORKDIR"
 }
 
 if [ -d "$output_path" ]; then
   rm -rf ./output
 fi
-mkdir $output_path
+mkdir "$output_path"
 
 build_model oceancode-spring-boot-parent
 build_model oceancode-core
