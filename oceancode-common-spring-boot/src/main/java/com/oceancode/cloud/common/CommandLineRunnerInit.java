@@ -5,6 +5,7 @@
 package com.oceancode.cloud.common;
 
 import com.oceancode.cloud.api.ApplicationLifeCycleService;
+import com.oceancode.cloud.common.cache.CommonCacheManager;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.util.CacheUtil;
 import com.oceancode.cloud.common.util.ComponentUtil;
@@ -24,6 +25,7 @@ public class CommandLineRunnerInit implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        CommonCacheManager.getAllCacheManager();
         doCheckConfig();
         for (ApplicationLifeCycleService service : ComponentUtil.getBeans(ApplicationLifeCycleService.class).values()) {
             service.onReady();
