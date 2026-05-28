@@ -6,6 +6,7 @@ import com.oceancode.cloud.chart.ChartMessageCallback;
 import com.oceancode.cloud.chart.ChartMessageHandler;
 import com.oceancode.cloud.chart.ChartMessageType;
 import com.oceancode.cloud.chart.RTMessageService;
+import com.oceancode.cloud.chart.UserType;
 import com.oceancode.cloud.chat.ChatMessageResponse;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
@@ -55,6 +56,7 @@ public class WebSocketServer {
         sessionService = ComponentUtil.getBean(SessionService.class);
         RTMessageService = ComponentUtil.getBean(WebsocketRTMessageServiceImpl.class);
         JsonUtil.registerTypeEnum(ChartMessageType.class);
+        JsonUtil.registerTypeEnum(UserType.class);
         chartMessageHandler = ComponentUtil.getBean(ChartMessageHandler.class, false);
     }
 

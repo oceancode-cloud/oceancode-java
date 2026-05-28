@@ -25,6 +25,7 @@ public class ChartMessage {
     private MessageLifeCycle lifeCycle = MessageLifeCycle.PROCESS;
     private String sessionId;
     private String uid;
+    private UserType userType;
 
     private ChartMessage() {
     }
@@ -256,6 +257,14 @@ public class ChartMessage {
 
     public void setTo(String to) {
         this.to = to;
+    }
+
+    public UserType getUserType() {
+        return userType;
+    }
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
     }
 
     @Override
