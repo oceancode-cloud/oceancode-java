@@ -33,6 +33,10 @@ public class ToolParam {
         return param.toString();
     }
 
+    public String asString(String key) {
+        return asText(key);
+    }
+
     public Long asLong(String key) {
         String text = asText(key);
         if (ValueUtil.isEmpty(text)) {
