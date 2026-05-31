@@ -3,6 +3,7 @@ package com.oceancode.cloud.chat;
 import java.util.List;
 
 public class ChatMessageInput {
+    private String category;
     private List<ChatMessageContent> contents;
 
     public List<ChatMessageContent> getContents() {
@@ -11,5 +12,13 @@ public class ChatMessageInput {
 
     public void setContents(List<ChatMessageContent> contents) {
         this.contents = contents;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }

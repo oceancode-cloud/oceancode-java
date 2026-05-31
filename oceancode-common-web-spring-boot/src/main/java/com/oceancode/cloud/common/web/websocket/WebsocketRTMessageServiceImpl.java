@@ -4,9 +4,9 @@ import com.oceancode.cloud.api.mq.Message;
 import com.oceancode.cloud.api.mq.MessageType;
 import com.oceancode.cloud.api.mq.Producer;
 import com.oceancode.cloud.api.session.SessionService;
-import com.oceancode.cloud.chart.ChartMessage;
-import com.oceancode.cloud.chart.ChartMessageType;
-import com.oceancode.cloud.chart.RTMessageService;
+import com.oceancode.cloud.chat.ChatMessage;
+import com.oceancode.cloud.chat.ChatMessageType;
+import com.oceancode.cloud.chat.RTMessageService;
 import com.oceancode.cloud.common.cache.KeyParam;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
@@ -30,11 +30,11 @@ public class WebsocketRTMessageServiceImpl implements RTMessageService {
     private static String msgKey;
 
     public WebsocketRTMessageServiceImpl(CommonConfig commonConfig) {
-        msgKey = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".name", ChartMessage.CHART_MESSAGE_KEY);
+        msgKey = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".name", ChatMessage.CHART_MESSAGE_KEY);
     }
 
     @Override
-    public void sendToSelf(ChartMessage message) {
+    public void sendToSelf(ChatMessage message) {
         Long userId = SessionUtil.userId();
         if (Objects.isNull(userId)) {
             return;
@@ -44,31 +44,36 @@ public class WebsocketRTMessageServiceImpl implements RTMessageService {
             return;
         }
         if (Objects.isNull(message.getType())) {
-            message.setType(ChartMessageType.NOTIFIER_MESSAGE);
+            message.setType(ChatMessageType.NOTIFIER_MESSAGE);
         }
 
         wsSession.send(message);
     }
 
     @Override
-    public void sendTo(Long userId, ChartMessage message) {
+    public void sendTo(ChatMessage message) {
+        sendTo(message.getToUser(), message);
+    }
+
+    @Override
+    public void sendTo(Long userId, ChatMessage message) {
         if (Objects.isNull(userId) || Objects.isNull(message)) {
             return;
         }
-        message.setToUser(null);
+        message.setToUser(userId);
         boolean isRecordMessage = true;
         try {
             WsSession wsSession = WebSocketServer.SESSIONS.get(userId);
             WsSession fromSession = Objects.nonNull(message.getFromUser()) ?
                     WebSocketServer.SESSIONS.get(message.getFromUser()) : null;
             if (!isOnline(userId) && Objects.nonNull(fromSession)) {
-                fromSession.reply(ChartMessage.notifier().msgId(message.getMsgId())
+                fromSession.reply(ChatMessage.notifier().msgId(message.getMsgId())
                         .errorCode(CommonErrorCode.USER_NOT_ONLINE));
             } else {
                 if (Objects.nonNull(wsSession) && wsSession.isActive()) {
                     wsSession.send(message);
                     isRecordMessage = false;
-                    fromSession.reply(ChartMessage.notifier().msgId(message.getMsgId()));
+                    fromSession.reply(ChatMessage.notifier().msgId(message.getMsgId()));
                 }
             }
 
@@ -79,15 +84,15 @@ public class WebsocketRTMessageServiceImpl implements RTMessageService {
                 return;
             }
 
-            if (ChartMessageType.CHART_MESSAGE.equals(message.getType())) {
+            if (ChatMessageType.CHAT_MESSAGE.equals(message.getType())) {
                 message.setToUser(userId);
                 Producer producer = ComponentUtil.getBean(Producer.class);
-                Message<ChartMessage> msg = new Message<>();
+                Message<ChatMessage> msg = new Message<>();
                 msg.setData(message);
                 msg.setId(UUID.randomUUID().toString().replace("-", ""));
                 msg.setKey(msgKey);
                 msg.setUserId(userId);
-                msg.setMessageType(MessageType.CHART_MESSAGE);
+                msg.setMessageType(MessageType.CHAT_MESSAGE);
                 producer.fillMessage(msg);
                 producer.sendWithBusiness(msg);
             }
@@ -95,7 +100,7 @@ public class WebsocketRTMessageServiceImpl implements RTMessageService {
     }
 
     @Override
-    public void sendTo(Set<Long> userIds, ChartMessage message) {
+    public void sendTo(Set<Long> userIds, ChatMessage message) {
         if (Objects.isNull(userIds)) {
             return;
         }

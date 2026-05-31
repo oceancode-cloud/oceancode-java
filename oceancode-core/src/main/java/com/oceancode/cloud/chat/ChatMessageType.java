@@ -1,8 +1,8 @@
-package com.oceancode.cloud.chart;
+package com.oceancode.cloud.chat;
 
 import com.oceancode.cloud.api.TypeEnum;
 
-public enum ChartMessageType implements TypeEnum<Integer> {
+public enum ChatMessageType implements TypeEnum<Integer> {
     // 普通消息
     MESSAGE(1, null, null),
 
@@ -10,7 +10,7 @@ public enum ChartMessageType implements TypeEnum<Integer> {
     NOTIFIER_MESSAGE(2, null, null),
 
     // 聊天消息
-    CHART_MESSAGE(3, null, null),
+    CHAT_MESSAGE(3, null, null),
     NOTIFIER_MESSAGE_PUSHED(4, null, null),
     STREAM_MESSAGE(5, null, null),
     ;
@@ -18,7 +18,7 @@ public enum ChartMessageType implements TypeEnum<Integer> {
     private String name;
     private String desc;
 
-    ChartMessageType(int value, String name, String desc) {
+    ChatMessageType(int value, String name, String desc) {
         this.value = value;
         this.name = name;
         this.desc = desc;

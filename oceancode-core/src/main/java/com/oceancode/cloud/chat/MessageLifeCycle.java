@@ -1,4 +1,4 @@
-package com.oceancode.cloud.chart;
+package com.oceancode.cloud.chat;
 
 import com.oceancode.cloud.api.TypeEnum;
 

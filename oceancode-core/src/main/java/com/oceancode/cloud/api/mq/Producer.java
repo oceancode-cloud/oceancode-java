@@ -4,7 +4,7 @@
 
 package com.oceancode.cloud.api.mq;
 
-import com.oceancode.cloud.chart.ChartMessage;
+import com.oceancode.cloud.chat.ChatMessage;
 
 public interface Producer {
     void send(Message<?> message, Callback callback);
@@ -21,6 +21,6 @@ public interface Producer {
         return send(message);
     }
 
-    default void fillMessage(Message<ChartMessage> msg) {
+    default void fillMessage(Message<ChatMessage> msg) {
     }
 }

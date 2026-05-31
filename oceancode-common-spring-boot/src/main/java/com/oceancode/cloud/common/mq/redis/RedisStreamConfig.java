@@ -1,6 +1,6 @@
 package com.oceancode.cloud.common.mq.redis;
 
-import com.oceancode.cloud.chart.ChartMessage;
+import com.oceancode.cloud.chat.ChatMessage;
 import com.oceancode.cloud.common.cache.KeyParam;
 import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
@@ -53,7 +53,7 @@ public class RedisStreamConfig implements InitializingBean, DisposableBean {
     public RedisStreamConfig(CommonConfig commonConfig, ThreadPoolTaskExecutor threadPoolTaskExecutor) {
         this.threadPoolTaskExecutor = threadPoolTaskExecutor;
         redisTemplate = RedisUtil.getTemplate(KeyParam.of().pattern());
-        streamName = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".name", ChartMessage.CHART_MESSAGE_KEY.replace("-", ":"));
+        streamName = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".name", ChatMessage.CHART_MESSAGE_KEY.replace("-", ":"));
         userEventGroup = commonConfig.getValue("oc.message.queue." + KeyParam.DEFAULT_KEY + ".group", "user-event-stream");
     }
 

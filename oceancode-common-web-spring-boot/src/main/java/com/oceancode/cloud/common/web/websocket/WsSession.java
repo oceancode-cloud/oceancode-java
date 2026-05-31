@@ -1,7 +1,7 @@
 package com.oceancode.cloud.common.web.websocket;
 
-import com.oceancode.cloud.chart.ChartMessage;
-import com.oceancode.cloud.chart.ChartMessageType;
+import com.oceancode.cloud.chat.ChatMessage;
+import com.oceancode.cloud.chat.ChatMessageType;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.JsonUtil;
@@ -26,8 +26,8 @@ public class WsSession {
     }
 
 
-    public void reply(ChartMessage chartMessage) {
-        sendText(JsonUtil.toJson(chartMessage));
+    public void reply(ChatMessage chatMessage) {
+        sendText(JsonUtil.toJson(chatMessage));
     }
 
     public void sendText(String message) {
@@ -69,14 +69,14 @@ public class WsSession {
         return session.isOpen();
     }
 
-    public void send(ChartMessage message) {
-        if (ChartMessageType.NOTIFIER_MESSAGE.equals(message.getType())) {
+    public void send(ChatMessage message) {
+        if (ChatMessageType.NOTIFIER_MESSAGE.equals(message.getType())) {
             message.setToUser(null);
             message.setFromUser(null);
-        } else if (ChartMessageType.MESSAGE.equals(message.getType())) {
+        } else if (ChatMessageType.MESSAGE.equals(message.getType())) {
             message.setToUser(null);
             message.setFromUser(null);
-            message.setType(ChartMessageType.NOTIFIER_MESSAGE);
+            message.setType(ChatMessageType.NOTIFIER_MESSAGE);
         }
         sendText(JsonUtil.toJson(message));
     }

@@ -1,15 +1,16 @@
-package com.oceancode.cloud.chart;
+package com.oceancode.cloud.chat;
 
 import com.oceancode.cloud.api.ErrorCode;
+import com.oceancode.cloud.common.util.SessionUtil;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class ChartMessage {
+public class ChatMessage {
     public static final String CHART_MESSAGE_KEY = "_chart-message";
-    private ChartMessageType type;
+    private ChatMessageType type;
     private Object data;
     private Long fromUser;
     private Long toUser;
@@ -26,14 +27,33 @@ public class ChartMessage {
     private String sessionId;
     private String uid;
     private UserType userType;
+    private Long timestamp;
 
-    private ChartMessage() {
+    private ChatMessage() {
     }
 
-    public static ChartMessage notifier() {
-        ChartMessage chartMessage = new ChartMessage();
-        chartMessage.setType(ChartMessageType.NOTIFIER_MESSAGE);
-        return chartMessage;
+    public static ChatMessage notifier() {
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setType(ChatMessageType.NOTIFIER_MESSAGE);
+        return chatMessage;
+    }
+
+    public static ChatMessage userMessage(Object data) {
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setType(ChatMessageType.CHAT_MESSAGE);
+        chatMessage.setData(data);
+        return chatMessage;
+    }
+
+    public ChatMessage replyChatMessage() {
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setType(ChatMessageType.CHAT_MESSAGE);
+        chatMessage.setFromUser(this.getToUser());
+        chatMessage.setToUser(SessionUtil.userId());
+        chatMessage.setFrom(getTo());
+        chatMessage.setMsgId(getMsgId());
+        chatMessage.setTimestamp(System.currentTimeMillis());
+        return chatMessage;
     }
 
     /**
@@ -42,16 +62,16 @@ public class ChartMessage {
      * @param source 原始message
      * @return response message
      */
-    public static ChartMessage copy(ChartMessage source) {
-        ChartMessage message = new ChartMessage();
-        if (ChartMessageType.CHART_MESSAGE.equals(source.getType())) {
+    public static ChatMessage copy(ChatMessage source) {
+        ChatMessage message = new ChatMessage();
+        if (ChatMessageType.CHAT_MESSAGE.equals(source.getType())) {
             message.setData(source.getData());
             message.setMsgId(source.getMsgId());
             message.setFromUser(source.getFromUser());
             message.setType(source.getType());
             message.setToUser(source.getToUser());
-        } else if (ChartMessageType.MESSAGE.equals(source.getType())) {
-            message.setType(ChartMessageType.NOTIFIER_MESSAGE);
+        } else if (ChatMessageType.MESSAGE.equals(source.getType())) {
+            message.setType(ChatMessageType.NOTIFIER_MESSAGE);
             message.setMsgId(source.getMsgId());
             message.setFromUser(source.getFromUser());
         }
@@ -59,17 +79,17 @@ public class ChartMessage {
         return message;
     }
 
-    public static ChartMessage message() {
-        ChartMessage chartMessage = new ChartMessage();
-        chartMessage.setType(ChartMessageType.MESSAGE);
-        return chartMessage;
+    public static ChatMessage message() {
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setType(ChatMessageType.MESSAGE);
+        return chatMessage;
     }
 
-    public ChartMessageType getType() {
+    public ChatMessageType getType() {
         return type;
     }
 
-    public void setType(ChartMessageType type) {
+    public void setType(ChatMessageType type) {
         this.type = type;
     }
 
@@ -97,27 +117,27 @@ public class ChartMessage {
         this.toUser = toUser;
     }
 
-    public ChartMessage toUser(Long userId) {
+    public ChatMessage toUser(Long userId) {
         this.toUser = userId;
         return this;
     }
 
-    public ChartMessage fromUser(Long userId) {
+    public ChatMessage fromUser(Long userId) {
         this.fromUser = userId;
         return this;
     }
 
-    public ChartMessage data(Object data) {
+    public ChatMessage data(Object data) {
         this.data = data;
         return this;
     }
 
-    public ChartMessage sessionId(String sessionId) {
+    public ChatMessage sessionId(String sessionId) {
         this.sessionId = sessionId;
         return this;
     }
 
-    public ChartMessage category(String category) {
+    public ChatMessage category(String category) {
         this.category = category;
         return this;
     }
@@ -130,7 +150,7 @@ public class ChartMessage {
         this.errorCode = errorCode;
     }
 
-    public ChartMessage errorCode(ErrorCode errorCode) {
+    public ChatMessage errorCode(ErrorCode errorCode) {
         this.errorCode = errorCode;
         this.data = errorCode.getMessage();
         return this;
@@ -144,21 +164,21 @@ public class ChartMessage {
         this.msgId = msgId;
     }
 
-    public ChartMessage msgId(String msgId) {
+    public ChatMessage msgId(String msgId) {
         this.msgId = msgId;
         return this;
     }
 
-    public ChartMessage dataId(String dataId) {
+    public ChatMessage dataId(String dataId) {
         this.dataId = dataId;
         return this;
     }
 
-    public ChartMessage dataId(Long dataId) {
+    public ChatMessage dataId(Long dataId) {
         return this.dataId(String.valueOf(dataId));
     }
 
-    public ChartMessage lifeCycle(MessageLifeCycle lifeCycle) {
+    public ChatMessage lifeCycle(MessageLifeCycle lifeCycle) {
         this.lifeCycle = lifeCycle;
         return this;
     }
@@ -203,12 +223,12 @@ public class ChartMessage {
         this.lifeCycle = lifeCycle;
     }
 
-    public ChartMessage extraData(String key, String value) {
+    public ChatMessage extraData(String key, String value) {
         setExtra(key, value);
         return this;
     }
 
-    public ChartMessage extraData(String key, Number value) {
+    public ChatMessage extraData(String key, Number value) {
         setExtra(key, value);
         return this;
     }
@@ -265,6 +285,14 @@ public class ChartMessage {
 
     public void setUserType(UserType userType) {
         this.userType = userType;
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
     }
 
     @Override

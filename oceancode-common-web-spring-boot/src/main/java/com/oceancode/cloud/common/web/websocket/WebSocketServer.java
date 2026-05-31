@@ -1,15 +1,14 @@
 package com.oceancode.cloud.common.web.websocket;
 
 import com.oceancode.cloud.api.session.SessionService;
-import com.oceancode.cloud.chart.ChartMessage;
-import com.oceancode.cloud.chart.ChartMessageCallback;
-import com.oceancode.cloud.chart.ChartMessageHandler;
-import com.oceancode.cloud.chart.ChartMessageType;
-import com.oceancode.cloud.chart.RTMessageService;
-import com.oceancode.cloud.chart.UserType;
+import com.oceancode.cloud.chat.ChatMessage;
+import com.oceancode.cloud.chat.ChatMessageCallback;
+import com.oceancode.cloud.chat.ChatMessageHandler;
+import com.oceancode.cloud.chat.ChatMessageType;
+import com.oceancode.cloud.chat.RTMessageService;
+import com.oceancode.cloud.chat.UserType;
 import com.oceancode.cloud.chat.ChatMessageResponse;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
-import com.oceancode.cloud.common.exception.BusinessRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.SessionUtil;
@@ -30,7 +29,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,7 +37,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@ServerEndpoint(value = "/chart/{userId}")
+@ServerEndpoint(value = "/chat/{userId}")
 @ConditionalOnClass(ServerEndpointExporter.class)
 public class WebSocketServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketServer.class);
@@ -48,16 +46,16 @@ public class WebSocketServer {
     private static SessionService sessionService;
 
     private static RTMessageService RTMessageService;
-    private static Map<String, ChartMessageHandler> handlers = new HashMap<>();
-    private static ChartMessageHandler chartMessageHandler;
+    private static Map<String, ChatMessageHandler> handlers = new HashMap<>();
+    private static ChatMessageHandler chatMessageHandler;
 
     @PostConstruct
     public void init() {
         sessionService = ComponentUtil.getBean(SessionService.class);
         RTMessageService = ComponentUtil.getBean(WebsocketRTMessageServiceImpl.class);
-        JsonUtil.registerTypeEnum(ChartMessageType.class);
+        JsonUtil.registerTypeEnum(ChatMessageType.class);
         JsonUtil.registerTypeEnum(UserType.class);
-        chartMessageHandler = ComponentUtil.getBean(ChartMessageHandler.class, false);
+        chatMessageHandler = ComponentUtil.getBean(ChatMessageHandler.class, false);
     }
 
     @OnOpen
@@ -86,13 +84,13 @@ public class WebSocketServer {
             SESSIONS.remove(userId);
         }
         if (Objects.isNull(userId)) {
-            wsSession.reply(ChartMessage.notifier().errorCode(CommonErrorCode.USER_NOT_FOUND));
+            wsSession.reply(ChatMessage.notifier().errorCode(CommonErrorCode.USER_NOT_FOUND));
             wsSession.close();
             return;
         }
 
         if (!sessionService.isLogin(userId)) {
-            wsSession.reply(ChartMessage.notifier().errorCode(CommonErrorCode.ACCESS_DENIED));
+            wsSession.reply(ChatMessage.notifier().errorCode(CommonErrorCode.ACCESS_DENIED));
             wsSession.close();
             return;
         }
@@ -126,54 +124,54 @@ public class WebSocketServer {
             return;
         }
 
-        ChartMessage chartMessage = JsonUtil.toBean(message, ChartMessage.class);
-        if (Objects.isNull(chartMessage)) {
+        ChatMessage chatMessage = JsonUtil.toBean(message, ChatMessage.class);
+        if (Objects.isNull(chatMessage)) {
             return;
         }
-        if (Objects.nonNull(chartMessage.getProjectId())) {
-            SessionUtil.setProjectId(chartMessage.getProjectId());
+        if (Objects.nonNull(chatMessage.getProjectId())) {
+            SessionUtil.setProjectId(chatMessage.getProjectId());
         }
 
-        if (Objects.nonNull(chartMessage.getTenantId())) {
-            SessionUtil.setTenantId(chartMessage.getTenantId());
+        if (Objects.nonNull(chatMessage.getTenantId())) {
+            SessionUtil.setTenantId(chatMessage.getTenantId());
         }
         SessionUtil.setUserId(userId);
 
-        chartMessage.setFromUser(userId);
-        if (Objects.nonNull(chartMessageHandler)) {
-            ChartMessageCallback callback = data -> {
-                ChartMessage notifier = ChartMessage.notifier();
-                notifier.setMsgId(chartMessage.getMsgId());
+        chatMessage.setFromUser(userId);
+        if (Objects.nonNull(chatMessageHandler)) {
+            ChatMessageCallback callback = data -> {
+                ChatMessage notifier = ChatMessage.notifier();
+                notifier.setMsgId(chatMessage.getMsgId());
                 notifier.setData(data);
-                notifier.toUser(chartMessage.getFromUser());
-                notifier.fromUser(chartMessage.getToUser());
-                notifier.setFrom(chartMessage.getTo());
-                notifier.setTo(chartMessage.getFrom());
+                notifier.toUser(chatMessage.getFromUser());
+                notifier.fromUser(chatMessage.getToUser());
+                notifier.setFrom(chatMessage.getTo());
+                notifier.setTo(chatMessage.getFrom());
                 if (data instanceof ChatMessageResponse) {
-                    notifier.setType(ChartMessageType.STREAM_MESSAGE);
+                    notifier.setType(ChatMessageType.STREAM_MESSAGE);
                 }
                 wsSession.reply(notifier);
             };
-            chartMessageHandler.onMessage(chartMessage, callback);
+            chatMessageHandler.onMessage(chatMessage, callback);
             return;
         }
 
-        if (ValueUtil.isNotEmpty(chartMessage.getToUser())) {
-            RTMessageService.sendTo(chartMessage.getToUser(), chartMessage);
-            ChartMessage replyMessage = ChartMessage.notifier();
-            replyMessage.setMsgId(chartMessage.getMsgId());
-            replyMessage.setToUser(chartMessage.getToUser());
-            replyMessage.setType(ChartMessageType.NOTIFIER_MESSAGE_PUSHED);
+        if (ValueUtil.isNotEmpty(chatMessage.getToUser())) {
+            RTMessageService.sendTo(chatMessage.getToUser(), chatMessage);
+            ChatMessage replyMessage = ChatMessage.notifier();
+            replyMessage.setMsgId(chatMessage.getMsgId());
+            replyMessage.setToUser(chatMessage.getToUser());
+            replyMessage.setType(ChatMessageType.NOTIFIER_MESSAGE_PUSHED);
             wsSession.reply(replyMessage);
         }
     }
 
-    private void processReplyMessage(WsSession wsSession, ChartMessage message, ChartMessage replyMessage) {
+    private void processReplyMessage(WsSession wsSession, ChatMessage message, ChatMessage replyMessage) {
         if (Objects.isNull(replyMessage) || Objects.isNull(wsSession)) {
             return;
         }
         replyMessage.setMsgId(message.getMsgId());
-        replyMessage.setType(ChartMessageType.NOTIFIER_MESSAGE_PUSHED);
+        replyMessage.setType(ChatMessageType.NOTIFIER_MESSAGE_PUSHED);
         wsSession.send(replyMessage);
     }
 
