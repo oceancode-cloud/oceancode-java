@@ -71,11 +71,11 @@ public class WsSession {
 
     public void send(ChatMessage message) {
         if (ChatMessageType.NOTIFIER_MESSAGE.equals(message.getType())) {
-            message.setToUser(null);
-            message.setFromUser(null);
+//            message.setToUser(null);
+//            message.setFromUser(null);
         } else if (ChatMessageType.MESSAGE.equals(message.getType())) {
-            message.setToUser(null);
-            message.setFromUser(null);
+//            message.setToUser(null);
+//            message.setFromUser(null);
             message.setType(ChatMessageType.NOTIFIER_MESSAGE);
         }
         sendText(JsonUtil.toJson(message));
