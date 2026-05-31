@@ -4,6 +4,7 @@ import java.util.List;
 
 public class ChatMessageInput {
     private String category;
+    private Boolean group;
     private List<ChatMessageContent> contents;
 
     public List<ChatMessageContent> getContents() {
@@ -20,5 +21,13 @@ public class ChatMessageInput {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public Boolean getGroup() {
+        return group;
+    }
+
+    public void setGroup(Boolean group) {
+        this.group = group;
     }
 }
