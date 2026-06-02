@@ -27,7 +27,7 @@ import java.util.Set;
 @RestController
 @RequestMapping(CommonConst.API_PREFIX)
 @ConditionalOnBean(TestFunction.class)
-//@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "test")
+@ConditionalOnProperty(name = "oc.tester.case.enabled", havingValue = "true")
 public class TestController {
     private final static Logger LOGGER = LoggerFactory.getLogger(TestController.class);
 
