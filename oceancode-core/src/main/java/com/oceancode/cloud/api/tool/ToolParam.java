@@ -18,11 +18,14 @@ public class ToolParam {
     }
 
     public Map<String, Object> params() {
+        if (Objects.isNull(map)) {
+            map = Collections.emptyMap();
+        }
         return map;
     }
 
     public Object param(String key) {
-        return map.get(key);
+        return params().get(key);
     }
 
     public String asText(String key) {
