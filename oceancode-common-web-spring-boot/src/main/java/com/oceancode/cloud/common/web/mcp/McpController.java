@@ -54,7 +54,7 @@ public class McpController {
     private static final String INVALID_SESSION_MARKER = "\0INVALID_SESSION\0";
 
     private static final Map<String, Tuple2<SseEmitter, Long>> LEGACY_SESSION_MAP = new ConcurrentHashMap<>();
-    private static final Map<String, Tuple2<SseEmitter, Long>> STREAMABLE_SESSION_MAP = new ConcurrentHashMap<>();
+    public static final Map<String, Tuple2<SseEmitter, Long>> STREAMABLE_SESSION_MAP = new ConcurrentHashMap<>();
 
     private final McpProtocolService mcpProtocolService;
     private final ToolManager toolManager;
@@ -112,7 +112,7 @@ public class McpController {
         List<Object> results = new ArrayList<>();
         for (JsonRpcRequest request : requests) {
             LOGGER.info("MCP request method={}, id={}", request.method(), request.id());
-            Object res = mcpProtocolService.handler(request);
+            Object res = mcpProtocolService.handler(sessionId, request);
             if (res == null) {
                 LOGGER.error("handler returned null for method={}", request.method());
                 res = JsonRpcResponse.error(request.id(), -32603, "empty handler response");
@@ -324,7 +324,9 @@ public class McpController {
         return sessionUser == null || currentUser == null || Objects.equals(sessionUser, currentUser);
     }
 
-    /** JSON-RPC request：有 id，或 initialize（可无 id） */
+    /**
+     * JSON-RPC request：有 id，或 initialize（可无 id）
+     */
     private boolean isJsonRpcRequest(JsonRpcRequest msg) {
         if (msg == null || !StringUtils.hasText(msg.method())) {
             return false;

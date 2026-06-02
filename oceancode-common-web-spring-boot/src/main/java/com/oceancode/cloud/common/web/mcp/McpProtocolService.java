@@ -1,6 +1,9 @@
 package com.oceancode.cloud.common.web.mcp;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.oceancode.cloud.agent.AgentManager;
 import com.oceancode.cloud.api.ErrorCode;
+import com.oceancode.cloud.api.agent.Agent;
 import com.oceancode.cloud.api.tool.ToolLoader;
 import com.oceancode.cloud.api.tool.ToolManager;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
@@ -8,12 +11,16 @@ import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.ValueUtil;
+import com.oceancode.cloud.entity.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,6 +38,8 @@ public class McpProtocolService {
     @Value("${oc.mcp.protocol.version:2025-06-18}")
     private String protocolVersion;
     private ToolManager toolManager;
+    @Autowired(required = false)
+    private AgentManager agentManager;
     private final static Logger LOGGER = LoggerFactory.getLogger(McpProtocolService.class);
 
     public McpProtocolService(ToolManager toolManager) {
@@ -39,12 +48,16 @@ public class McpProtocolService {
     }
 
     public Object handler(JsonRpcRequest request) {
+        return handler(null, request);
+    }
+
+    public Object handler(String sessionId, JsonRpcRequest request) {
         try {
             if (Objects.isNull(request) || ValueUtil.isEmpty(request.method())) {
                 return JsonRpcResponse.error(null, -32600, "Invalid request");
             }
             return switch (request.method()) {
-                case "initialize" -> handleInitialize(request);
+                case "initialize" -> handleInitialize(sessionId, request);
                 case "tools/list" -> handleListTools(request);
                 case "tools/call" -> handleCallTool(request);
                 case "ping" -> JsonRpcResponse.success(request.id(), Map.of());
@@ -66,7 +79,23 @@ public class McpProtocolService {
 
 
     // 1. 握手协议
-    private JsonRpcResponse handleInitialize(JsonRpcRequest request) {
+    private JsonRpcResponse handleInitialize(String sessionId, JsonRpcRequest request) {
+        JsonNode jsonNode = request.params().get("clientInfo").get("name");
+        String name = jsonNode.asText();
+
+        if (Objects.nonNull(agentManager)) {
+            agentManager.setAgentSender(name, (data) -> {
+                Tuple2<SseEmitter, Long> item = McpController.STREAMABLE_SESSION_MAP.get(sessionId);
+                if (Objects.nonNull(item) && Objects.nonNull(item.getFirst())) {
+                    SseEmitter sseEmitter = item.getFirst();
+                    try {
+                        sseEmitter.send(SseEmitter.event().name("sampling/createMessage").data(data));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        }
         Map<String, Object> result = new HashMap<>();
         result.put("protocolVersion", protocolVersion);
         result.put("capabilities", Map.of("tools", Map.of())); // 声明支持工具
