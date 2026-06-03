@@ -59,6 +59,11 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             if (ValueUtil.isNotEmpty(requestId)) {
                 MDC.put(CommonConst.REQUEST_ID, requestId);
             }
+        } else {
+            String requestId = request.getHeader(CommonConst.X_REQUEST_ID);
+            if (ValueUtil.isNotEmpty(requestId) && requestId.length() <= 32) {
+                MDC.put(CommonConst.REQUEST_ID, requestId);
+            }
         }
         return true;
     }
