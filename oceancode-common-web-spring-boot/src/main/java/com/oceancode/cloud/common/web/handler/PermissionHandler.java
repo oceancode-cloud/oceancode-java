@@ -15,6 +15,7 @@ import com.oceancode.cloud.common.config.CommonConfig;
 import com.oceancode.cloud.common.entity.ResultData;
 import com.oceancode.cloud.common.errorcode.CommonErrorCode;
 import com.oceancode.cloud.common.exception.BusinessRuntimeException;
+import com.oceancode.cloud.common.exception.ErrorCodeRuntimeException;
 import com.oceancode.cloud.common.util.ComponentUtil;
 import com.oceancode.cloud.common.util.JsonUtil;
 import com.oceancode.cloud.common.util.PermissionUtil;
@@ -115,6 +116,9 @@ public class PermissionHandler implements ApplicationLifeCycleService {
             try {
                 proceed = proceedingJoinPoint.proceed();
             } catch (Throwable e) {
+                if (e instanceof ErrorCodeRuntimeException exception) {
+                    throw exception;
+                }
                 throw new BusinessRuntimeException(CommonErrorCode.SERVER_ERROR, e);
             } finally {
                 if (Objects.nonNull(functionInterceptor)) {
