@@ -4,9 +4,6 @@
 
 package com.oceancode.cloud.common.util;
 
-import com.oceancode.cloud.common.errorcode.CommonErrorCode;
-import com.oceancode.cloud.common.exception.BusinessRuntimeException;
-import org.apache.commons.io.FileUtils;
 import org.springframework.core.env.Environment;
 
 import java.io.BufferedReader;
@@ -88,10 +85,10 @@ public final class SystemUtil {
 
     public static String tempDir() {
         Environment environment = ComponentUtil.getBean(Environment.class);
-        String tempDir = environment.getProperty("oc.tmp.dir", "./data/tmp");
+        String tempDir = environment.getProperty("oc.tmp.dir");
         if (ValueUtil.isEmpty(tempDir)) {
             try {
-                return Path.of(dataDir(), "./data/tmp").toFile().getCanonicalPath();
+                return Path.of(dataDir(), "./tmp").toFile().getCanonicalPath();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
